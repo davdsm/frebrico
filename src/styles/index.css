@@ -1,0 +1,75 @@
+@import './fonts.css';
+@import './tailwind.css';
+@import './theme.css';
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+/* Carousel fade effect - ONLY on wide screens (> 1920px) */
+@media (min-width: 1920px) {
+  .carousel-fade-wrapper {
+    position: relative;
+  }
+
+  .carousel-fade-wrapper::before,
+  .carousel-fade-wrapper::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 120px;
+    z-index: 10;
+    pointer-events: none;
+  }
+
+  .carousel-fade-wrapper::before {
+    left: 0;
+    background: linear-gradient(to right, white, transparent);
+  }
+
+  .carousel-fade-wrapper::after {
+    right: 0;
+    background: linear-gradient(to left, white, transparent);
+  }
+
+  .carousel-fade-gray::before {
+    background: linear-gradient(to right, #f1f1f1, transparent);
+  }
+
+  .carousel-fade-gray::after {
+    background: linear-gradient(to left, #f1f1f1, transparent);
+  }
+  
+  .carousel-fade-wrapper-widescreen {
+    position: relative;
+  }
+
+  .carousel-fade-wrapper-widescreen::before,
+  .carousel-fade-wrapper-widescreen::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 120px;
+    z-index: 10;
+    pointer-events: none;
+  }
+
+  .carousel-fade-wrapper-widescreen::before {
+    left: 0;
+    background: linear-gradient(to right, white, transparent);
+  }
+
+  .carousel-fade-wrapper-widescreen::after {
+    right: 0;
+    background: linear-gradient(to left, white, transparent);
+  }
+}
