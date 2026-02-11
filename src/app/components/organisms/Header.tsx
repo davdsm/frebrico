@@ -1,12 +1,36 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Link, NavLink } from "react-router";
 import { NavItem } from "../molecules/NavItem";
 import { Button } from "../atoms/Button";
 import { Logo } from "../atoms/Logo";
 import { ProductsSubmenu } from "./ProductsSubmenu";
 
+const CLOSE_DELAY_MS = 150;
+
 export function Header() {
   const [isProductsOpen, setIsProductsOpen] = useState(false);
+  const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearCloseTimeout = () => {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = null;
+    }
+  };
+
+  const handleProductsAreaEnter = () => {
+    clearCloseTimeout();
+    setIsProductsOpen(true);
+  };
+
+  const handleProductsAreaLeave = () => {
+    closeTimeoutRef.current = setTimeout(() => setIsProductsOpen(false), CLOSE_DELAY_MS);
+  };
+
+  const handleSubmenuLeave = () => {
+    clearCloseTimeout();
+    setIsProductsOpen(false);
+  };
 
   return (
     <header className="w-full max-w-[1200px] mx-auto py-4 relative">
@@ -28,8 +52,8 @@ export function Header() {
           </NavLink>
           <div
             className="relative"
-            onMouseEnter={() => setIsProductsOpen(true)}
-            onMouseLeave={() => setIsProductsOpen(false)}
+            onMouseEnter={handleProductsAreaEnter}
+            onMouseLeave={handleProductsAreaLeave}
           >
             <NavLink
               to="/products"
@@ -42,9 +66,12 @@ export function Header() {
             </NavLink>
             <ProductsSubmenu
               isOpen={isProductsOpen}
-              onMouseEnter={() => setIsProductsOpen(true)}
-              onMouseLeave={() => setIsProductsOpen(false)}
-              onClose={() => setIsProductsOpen(false)}
+              onMouseEnter={handleProductsAreaEnter}
+              onMouseLeave={handleSubmenuLeave}
+              onClose={() => {
+                clearCloseTimeout();
+                setIsProductsOpen(false);
+              }}
             />
           </div>
         </nav>

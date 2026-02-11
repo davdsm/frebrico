@@ -150,7 +150,7 @@ export function ProductsSubmenu({
           transition={{ duration: 0.2 }}
           onMouseEnter={onMouseEnter}
           onMouseLeave={onMouseLeave}
-          className="fixed left-0 right-0 top-[7rem] z-50 h-auto min-h-0 bg-white shadow-lg"
+          className="fixed left-0 right-0 top-[7rem] z-50 h-auto min-h-0 bg-white shadow-[0_4px_12px_rgba(0,0,0,0.04),0_12px_40px_rgba(0,0,0,0.06),0_24px_60px_-12px_rgba(0,0,0,0.08)]"
         >
           <div className="flex max-w-[1440px] mx-auto px-6 md:px-10 lg:px-16 pt-8 pb-12">
             {/* Left: three-column category menus (domino cascade) */}
