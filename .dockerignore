@@ -1,0 +1,11 @@
+node_modules
+dist
+.git
+.cursor
+*.md
+data
+server/node_modules
+server/data
+server/dist
+.env
+.env.*

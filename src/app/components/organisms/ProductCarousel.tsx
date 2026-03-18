@@ -1,21 +1,18 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { ProductCard } from '../molecules/ProductCard';
 import { Icon } from '../atoms/Icon';
+import { useContent, useContentJson } from '../../content/useContent';
+import { FadeInUpInView } from '../atoms/FadeInUpInView';
+import { StaggeredFadeInUpInView } from '../atoms/StaggeredFadeInUpInView';
+
+type CarouselProduct = { name: string; price: string; badge?: string };
 
 export function ProductCarousel() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [isPaused, setIsPaused] = useState(false);
-
-  const products = [
-    { name: 'Armatek', price: '5.85', badge: 'Destaque 🔥' },
-    { name: 'Armatek', price: '5.85' },
-    { name: 'Armatek', price: '5.85' },
-    { name: 'Armatek', price: '5.85' },
-    { name: 'Armatek', price: '5.85' },
-    { name: 'Armatek', price: '5.85' },
-    { name: 'Armatek', price: '5.85' },
-    { name: 'Armatek', price: '5.85' }
-  ];
+  const title = useContent('home', 'carousel', 'title');
+  const products = useContentJson<CarouselProduct[]>('home', 'carousel', 'products', []);
+  const productList = Array.isArray(products) ? products : [];
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollContainerRef.current) {
@@ -60,13 +57,13 @@ export function ProductCarousel() {
   }, [isPaused]);
 
   return (
-    <section className="w-full bg-white py-16 md:py-32">
+    <FadeInUpInView>
+      <section className="w-full bg-white py-16 md:py-32">
       <div className="max-w-[1240px] mx-auto px-4 md:px-8">
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-8 mb-12 md:mb-16">
           <div>
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-semibold">Produtos pensados</h2>
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-semibold">e preparados para a si</h2>
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-semibold">{title}</h2>
           </div>
           <div className="flex gap-6 md:gap-10">
             <button 
@@ -88,18 +85,20 @@ export function ProductCarousel() {
 
         {/* Product Carousel - Full width edge-to-edge */}
         <div className="carousel-fade-wrapper w-screen -ml-[50vw] left-[50%] relative">
-          <div 
+          <StaggeredFadeInUpInView
             ref={scrollContainerRef}
             onMouseEnter={() => setIsPaused(true)}
             onMouseLeave={() => setIsPaused(false)}
             className="flex gap-4 md:gap-8 overflow-x-auto pb-4 scrollbar-hide scroll-smooth"
+            stagger={0.1}
           >
-            {products.map((product, index) => (
+            {productList.map((product, index) => (
               <ProductCard key={index} {...product} />
             ))}
-          </div>
+          </StaggeredFadeInUpInView>
         </div>
       </div>
-    </section>
+      </section>
+    </FadeInUpInView>
   );
 }

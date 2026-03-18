@@ -1,27 +1,44 @@
 import React from 'react';
 import { Button } from '../atoms/Button';
 import { Icon } from '../atoms/Icon';
+import { ContentLink } from '../common/ContentLink';
+import { FadeInUpInView } from '../atoms/FadeInUpInView';
 import imgFeature from "figma:asset/2bb6574b0734ce3219f7f1db98d1151bdad77901.png";
+import { useContent } from '../../content/useContent';
 
 export function FeaturesSection() {
+  const title = useContent('home', 'features', 'title');
+  const description = useContent('home', 'features', 'description');
+  const overlayTitle = useContent('home', 'features', 'overlay_title');
+  const overlayDescription = useContent('home', 'features', 'overlay_description');
+  const buttonText = useContent('home', 'features', 'button');
+  const buttonMobile = useContent('home', 'features', 'button_mobile');
+  const buttonUrl = useContent('home', 'features', 'button_url');
+  const imageAlt = useContent('home', 'features', 'image_alt');
+
   return (
-    <section className="w-full bg-gradient-to-b from-[#f5f5f5] to-white py-16 md:py-32">
+      <section className="w-full bg-gradient-to-b from-[#f5f5f5] to-white py-16 md:py-32">
       <div className="max-w-[1240px] mx-auto px-4 md:px-8">
         {/* Section Header */}
         <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-8 md:gap-12 mb-16 md:mb-24">
+          <FadeInUpInView>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-semibold max-w-full lg:max-w-[518px] leading-tight">
-            Cada espaço tem desafios diferentes.
+            {title}
           </h2>
+          </FadeInUpInView>
+          <FadeInUpInView delay={0.1}>
           <p className="text-base md:text-lg text-black/60 max-w-full lg:max-w-[363px] leading-relaxed">
-            Na Frebrico, desenvolvemos soluções completas em vedações e bricolage, adaptadas ao tipo de espaço, nível de segurança, durabilidade e estética pretendida.
+            {description}
           </p>
+          </FadeInUpInView>
         </div>
 
         {/* Feature Image with Overlay Content */}
-        <div className="relative h-[400px] md:h-[500px] lg:h-[580px] rounded-[20px] md:rounded-[32px] overflow-hidden">
+        <FadeInUpInView delay={0.2}>
+        <div className="relative h-[360px] sm:h-[420px] md:h-[500px] lg:h-[580px] rounded-[20px] md:rounded-[32px] overflow-hidden">
           <img
             src={imgFeature}
-            alt="Feature"
+            alt={imageAlt || "Soluções de vedação e estruturas metálicas"}
             className="absolute inset-0 w-full h-full object-cover"
           />
           <div
@@ -32,28 +49,31 @@ export function FeaturesSection() {
           />
 
           {/* Content Overlay */}
-          <div className="absolute max-w-full w-full h-full flex flex-col justify-end space-y-4 md:space-y-6 bg-gradient-to-t from-black/50 to-black/10 rounded-3xl p-20">
-            <div className="w-1/2">
+          <div className="absolute right-0 bottom-0 max-w-full w-full h-full flex flex-col justify-end space-y-4 md:space-y-6 bg-gradient-to-t from-black/55 to-black/15 rounded-3xl px-4 py-8 sm:px-8 sm:py-10 lg:p-20">
+            <div className="w-full md:w-2/3 lg:w-1/2 max-w-[640px]">
               <div className="space-y-2 md:space-y-3">
                 <h3 className="text-2xl md:text-3xl font-medium text-white">
-                  Construídas para durar.
+                  {overlayTitle}
                 </h3>
-                <p className="text-lg md:text-[22px] text-white leading-relaxed mb-12">
-                  Criamos soluções específicas para habitação, agricultura, indústria e espaços profissionais.
+                <p className="w-full text-base md:text-lg lg:text-[22px] text-white leading-relaxed mb-6 md:mb-10">
+                  {overlayDescription}
                 </p>
               </div>
-              <Button variant="secondary" size="lg" className="gap-3 w-full sm:w-auto">
-                <span className="hidden sm:inline">Saber Mais Sobre Serviços</span>
-                <span className="sm:hidden">Saber Mais</span>
-                <div className="transform">
-                  <Icon name="arrow-right" />
-                </div>
-              </Button>
+              <ContentLink to={buttonUrl}>
+                <Button variant="secondary" size="lg" className="gap-3 w-full sm:w-auto">
+                  <span className="hidden sm:inline">{buttonText}</span>
+                  <span className="sm:hidden">{buttonMobile}</span>
+                  <div className="transform">
+                    <Icon name="arrow-right" />
+                  </div>
+                </Button>
+              </ContentLink>
             </div>
 
           </div>
         </div>
+        </FadeInUpInView>
       </div>
-    </section>
+      </section>
   );
 }

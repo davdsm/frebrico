@@ -1,7 +1,7 @@
 import React from 'react';
 
 interface PageTemplateProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
 }
 
 export function PageTemplate({ children }: PageTemplateProps) {

@@ -1,82 +1,19 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router";
 import { motion, AnimatePresence } from "framer-motion";
-
-import img1 from "figma:asset/a1506335f9c1a5795534434dee96810d0a8b30ff.png";
-import img2 from "figma:asset/2bb6574b0734ce3219f7f1db98d1151bdad77901.png";
-import img3 from "figma:asset/54af315f4b04f9d62134bf4a2d389532fea8fd69.png";
-import img4 from "figma:asset/28f9d735f4368ce680a1b628f52ec3a2079c6abc.png";
-import img5 from "figma:asset/fe05ef88c0952160ffaa014ba3d4f469d7ce7323.png";
+import { fetchCategories, type Category } from "../../api/shop";
 
 type Subcategory = { name: string; slug: string };
+type MenuCategory = { name: string; slug: string; image: string; subcategories: Subcategory[] };
 
-const CATEGORIES: Array<{
-  name: string;
-  slug: string;
-  image: string;
-  subcategories: Subcategory[];
-}> = [
-  {
-    name: "Arames",
-    slug: "arames",
-    image: img1,
-    subcategories: [
-      { name: "Arame Rebabado", slug: "arames-rebarbado" },
-      { name: "Arame Farpado", slug: "arames-farpado" },
-      { name: "Arame Liso", slug: "arames-liso" },
-      { name: "Malha Metálica", slug: "arames-malha" },
-      { name: "Arame Galvanizado", slug: "arames-galvanizado" },
-    ],
-  },
-  {
-    name: "Portões",
-    slug: "portoes",
-    image: img2,
-    subcategories: [
-      { name: "Portões Automáticos", slug: "portoes-automaticos" },
-      { name: "Portões Manuais", slug: "portoes-manuais" },
-      { name: "Portões de Garagem", slug: "portoes-garagem" },
-      { name: "Portões de Vedação", slug: "portoes-vedacao" },
-      { name: "Portões Industriais", slug: "portoes-industriais" },
-    ],
-  },
-  {
-    name: "Grades",
-    slug: "grades",
-    image: img3,
-    subcategories: [
-      { name: "Grades de Segurança", slug: "grades-seguranca" },
-      { name: "Grades de Varanda", slug: "grades-varanda" },
-      { name: "Grades Decorativas", slug: "grades-decorativas" },
-      { name: "Grades Industriais", slug: "grades-industriais" },
-      { name: "Grades de Obra", slug: "grades-obra" },
-    ],
-  },
-  {
-    name: "Vedações",
-    slug: "vedacoes",
-    image: img4,
-    subcategories: [
-      { name: "Vedações Residenciais", slug: "vedacoes-residenciais" },
-      { name: "Vedações Industriais", slug: "vedacoes-industriais" },
-      { name: "Rede Simples", slug: "vedacoes-rede-simples" },
-      { name: "Rede Dupla", slug: "vedacoes-rede-dupla" },
-      { name: "Vedações Agrícolas", slug: "vedacoes-agricolas" },
-    ],
-  },
-  {
-    name: "Correntes",
-    slug: "correntes",
-    image: img5,
-    subcategories: [
-      { name: "Correntes de Transmissão", slug: "correntes-transmissao" },
-      { name: "Correntes de Elevação", slug: "correntes-elevacao" },
-      { name: "Correntes de Proteção", slug: "correntes-protecao" },
-      { name: "Correntes Soldadas", slug: "correntes-soldadas" },
-      { name: "Correntes Galvanizadas", slug: "correntes-galvanizadas" },
-    ],
-  },
-];
+function toMenuCategories(tree: Category[]): MenuCategory[] {
+  return tree.map((c) => ({
+    name: c.name,
+    slug: c.slug,
+    image: c.image || "",
+    subcategories: (c.children || []).map((ch) => ({ name: ch.name, slug: ch.slug })),
+  }));
+}
 
 const leftContainerVariants = {
   hidden: { opacity: 0 },
@@ -139,9 +76,22 @@ export function ProductsSubmenu({
   onClose,
 }: ProductsSubmenuProps) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [categories, setCategories] = useState<MenuCategory[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchCategories(true)
+      .then((tree) => { if (!cancelled) setCategories(toMenuCategories(tree)); })
+      .catch(() => { if (!cancelled) setCategories([]); });
+    return () => { cancelled = true; };
+  }, []);
+
+  const column1 = categories.slice(0, 2);
+  const column2 = categories.slice(2, 4);
+  const column3 = categories.slice(4);
 
   return (
-    <AnimatePresence>
+    <>
       {isOpen && (
         <motion.div
           initial={{ opacity: 0 }}
@@ -150,7 +100,7 @@ export function ProductsSubmenu({
           transition={{ duration: 0.2 }}
           onMouseEnter={onMouseEnter}
           onMouseLeave={onMouseLeave}
-          className="fixed left-0 right-0 top-[7rem] z-50 h-auto min-h-0 bg-white shadow-[0_4px_12px_rgba(0,0,0,0.04),0_12px_40px_rgba(0,0,0,0.06),0_24px_60px_-12px_rgba(0,0,0,0.08)]"
+          className="fixed left-0 right-0 top-[4.5rem] z-50 bg-white shadow-[0_8px_24px_rgba(149,157,165,0.2)]"
         >
           <div className="flex max-w-[1440px] mx-auto px-6 md:px-10 lg:px-16 pt-8 pb-12">
             {/* Left: three-column category menus (domino cascade) */}
@@ -162,26 +112,20 @@ export function ProductsSubmenu({
               className="flex-1 grid grid-cols-3 gap-x-8 md:gap-x-10 py-0 pr-6 md:pr-8 min-w-0 content-start pl-0"
               aria-label="Categorias de produtos"
             >
-              {[
-                CATEGORIES.slice(0, 2),
-                CATEGORIES.slice(2, 4),
-                CATEGORIES.slice(4),
-              ].map((column, colIndex) => (
+              {[column1, column2, column3].map((column, colIndex) => (
                 <div key={colIndex} className="flex flex-col gap-0">
                   {column.map((category) => (
                     <React.Fragment key={category.slug}>
                       <motion.div
                         variants={dominoItemVariants}
-                        onMouseEnter={() =>
-                          setHoveredIndex(CATEGORIES.indexOf(category))
-                        }
+                        onMouseEnter={() => setHoveredIndex(categories.findIndex((c) => c.slug === category.slug))}
                         onMouseLeave={() => setHoveredIndex(null)}
                         className="pt-4 first:pt-0 mb-4"
                       >
                         <Link
                           to={`/category/${category.slug}`}
                           onClick={onClose}
-                          className="text-lg font-semibold text-[#313b2e] hover:text-[#3d4937] transition-colors w-fit block"
+                          className="text-lg font-semibold text-black hover:text-black/80 transition-colors w-fit block"
                         >
                           {category.name}
                         </Link>
@@ -190,15 +134,13 @@ export function ProductsSubmenu({
                         <motion.div
                           key={sub.slug}
                           variants={dominoItemVariants}
-                          onMouseEnter={() =>
-                            setHoveredIndex(CATEGORIES.indexOf(category))
-                          }
+                          onMouseEnter={() => setHoveredIndex(categories.findIndex((c) => c.slug === category.slug))}
                           onMouseLeave={() => setHoveredIndex(null)}
                         >
                           <Link
                             to={`/category/${sub.slug}`}
                             onClick={onClose}
-                            className="text-sm text-black/60 hover:text-[#313b2e] transition-colors py-1 block w-fit"
+                            className="text-sm text-black hover:text-black/80 transition-colors py-1 block w-fit"
                           >
                             {sub.name}
                           </Link>
@@ -207,15 +149,8 @@ export function ProductsSubmenu({
                     </React.Fragment>
                   ))}
                   {colIndex === 2 && (
-                    <motion.div
-                      variants={dominoItemVariants}
-                      className="pt-4"
-                    >
-                      <Link
-                        to="/products"
-                        onClick={onClose}
-                        className="text-base font-semibold text-[#313b2e] hover:text-[#3d4937] transition-colors block w-fit"
-                      >
+                    <motion.div variants={dominoItemVariants} className="pt-4">
+                      <Link to="/products" onClick={onClose} className="text-base font-semibold text-black hover:text-black/80 transition-colors block w-fit">
                         Ver todos os produtos
                       </Link>
                     </motion.div>
@@ -233,7 +168,7 @@ export function ProductsSubmenu({
               className="hidden md:flex flex-1 items-center justify-center py-4 pl-6 md:pl-8 min-w-0"
             >
               <AnimatePresence mode="wait">
-                {hoveredIndex !== null ? (
+                {hoveredIndex !== null && categories[hoveredIndex] ? (
                   <motion.div
                     key={hoveredIndex}
                     variants={imageVariants}
@@ -242,11 +177,15 @@ export function ProductsSubmenu({
                     exit="exit"
                     className="relative w-full max-w-md max-h-full aspect-[4/3] rounded-xl overflow-hidden bg-[#f3f3f5] shrink-0"
                   >
-                    <img
-                      src={CATEGORIES[hoveredIndex].image}
-                      alt={CATEGORIES[hoveredIndex].name}
-                      className="w-full h-full object-cover"
-                    />
+                    {categories[hoveredIndex].image ? (
+                      <img
+                        src={categories[hoveredIndex].image}
+                        alt={categories[hoveredIndex].name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-[#e5e5e3] flex items-center justify-center text-[#5a5a59] text-sm">{categories[hoveredIndex].name}</div>
+                    )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
                   </motion.div>
                 ) : (
@@ -258,7 +197,7 @@ export function ProductsSubmenu({
                     exit="exit"
                     className="w-full max-w-md max-h-full aspect-[4/3] rounded-xl bg-[#f3f3f5] flex items-center justify-center shrink-0"
                   >
-                    <p className="text-black/40 text-sm font-medium">
+                    <p className="text-black text-sm font-medium">
                       Passe o rato sobre uma categoria
                     </p>
                   </motion.div>
@@ -268,6 +207,6 @@ export function ProductsSubmenu({
           </div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </>
   );
 }

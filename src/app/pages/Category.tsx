@@ -1,73 +1,89 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router';
 import { CategoryHero } from '../components/category/CategoryHero';
 import { CategoryProductGrid } from '../components/category/CategoryProductGrid';
 import { Product } from '../components/common/ProductCard';
+import { SEO } from '../components/common/SEO';
+import { DominoFadeInDown } from '../components/atoms/DominoFadeInDown';
+import { fetchCategoryBySlug, fetchProducts } from '../api/shop';
 
-// Mock product data - in a real app this would come from an API
-const defaultProducts: Product[] = [
-  { id: 1, name: 'Armatek', price: 5.85, featured: true },
-  { id: 2, name: 'Armatek', price: 5.85 },
-  { id: 3, name: 'Armatek', price: 5.85 },
-  { id: 4, name: 'Armatek', price: 5.85 },
-  { id: 5, name: 'Armatek', price: 5.85 },
-  { id: 6, name: 'Armatek', price: 5.85 },
-  { id: 7, name: 'Armatek', price: 5.85 },
-  { id: 8, name: 'Armatek', price: 5.85 },
-];
-
-const categoryTitles: Record<string, string> = {
-  vedacoes: 'Vedações',
-  arames: 'Arames',
-  correntes: 'Correntes',
-  portoes: 'Portões',
-  grades: 'Grades',
-  'arames-rebarbado': 'Arame Rebabado',
-  'arames-farpado': 'Arame Farpado',
-  'arames-liso': 'Arame Liso',
-  'arames-malha': 'Malha Metálica',
-  'arames-galvanizado': 'Arame Galvanizado',
-  'portoes-automaticos': 'Portões Automáticos',
-  'portoes-manuais': 'Portões Manuais',
-  'portoes-garagem': 'Portões de Garagem',
-  'portoes-vedacao': 'Portões de Vedação',
-  'portoes-industriais': 'Portões Industriais',
-  'grades-seguranca': 'Grades de Segurança',
-  'grades-varanda': 'Grades de Varanda',
-  'grades-decorativas': 'Grades Decorativas',
-  'grades-industriais': 'Grades Industriais',
-  'grades-obra': 'Grades de Obra',
-  'vedacoes-residenciais': 'Vedações Residenciais',
-  'vedacoes-industriais': 'Vedações Industriais',
-  'vedacoes-rede-simples': 'Rede Simples',
-  'vedacoes-rede-dupla': 'Rede Dupla',
-  'vedacoes-agricolas': 'Vedações Agrícolas',
-  'correntes-transmissao': 'Correntes de Transmissão',
-  'correntes-elevacao': 'Correntes de Elevação',
-  'correntes-protecao': 'Correntes de Proteção',
-  'correntes-soldadas': 'Correntes Soldadas',
-  'correntes-galvanizadas': 'Correntes Galvanizadas',
-};
-
-function getProductsForSlug(slug: string): Product[] {
-  return defaultProducts;
+function toCardProduct(p: { id: number; name: string; price: number; featured?: number; image?: string }): Product {
+  return { id: p.id, name: p.name, price: Number(p.price), featured: Boolean(p.featured), image: p.image };
 }
-
-const categoryProducts: Record<string, Product[]> = Object.fromEntries(
-  Object.keys(categoryTitles).map((slug) => [slug, getProductsForSlug(slug)])
-);
 
 export default function Category() {
   const { slug } = useParams<{ slug: string }>();
-  const categorySlug = slug || 'vedacoes';
-  
-  const products = categoryProducts[categorySlug] || [];
-  const title = categoryTitles[categorySlug] || 'Produtos';
+  const categorySlug = slug ?? '';
+
+  const [title, setTitle] = useState('Produtos');
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(!!categorySlug);
+  const [notFound, setNotFound] = useState(false);
+
+  useEffect(() => {
+    if (!categorySlug) {
+      setLoading(false);
+      return;
+    }
+    (async () => {
+      setLoading(true);
+      setNotFound(false);
+      try {
+        const [cat, prods] = await Promise.all([
+          fetchCategoryBySlug(categorySlug),
+          fetchProducts(categorySlug),
+        ]);
+        if (cat) {
+          setTitle(cat.name);
+          setProducts(prods.map(toCardProduct));
+        } else {
+          setNotFound(true);
+          setProducts([]);
+        }
+      } catch {
+        setNotFound(true);
+        setProducts([]);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [categorySlug]);
+
+  if (!categorySlug) {
+    return (
+      <>
+        <SEO title="Categoria" description="Produtos por categoria." path="/category" />
+        <DominoFadeInDown initialDelay={0.15} stagger={0.05}>
+          <CategoryHero title="Produtos" />
+          <CategoryProductGrid products={[]} />
+        </DominoFadeInDown>
+      </>
+    );
+  }
+
+  if (notFound && !loading) {
+    return (
+      <>
+        <SEO title="Categoria não encontrada" path={`/category/${categorySlug}`} />
+        <div className="w-full bg-white py-16 px-4 text-center">
+          <h1 className="text-2xl font-semibold text-[#131313]">Categoria não encontrada</h1>
+          <p className="text-[#5a5a59] mt-2">A categoria &quot;{categorySlug}&quot; não existe.</p>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
-      <CategoryHero title={title} />
-      <CategoryProductGrid products={products} />
+      <SEO
+        title={`Categoria: ${title}`}
+        description={`Veja produtos da categoria ${title} na Frebrico, com soluções em vedações, portões, arames e muito mais.`}
+        path={`/category/${categorySlug}`}
+      />
+      <DominoFadeInDown initialDelay={0.15} stagger={0.05}>
+        <CategoryHero title={loading ? '...' : title} />
+        <CategoryProductGrid products={products} loading={loading} />
+      </DominoFadeInDown>
     </>
   );
 }

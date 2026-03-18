@@ -1,0 +1,35 @@
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: frebrico-frontend
+    ports:
+      - "80:80"
+    volumes:
+      - ./data/uploads:/usr/share/nginx/html/uploads:ro
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: frebrico-backend
+    ports:
+      # Use 3002 on host to avoid conflict with local dev server on 3001
+      - "3002:3001"
+    volumes:
+      - ./data:/app/data
+      - ./data/uploads:/app/public/uploads
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      PORT: "3001"
+      DB_PATH: /app/data/frebrico.db
+      UPLOADS_DIR: /app/public/uploads
+      # Allow local frontend (yarn dev) when set in .env: ALLOW_ORIGIN=http://localhost:5173
+      # Leave unset when frontend is also in Docker (same-origin).
+    restart: unless-stopped

@@ -120,13 +120,28 @@
 }
 
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
+  /* Avoid universal border/outline: it caused a flash of borders on every div/img until overrides applied. */
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
   }
 
   body {
     @apply bg-background text-foreground;
     font-family: 'Outfit', sans-serif;
+  }
+
+  /* Prevent default image border and layout shift as images load */
+  img,
+  picture,
+  video,
+  svg {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    border: 0;
+    outline: none;
   }
 
   /**
@@ -182,6 +197,15 @@
   button:hover, a:hover {
     opacity: 0.9;
     transition: opacity 1s ease;
+  }
+
+  /* Focus ring only when keyboard-focusing, not on every element by default */
+  :focus {
+    outline: none;
+  }
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
   }
 
   input {

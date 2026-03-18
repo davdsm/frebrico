@@ -1,4 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useContent } from '../../content/useContent';
+import { FadeInUpInView } from '../atoms/FadeInUpInView';
 
 // Decorative grid background
 function GridBackground() {
@@ -156,7 +158,7 @@ function VerticalCarousel() {
         ref={scrollContainerRef}
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
-        className="flex flex-col gap-6 overflow-y-scroll scrollbar-hide h-full"
+        className="flex flex-col gap-6 overflow-y-hidden scrollbar-hide h-full"
         style={{ scrollBehavior: 'auto' }}
       >
         {/* First set */}
@@ -190,35 +192,34 @@ function TabButton({ label, isActive, onClick }: { label: string; isActive: bool
   );
 }
 
-// Main content section
-export function ContentSection() {
+// Main content section (contentPage e.g. "about" loads tab copy from CMS)
+export function ContentSection({ contentPage = 'about' }: { contentPage?: string }) {
   const [activeTab, setActiveTab] = useState(0);
 
+  const tab1Label = useContent(contentPage, 'content_tab1', 'label');
+  const tab1Number = useContent(contentPage, 'content_tab1', 'number');
+  const tab1Title = useContent(contentPage, 'content_tab1', 'title');
+  const tab1TitleGray = useContent(contentPage, 'content_tab1', 'title_gray');
+  const tab2Label = useContent(contentPage, 'content_tab2', 'label');
+  const tab2Number = useContent(contentPage, 'content_tab2', 'number');
+  const tab2Title = useContent(contentPage, 'content_tab2', 'title');
+  const tab2TitleGray = useContent(contentPage, 'content_tab2', 'title_gray');
+  const tab3Label = useContent(contentPage, 'content_tab3', 'label');
+  const tab3Number = useContent(contentPage, 'content_tab3', 'number');
+  const tab3Title = useContent(contentPage, 'content_tab3', 'title');
+  const tab3TitleGray = useContent(contentPage, 'content_tab3', 'title_gray');
+
   const tabs = [
-    {
-      label: 'Experiência e Conhecimento Técnico',
-      number: '01',
-      title: '20+ anos de experiência em ',
-      titleGray: 'vedações e bricolage profissional'
-    },
-    {
-      label: 'Soluções Completas e Personalizadas',
-      number: '02',
-      title: 'Oferecemos soluções completas e ',
-      titleGray: 'personalizadas para cada cliente'
-    },
-    {
-      label: 'Stock, Logística e Fiabilidade',
-      number: '03',
-      title: 'Stock amplo e logística ',
-      titleGray: 'rápida e fiável'
-    }
+    { label: tab1Label, number: tab1Number, title: tab1Title, titleGray: tab1TitleGray },
+    { label: tab2Label, number: tab2Number, title: tab2Title, titleGray: tab2TitleGray },
+    { label: tab3Label, number: tab3Number, title: tab3Title, titleGray: tab3TitleGray },
   ];
 
   const currentTab = tabs[activeTab];
 
   return (
-    <section className="relative bg-[#f7f7f7] py-16 md:py-20 lg:py-24 overflow-hidden">
+    <FadeInUpInView>
+      <section className="relative bg-[#f7f7f7] py-16 md:py-20 lg:py-24 overflow-hidden">
       {/* Background Grid */}
       <GridBackground />
 
@@ -266,6 +267,7 @@ export function ContentSection() {
 
         </div>
       </div>
-    </section>
+      </section>
+    </FadeInUpInView>
   );
 }

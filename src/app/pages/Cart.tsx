@@ -1,37 +1,38 @@
-import React, { useState } from "react";
-import imgProduct from "figma:asset/28f9d735f4368ce680a1b628f52ec3a2079c6abc.png";
+import React from "react";
 import { CartHeader } from "../components/cart/CartHeader";
 import { CartCheckoutForm } from "../components/cart/CartCheckoutForm";
-import { CartSummary, type CartItem } from "../components/cart/CartSummary";
+import { CartSummary } from "../components/cart/CartSummary";
+import { useCart } from "../cart/CartContext";
+import { SEO } from "../components/common/SEO";
+import { useContent } from "../content/useContent";
+import { DominoFadeInDown } from "../components/atoms/DominoFadeInDown";
 
 export default function Cart() {
-  const [cartItems, setCartItems] = useState<CartItem[]>([
-    { id: "1", name: "HV Curved branch 90°", variant: "Galva / Untreated", price: 125.0, quantity: 2, image: imgProduct },
-    { id: "2", name: "HV Curved branch 90°", variant: "Galva / Treated", price: 145.0, quantity: 1, image: imgProduct },
-  ]);
-
-  const updateQuantity = (id: string, newQuantity: number) => {
-    if (newQuantity < 1) return;
-    setCartItems((items) => items.map((item) => (item.id === id ? { ...item, quantity: newQuantity } : item)));
-  };
-
-  const removeItem = (id: string) => {
-    setCartItems((items) => items.filter((item) => item.id !== id));
-  };
-
-  const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const shipping = 15.0;
-  const total = subtotal + shipping;
+  const { items, updateQuantity, removeItem, subtotal } = useCart();
+  const total = subtotal;
+  const seoTitle = useContent("cart", "seo", "title");
+  const seoDescription = useContent("cart", "seo", "description");
 
   return (
-    <div className="w-full bg-white min-h-screen py-8 md:py-12">
-      <div className="max-w-[1440px] mx-auto px-4 md:px-8 lg:px-20">
-        <CartHeader />
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_480px] gap-8 lg:gap-16">
-          <CartCheckoutForm />
-          <CartSummary cartItems={cartItems} updateQuantity={updateQuantity} removeItem={removeItem} subtotal={subtotal} shipping={shipping} total={total} />
+    <>
+      <SEO title={seoTitle} description={seoDescription} path="/cart" />
+      <DominoFadeInDown initialDelay={0.15} stagger={0.05}>
+        <div className="w-full bg-white min-h-screen py-8 md:py-12">
+          <div className="max-w-[1440px] mx-auto px-4 md:px-8 lg:px-20">
+            <CartHeader />
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_480px] gap-8 lg:gap-16">
+              <CartCheckoutForm />
+              <CartSummary
+                cartItems={items}
+                updateQuantity={updateQuantity}
+                removeItem={removeItem}
+                subtotal={subtotal}
+                total={total}
+              />
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
+      </DominoFadeInDown>
+    </>
   );
 }

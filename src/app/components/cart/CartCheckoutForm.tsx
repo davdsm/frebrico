@@ -1,15 +1,22 @@
 import React from "react";
-import { Link } from "react-router";
+import { ContentLink } from "../common/ContentLink";
+import { useContent } from "../../content/useContent";
 
 export function CartCheckoutForm() {
+  const contactTitle = useContent("cart", "checkout", "contact_title");
+  const loginLink = useContent("cart", "checkout", "login_link");
+  const loginLinkUrl = useContent("cart", "checkout", "login_link_url");
+  const continueShopping = useContent("cart", "checkout", "continue_shopping");
+  const continueShoppingUrl = useContent("cart", "checkout", "continue_shopping_url");
+  const submitButton = useContent("cart", "checkout", "submit_button");
   return (
     <div className="flex flex-col gap-8">
       <div className="flex flex-col gap-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-black">Contacto</h2>
-          <Link to="/login" className="text-sm text-[#313b2e] hover:underline">
-            Já tem conta? Entrar
-          </Link>
+          <h2 className="text-xl font-semibold text-black">{contactTitle}</h2>
+          <ContentLink to={loginLinkUrl} className="text-sm text-[#313b2e] hover:underline">
+            {loginLink}
+          </ContentLink>
         </div>
         <input type="email" placeholder="Email" className="w-full px-4 py-3 border border-[#dcdcdc] rounded-lg text-base text-black placeholder:text-[#5a5a59] focus:border-[#313b2e] focus:outline-none transition-colors" />
         <label className="flex items-center gap-3 cursor-pointer">
@@ -38,28 +45,13 @@ export function CartCheckoutForm() {
         </div>
         <input type="tel" placeholder="Telemóvel" className="w-full px-4 py-3 border border-[#dcdcdc] rounded-lg text-base text-black placeholder:text-[#5a5a59] focus:border-[#313b2e] focus:outline-none transition-colors" />
       </div>
-
-      <div className="flex flex-col gap-6">
-        <h2 className="text-xl font-semibold text-black">Método de envio</h2>
-        <div className="border border-[#dcdcdc] rounded-lg p-4 bg-[#f7f7f7]">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <input type="radio" name="shipping" defaultChecked className="w-5 h-5 accent-[#313b2e]" />
-              <span className="text-base text-black font-medium">Envio Standard</span>
-            </div>
-            <span className="text-base font-semibold text-black">€15.00</span>
-          </div>
-          <p className="text-sm text-[#5a5a59] mt-2 ml-8">Entrega em 5-7 dias úteis</p>
-        </div>
-      </div>
-
       <div className="flex flex-col gap-4 pt-4 border-t border-[#dcdcdc]">
-        <button className="w-full bg-[#313b2e] hover:bg-[#3d4937] transition-colors text-white px-8 py-4 rounded-lg font-semibold text-base">
-          Submeter Pedido
+        <button type="submit" className="w-full bg-[#313b2e] hover:bg-[#3d4937] transition-colors text-white px-8 py-4 rounded-lg font-semibold text-base">
+          {submitButton}
         </button>
-        <Link to="/products" className="text-sm text-[#313b2e] hover:underline text-center">
-          Continuar a comprar
-        </Link>
+        <ContentLink to={continueShoppingUrl} className="text-sm text-[#313b2e] hover:underline text-center">
+          {continueShopping}
+        </ContentLink>
       </div>
     </div>
   );

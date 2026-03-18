@@ -1,4 +1,19 @@
 **Add your own guidelines here**
+
+# Public folder structure (images)
+
+All uploaded images are stored under **`public/uploads/{page}/{section}/`**. Do not expect users to paste image links; use the upload flow so files go to the public folder.
+
+- **page**: Logical group, e.g. `categories`, `products`, `home`, `global`, `shared`.
+- **section**: Subfolder, e.g. `general`, or a slug (`hero`, `header`, etc.).
+
+Examples:
+- Category images → `public/uploads/categories/general/`
+- Product images → `public/uploads/products/general/`
+- CMS/page images → `public/uploads/home/hero/`, `public/uploads/products/hero/`, etc.
+
+The API is `POST /api/upload` with form fields `file`, `page`, `section`; response includes `path` (e.g. `/uploads/categories/general/filename.jpg`) to store in the database.
+
 <!--
 
 System Guidelines
