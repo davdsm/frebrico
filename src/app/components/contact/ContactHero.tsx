@@ -16,7 +16,7 @@ export function ContactHero() {
       <div className="h-[36px] rounded-[40px] border border-[#dcdcdc] px-4 py-2 w-fit">
         <p className="text-sm leading-normal text-black">{badge}</p>
       </div>
-      <h1 className="text-4xl md:text-5xl lg:text-[64px] font-semibold text-black leading-normal">
+      <h1 className="text-4xl md:text-5xl lg:text-[64px] font-semibold text-black">
         {title}
       </h1>
       <p className="text-base md:text-lg leading-normal text-black/40">

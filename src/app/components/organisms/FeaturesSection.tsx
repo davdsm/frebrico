@@ -5,6 +5,7 @@ import { ContentLink } from '../common/ContentLink';
 import { FadeInUpInView } from '../atoms/FadeInUpInView';
 import imgFeature from "figma:asset/2bb6574b0734ce3219f7f1db98d1151bdad77901.png";
 import { useContent } from '../../content/useContent';
+import { getApiBase } from '../../content/api';
 
 export function FeaturesSection() {
   const title = useContent('home', 'features', 'title');
@@ -14,7 +15,10 @@ export function FeaturesSection() {
   const buttonText = useContent('home', 'features', 'button');
   const buttonMobile = useContent('home', 'features', 'button_mobile');
   const buttonUrl = useContent('home', 'features', 'button_url');
+  const image = useContent('home', 'features', 'image');
   const imageAlt = useContent('home', 'features', 'image_alt');
+  const apiBase = getApiBase();
+  const imageSrc = image ? `${apiBase}${image}` : imgFeature;
 
   return (
       <section className="w-full bg-gradient-to-b from-[#f5f5f5] to-white py-16 md:py-32">
@@ -37,7 +41,7 @@ export function FeaturesSection() {
         <FadeInUpInView delay={0.2}>
         <div className="relative h-[360px] sm:h-[420px] md:h-[500px] lg:h-[580px] rounded-[20px] md:rounded-[32px] overflow-hidden">
           <img
-            src={imgFeature}
+            src={imageSrc}
             alt={imageAlt || "Soluções de vedação e estruturas metálicas"}
             className="absolute inset-0 w-full h-full object-cover"
           />

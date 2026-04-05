@@ -12,6 +12,19 @@ const API_BASE = (() => {
   return raw.endsWith("/api") ? raw.slice(0, -4) : raw;
 })();
 
+/**
+ * Resolve a relative image path (e.g. `/uploads/…`) to a full URL using the
+ * API base. Already-absolute URLs and data URIs are returned unchanged.
+ */
+export function resolveImageUrl(path: string | undefined | null): string {
+  if (!path) return "";
+  const p = path.trim();
+  if (!p) return "";
+  if (p.startsWith("http://") || p.startsWith("https://") || p.startsWith("data:")) return p;
+  const rel = p.startsWith("/") ? p : `/${p}`;
+  return `${API_BASE}${rel}`;
+}
+
 export type Category = {
   id: number;
   slug: string;
@@ -19,6 +32,7 @@ export type Category = {
   description: string;
   parent_id: number | null;
   image: string;
+  icon_svg: string;
   sort_order: number;
   created_at: string;
   children?: Category[];
@@ -97,7 +111,7 @@ export async function fetchProductByIdOrSlug(idOrSlug: string | number): Promise
 // Admin CRUD (require auth)
 
 export async function createCategoryApi(
-  data: { slug: string; name: string; description?: string; parent_id?: number | null; image?: string; sort_order?: number }
+  data: { slug: string; name: string; description?: string; parent_id?: number | null; image?: string; icon_svg?: string; sort_order?: number }
 ): Promise<Category> {
   const res = await fetch(`${API_BASE}/api/categories`, {
     method: "POST",
@@ -111,7 +125,7 @@ export async function createCategoryApi(
 
 export async function updateCategoryApi(
   id: number,
-  data: { slug: string; name: string; description?: string; parent_id?: number | null; image?: string; sort_order?: number }
+  data: { slug: string; name: string; description?: string; parent_id?: number | null; image?: string; icon_svg?: string; sort_order?: number }
 ): Promise<Category> {
   const res = await fetch(`${API_BASE}/api/categories/${id}`, {
     method: "PUT",

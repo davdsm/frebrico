@@ -10,9 +10,9 @@ function run() {
     return;
   }
 
-  const idArames = createCategory("arames", "Arames", "", null, "", 0);
-  const idVedacoes = createCategory("vedacoes", "Vedações", "", null, "", 1);
-  const idCorrentes = createCategory("correntes", "Correntes", "", null, "", 2);
+  const idArames = createCategory("arames", "Arames", "", null, "", "", 0);
+  const idVedacoes = createCategory("vedacoes", "Vedações", "", null, "", "", 1);
+  const idCorrentes = createCategory("correntes", "Correntes", "", null, "", "", 2);
 
   createProduct(
     "armatek",

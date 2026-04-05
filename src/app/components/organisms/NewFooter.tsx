@@ -1,9 +1,9 @@
 import React from "react";
 import svgPaths from "../../../imports/svg-r95mhu04wd";
 import { ContentLink } from "../common/ContentLink";
+import { Logo } from "../atoms/Logo";
 import { FadeInUpInView } from "../atoms/FadeInUpInView";
 import { StaggeredFadeInUpInView } from "../atoms/StaggeredFadeInUpInView";
-import { imgGroup1 } from "../../../imports/svg-lx37m";
 import { useContent, useContentJson } from "../../content/useContent";
 
 type FooterLink = { label: string; url: string };
@@ -21,8 +21,8 @@ export function NewFooter() {
   const ctaDescription = useContent("footer", "cta", "description");
   const ctaButton = useContent("footer", "cta", "button");
   const ctaButtonUrl = useContent("footer", "cta", "button_url");
-  const companyLogo = useContent("footer", "company", "logo");
   const layoutLogo = useContent("_settings", "layout", "logo_desktop");
+  const layoutLogoMobile = useContent("_settings", "layout", "logo_mobile");
   const companyName = useContent("footer", "company", "name");
   const companyDescription = useContent("footer", "company", "description");
   const copyright = useContent("footer", "bottom", "copyright");
@@ -99,37 +99,7 @@ export function NewFooter() {
             <div className="flex flex-col gap-4">
               {/* Logo */}
               <div className="flex items-center gap-3">
-                {(companyLogo || layoutLogo) ? (
-                  <img
-                    src={companyLogo || layoutLogo || ""}
-                    alt={companyName}
-                    className="h-10 w-auto object-contain"
-                  />
-                ) : (
-                  <div className="bg-[#3b3b3b] rounded-lg p-2.5 w-10 h-10 flex items-center justify-center">
-                    <div className="relative w-[22px] h-[22px]">
-                      <svg className="absolute inset-0" fill="none" viewBox="0 0 22 22">
-                        <path d="M0 0H22V22H0V0Z" fill="white" />
-                      </svg>
-                      <div
-                        className="absolute inset-0"
-                        style={{
-                          WebkitMaskImage: `url('${imgGroup1}')`,
-                          maskImage: `url('${imgGroup1}')`,
-                          WebkitMaskSize: "contain",
-                          maskSize: "contain",
-                          WebkitMaskRepeat: "no-repeat",
-                          maskRepeat: "no-repeat",
-                          background: "linear-gradient(180deg, #3C3C3C 0%, #000000 100%)",
-                          mixBlendMode: "overlay",
-                        }}
-                      />
-                    </div>
-                  </div>
-                )}
-                <span className="text-xl font-semibold text-[#131313]">
-                  {companyName}
-                </span>
+                <Logo logoSrc={layoutLogo || "/logo.svg"} logoMobileSrc={layoutLogoMobile || "/logo-mobile.svg"} />
               </div>
 
               {/* Description */}

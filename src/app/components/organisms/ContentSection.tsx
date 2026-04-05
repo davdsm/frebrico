@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useContent } from '../../content/useContent';
+import { getApiBase } from '../../content/api';
 import { FadeInUpInView } from '../atoms/FadeInUpInView';
 
 // Decorative grid background
@@ -107,9 +108,38 @@ function GridBackground() {
 }
 
 // Vertical Carousel Component
-function VerticalCarousel() {
+function VerticalCarousel({ contentPage = "about" }: { contentPage?: string }) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [isPaused, setIsPaused] = useState(false);
+  const itemsJson = useContent(contentPage, "content_images", "items");
+  const apiBase = getApiBase();
+
+  const items: { path: string }[] = (() => {
+    try {
+      const arr = JSON.parse(itemsJson || "[]");
+      return Array.isArray(arr) ? arr.map((x) => ({ path: typeof x?.path === "string" ? x.path : "" })) : [];
+    } catch {
+      return [];
+    }
+  })();
+
+  const imagesWithPath = items.filter((i) => i.path);
+  const hasImages = imagesWithPath.length > 0;
+  const images = hasImages
+    ? imagesWithPath.map((item, i) => (
+        <img
+          key={i}
+          src={`${apiBase}${item.path}`}
+          alt=""
+          className="w-full aspect-square rounded-[40px] shrink-0 object-cover"
+        />
+      ))
+    : [
+        <div key="img1" className="bg-[#f1f1f1] w-full aspect-square rounded-[40px] shrink-0" />,
+        <div key="img2" className="bg-[#f1f1f1] w-full aspect-square rounded-[40px] shrink-0" />,
+        <div key="img3" className="bg-[#f1f1f1] w-full aspect-square rounded-[40px] shrink-0" />,
+        <div key="img4" className="bg-[#f1f1f1] w-full aspect-square rounded-[40px] shrink-0" />,
+      ];
 
   // Auto-scroll effect with infinite loop
   useEffect(() => {
@@ -143,14 +173,6 @@ function VerticalCarousel() {
     animationFrameId = requestAnimationFrame(scroll);
     return () => cancelAnimationFrame(animationFrameId);
   }, [isPaused]);
-
-  // Square images
-  const images = [
-    <div key="img1" className="bg-[#f1f1f1] w-full aspect-square rounded-[40px] shrink-0" />,
-    <div key="img2" className="bg-[#f1f1f1] w-full aspect-square rounded-[40px] shrink-0" />,
-    <div key="img3" className="bg-[#f1f1f1] w-full aspect-square rounded-[40px] shrink-0" />,
-    <div key="img4" className="bg-[#f1f1f1] w-full aspect-square rounded-[40px] shrink-0" />,
-  ];
 
   return (
     <div className="relative w-full lg:w-[552px] h-[400px] md:h-[552px] overflow-hidden rounded-[40px]">
@@ -193,7 +215,8 @@ function TabButton({ label, isActive, onClick }: { label: string; isActive: bool
 }
 
 // Main content section (contentPage e.g. "about" loads tab copy from CMS)
-export function ContentSection({ contentPage = 'about' }: { contentPage?: string }) {
+export function 
+ContentSection({ contentPage = 'about' }: { contentPage?: string }) {
   const [activeTab, setActiveTab] = useState(0);
 
   const tab1Label = useContent(contentPage, 'content_tab1', 'label');
@@ -231,12 +254,13 @@ export function ContentSection({ contentPage = 'about' }: { contentPage?: string
           <div className="bg-white rounded-[100px] overflow-hidden w-full max-w-fit">
             <div className="flex flex-col md:flex-row items-stretch px-8">
               {tabs.map((tab, index) => (
-                <TabButton
-                  key={index}
-                  label={tab.label}
-                  isActive={activeTab === index}
-                  onClick={() => setActiveTab(index)}
-                />
+                <React.Fragment key={index}>
+                  <TabButton
+                    label={tab.label}
+                    isActive={activeTab === index}
+                    onClick={() => setActiveTab(index)}
+                  />
+                </React.Fragment>
               ))}
             </div>
           </div>
@@ -260,7 +284,7 @@ export function ContentSection({ contentPage = 'about' }: { contentPage?: string
               </div>
 
               {/* Right Side - Image Blocks */}
-              <VerticalCarousel />
+              <VerticalCarousel contentPage={contentPage} />
 
             </div>
           </div>

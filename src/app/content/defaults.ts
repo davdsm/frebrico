@@ -65,9 +65,9 @@ const defaults: DefaultsMap = {
     links_legais: {
       title: "Links Legais",
       items: JSON.stringify([
-        { label: "Política de Privacidade", url: "#" },
-        { label: "Termos e Condições", url: "#" },
-        { label: "Livro de Reclamações", url: "#" },
+        { label: "Política de Privacidade", url: "/privacy" },
+        { label: "Termos e Condições", url: "/terms" },
+        { label: "Livro de Reclamações", url: "https://www.livroreclamacoes.pt" },
       ]),
     },
     bottom: { copyright: "© Frebrico. Todos os direitos reservados.", back_to_top: "Voltar ao topo" },
@@ -84,6 +84,16 @@ const defaults: DefaultsMap = {
       description: "Produtos de confiança. Apoio técnico. Resultados duradouros.",
       link_text: "Explorar produtos",
       link_url: "/products",
+      images: JSON.stringify([
+        { path: "" },
+        { path: "" },
+        { path: "" },
+        { path: "" },
+        { path: "" },
+        { path: "" },
+        { path: "" },
+        { path: "" },
+      ]),
     },
     features: {
       title: "Cada espaço tem desafios diferentes.",
@@ -93,6 +103,7 @@ const defaults: DefaultsMap = {
       button: "Saber mais sobre serviços",
       button_mobile: "Saber mais",
       button_url: "/contact",
+      image: "",
       image_alt: "Soluções de vedação e estruturas metálicas para habitação, agricultura e indústria",
     },
     carousel: {
@@ -252,15 +263,18 @@ const defaults: DefaultsMap = {
       title: "Stock amplo e logística ",
       title_gray: "rápida e fiável",
     },
+    content_images: {
+      items: JSON.stringify([{ path: "" }, { path: "" }, { path: "" }, { path: "" }]),
+    },
     solutions: {
       title: "Soluções Completas",
       description: "As nossas áreas de foco: soluções para cada mercado, tendo em conta tipos de utilização, níveis de segurança e estética do espaço.",
       cta_button: "Ver todos os produtos",
       cta_button_url: "/products",
       items: JSON.stringify([
-        { number: "01/03", title: "Vedações residenciais", description: "Soluções de vedação para habitação, jardins e perímetros residenciais, com foco em durabilidade e estética." },
-        { number: "02/03", title: "Redes metálicas", description: "Redes e malhas metálicas para aplicações agrícolas, industriais e de segurança." },
-        { number: "03/03", title: "Portões metálicos", description: "Portões automáticos e manuais para garagens, entradas e áreas industriais." },
+        { number: "01/03", title: "Vedações residenciais", description: "Soluções de vedação para habitação, jardins e perímetros residenciais, com foco em durabilidade e estética.", image: "" },
+        { number: "02/03", title: "Redes metálicas", description: "Redes e malhas metálicas para aplicações agrícolas, industriais e de segurança.", image: "" },
+        { number: "03/03", title: "Portões metálicos", description: "Portões automáticos e manuais para garagens, entradas e áreas industriais.", image: "" },
       ]),
     },
   },

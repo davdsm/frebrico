@@ -101,6 +101,13 @@ function initSchema(database: Database.Database): void {
     CREATE INDEX IF NOT EXISTS idx_uploads_page_section ON uploads(page_slug, section_key);
     CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users(email);
   `);
+
+  // Lightweight migration: add category SVG icon column if missing.
+  try {
+    database.exec("ALTER TABLE categories ADD COLUMN icon_svg TEXT DEFAULT ''");
+  } catch {
+    // Column already exists.
+  }
 }
 
 export type ContentRow = {
@@ -285,6 +292,7 @@ export type CategoryRow = {
   description: string;
   parent_id: number | null;
   image: string;
+  icon_svg: string;
   sort_order: number;
   created_at: string;
 };
@@ -317,13 +325,22 @@ export function createCategory(
   description: string,
   parentId: number | null,
   image: string,
+  iconSvg: string,
   sortOrder: number
 ): number {
   const database = getDb();
   const stmt = database.prepare(
-    "INSERT INTO categories (slug, name, description, parent_id, image, sort_order) VALUES (?, ?, ?, ?, ?, ?)"
+    "INSERT INTO categories (slug, name, description, parent_id, image, icon_svg, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)"
   );
-  const result = stmt.run(slug.trim().toLowerCase().replace(/\s+/g, "-"), name, description || "", parentId, image || "", sortOrder);
+  const result = stmt.run(
+    slug.trim().toLowerCase().replace(/\s+/g, "-"),
+    name,
+    description || "",
+    parentId,
+    image || "",
+    iconSvg || "",
+    sortOrder
+  );
   return result.lastInsertRowid as number;
 }
 
@@ -334,13 +351,23 @@ export function updateCategory(
   description: string,
   parentId: number | null,
   image: string,
+  iconSvg: string,
   sortOrder: number
 ): boolean {
   const database = getDb();
   const stmt = database.prepare(
-    "UPDATE categories SET slug = ?, name = ?, description = ?, parent_id = ?, image = ?, sort_order = ?, created_at = created_at WHERE id = ?"
+    "UPDATE categories SET slug = ?, name = ?, description = ?, parent_id = ?, image = ?, icon_svg = ?, sort_order = ?, created_at = created_at WHERE id = ?"
   );
-  const result = stmt.run(slug.trim().toLowerCase().replace(/\s+/g, "-"), name, description || "", parentId, image || "", sortOrder, id);
+  const result = stmt.run(
+    slug.trim().toLowerCase().replace(/\s+/g, "-"),
+    name,
+    description || "",
+    parentId,
+    image || "",
+    iconSvg || "",
+    sortOrder,
+    id
+  );
   return result.changes > 0;
 }
 

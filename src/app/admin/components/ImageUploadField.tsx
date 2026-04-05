@@ -6,6 +6,18 @@ import { uploadImage, listUploads, getApiBase, type UploadRecord } from "../../c
  * Use page = "categories" | "products" | "shared" etc., section = "general" or a slug.
  * Admins can choose from already-uploaded images in this section or upload a new one.
  */
+/** Normalize stored paths so list selection matches DB values (slashes, encoding). */
+export function normalizeUploadPathForMatch(p: string): string {
+  const t = p.trim();
+  if (!t) return "";
+  try {
+    const decoded = decodeURIComponent(t);
+    return decoded.replace(/\/+/g, "/");
+  } catch {
+    return t.replace(/\/+/g, "/");
+  }
+}
+
 export interface ImageUploadFieldProps {
   label: string;
   value: string;
@@ -15,6 +27,11 @@ export interface ImageUploadFieldProps {
   /** Folder "section" (e.g. "general", or entity slug) */
   section?: string;
   hint?: string;
+  /**
+   * When true, "Escolher das já carregadas" lists every upload under `page` (all sections).
+   * Use for category icons saved under different sections (icons, cat-5, etc.) so the current file stays selectable.
+   */
+  listUploadsForWholePage?: boolean;
 }
 
 export function ImageUploadField({
@@ -24,6 +41,7 @@ export function ImageUploadField({
   page,
   section = "general",
   hint,
+  listUploadsForWholePage = false,
 }: ImageUploadFieldProps) {
   const [uploading, setUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
@@ -31,18 +49,21 @@ export function ImageUploadField({
   const [existingList, setExistingList] = useState<UploadRecord[]>([]);
   const [loadingList, setLoadingList] = useState(true);
   const apiBase = getApiBase();
+  const normalizedValue = normalizeUploadPathForMatch(value);
 
   const loadExisting = useCallback(async () => {
     setLoadingList(true);
     try {
-      const list = await listUploads(page, section);
+      const list = listUploadsForWholePage
+        ? await listUploads(page, undefined)
+        : await listUploads(page, section);
       setExistingList(list);
     } catch {
       setExistingList([]);
     } finally {
       setLoadingList(false);
     }
-  }, [page, section]);
+  }, [page, section, listUploadsForWholePage]);
 
   useEffect(() => {
     loadExisting();
@@ -111,7 +132,7 @@ export function ImageUploadField({
         ) : (
           <div className="flex flex-wrap gap-2">
             {existingList.map((item) => {
-              const isSelected = value === item.path;
+              const isSelected = normalizedValue !== "" && normalizedValue === normalizeUploadPathForMatch(item.path);
               return (
                 <button
                   key={item.id}

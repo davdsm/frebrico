@@ -24,7 +24,7 @@ export function FadeInUpInView({
   y = 40,
   duration = 1,
   delay = 0,
-  amount = 0.4,
+  amount = 0.15,
 }: FadeInUpInViewProps) {
   return (
     <motion.div

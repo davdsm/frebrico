@@ -1,6 +1,6 @@
 import React from 'react';
 import { useCart } from '../../cart/CartContext';
-import type { Product } from '../../api/shop';
+import { resolveImageUrl, type Product } from '../../api/shop';
 import { FadeInUpInView } from '../atoms/FadeInUpInView';
 
 type SpecsData = { columns: string[]; rows: string[][] };
@@ -46,7 +46,7 @@ export function ProductSpecs({ product }: ProductSpecsProps) {
   const data = parseSpecifications(product.specifications ?? '{}');
   const { addItem } = useCart();
   const [lastAddedRow, setLastAddedRow] = React.useState<number | null>(null);
-  const mainImage = product.image || '';
+  const mainImage = resolveImageUrl(product.image);
 
   if (!data || data.columns.length === 0 || data.rows.length === 0) return null;
 

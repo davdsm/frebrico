@@ -14,6 +14,8 @@ const ProductDetail = React.lazy(() => import("./pages/ProductDetail"));
 const Cart = React.lazy(() => import("./pages/Cart"));
 const Login = React.lazy(() => import("./pages/Login"));
 const RecoverPassword = React.lazy(() => import("./pages/RecoverPassword"));
+const Terms = React.lazy(() => import("./pages/Terms"));
+const Privacy = React.lazy(() => import("./pages/Privacy"));
 
 const AdminDashboard = React.lazy(() => import("./admin/pages/Dashboard"));
 const AdminCreateAdminPage = React.lazy(() => import("./admin/pages/CreateAdminPage"));
@@ -150,6 +152,22 @@ export const router = createBrowserRouter([
         element: (
           <React.Suspense fallback={<PageLoader />}>
             <Contact />
+          </React.Suspense>
+        ),
+      },
+      {
+        path: "terms",
+        element: (
+          <React.Suspense fallback={<PageLoader />}>
+            <Terms />
+          </React.Suspense>
+        ),
+      },
+      {
+        path: "privacy",
+        element: (
+          <React.Suspense fallback={<PageLoader />}>
+            <Privacy />
           </React.Suspense>
         ),
       },

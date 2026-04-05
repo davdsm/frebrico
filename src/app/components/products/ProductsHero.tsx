@@ -8,9 +8,9 @@ import svgPaths from "../../../imports/svg-1kqjfus9mr";
 import imgImage1 from "figma:asset/a1506335f9c1a5795534434dee96810d0a8b30ff.png";
 import { useContent, useContentJson } from "../../content/useContent";
 import { FadeInUpInView } from "../atoms/FadeInUpInView";
-import { StaggeredFadeInUpInView } from "../atoms/StaggeredFadeInUpInView";
+import { resolveImageUrl } from "../../api/shop";
 
-export type CategoryItem = { name: string; slug: string };
+export type CategoryItem = { name: string; slug: string; image?: string; icon_svg?: string };
 
 interface ProductsHeroProps {
   /** When provided, overrides CMS categories for the category cards */
@@ -98,13 +98,26 @@ export function ProductsHero({ categoriesFromApi }: ProductsHeroProps) {
           </FadeInUpInView>
         </div>
 
-        {/* Bottom Section - Category Cards */}
-        <FadeInUpInView delay={0.2}>
-        <StaggeredFadeInUpInView className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 lg:gap-[35px]" stagger={0.1}>
-          {categoryList.map((category, index) => (
-            <Link key={index} to={`/category/${category.slug}`}>
-              <div className="relative bg-[#f1f1f1] rounded-[26px] h-[200px] md:h-[214px] overflow-hidden group cursor-pointer hover:bg-[#e8e8e8] transition-colors">
-                {/* Category Label */}
+        {/* Bottom Section - Category Cards (no in-view opacity-0 wrappers — always visible) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 lg:gap-[35px]">
+          {categoryList.map((category) => (
+            <Link key={category.slug} to={`/category/${category.slug}`}>
+              <div className="border border-[#f1f1f1] relative bg-[#f1f1f1] rounded-[26px] h-[200px] md:h-[214px] overflow-hidden group cursor-pointer hover:bg-[#e8e8e8] transition-colors">
+                {category.image && (
+                  <img
+                    src={resolveImageUrl(category.image)}
+                    alt={category.name}
+                    className="absolute inset-0 w-full h-full object-cover transition-opacity group-hover:opacity-90"
+                  />
+                )}
+                {category.icon_svg ? (
+                  <img
+                    src={resolveImageUrl(category.icon_svg)}
+                    alt=""
+                    aria-hidden
+                    className="absolute top-4 left-4 w-11 h-11 md:w-12 md:h-12 object-contain rounded-xl bg-white/95 p-1.5 shadow-sm border border-black/5"
+                  />
+                ) : null}
                 <div className="absolute bottom-0 right-0 bg-white rounded-tl-[11px] px-6 py-4 h-[59px] flex items-center justify-center min-w-[146px]">
                   <p className="text-xl font-semibold text-black text-center">
                     {category.name}
@@ -113,8 +126,7 @@ export function ProductsHero({ categoriesFromApi }: ProductsHeroProps) {
               </div>
             </Link>
           ))}
-        </StaggeredFadeInUpInView>
-        </FadeInUpInView>
+        </div>
       </div>
       </section>
   );

@@ -1,6 +1,7 @@
 import React from "react";
 import type { CartItem } from "../../cart/cartTypes";
 import { useContent } from "../../content/useContent";
+import { resolveImageUrl } from "../../api/shop";
 
 interface CartSummaryProps {
   cartItems: CartItem[];
@@ -31,7 +32,7 @@ export function CartSummary({ cartItems, updateQuantity, removeItem, subtotal, t
             >
               <div className="relative shrink-0">
                 <div className="w-16 h-16 bg-white rounded-lg border border-[#dcdcdc] p-2">
-                  <img src={item.image} alt={item.name} className="w-full h-full object-contain" />
+                  <img src={resolveImageUrl(item.image)} alt={item.name} className="w-full h-full object-contain" />
                 </div>
                 <div className="absolute -top-2 -right-2 w-5 h-5 bg-[#5a5a59] text-white rounded-full flex items-center justify-center text-xs font-medium">
                   {item.quantity}

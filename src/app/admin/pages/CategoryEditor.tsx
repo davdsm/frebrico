@@ -16,6 +16,7 @@ export default function CategoryEditor() {
   const [description, setDescription] = useState("");
   const [parentId, setParentId] = useState<number | null>(null);
   const [image, setImage] = useState("");
+  const [iconSvg, setIconSvg] = useState("");
   const [sortOrder, setSortOrder] = useState(0);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -40,7 +41,8 @@ export default function CategoryEditor() {
         setName(cat.name);
         setDescription(cat.description || "");
         setParentId(cat.parent_id);
-        setImage(cat.image || "");
+        setImage((cat.image || "").trim());
+        setIconSvg((cat.icon_svg || "").trim());
         setSortOrder(cat.sort_order);
       }
       setLoading(false);
@@ -58,7 +60,8 @@ export default function CategoryEditor() {
           name,
           description,
           parent_id: parentId,
-          image,
+          image: image.trim(),
+          icon_svg: iconSvg.trim(),
           sort_order: sortOrder,
         });
         toast(`Categoria "${name}" criada com sucesso.`);
@@ -68,7 +71,8 @@ export default function CategoryEditor() {
           name,
           description,
           parent_id: parentId,
-          image,
+          image: image.trim(),
+          icon_svg: iconSvg.trim(),
           sort_order: sortOrder,
         });
         toast(`Categoria "${name}" guardada com sucesso.`);
@@ -156,6 +160,17 @@ export default function CategoryEditor() {
             page="categories"
             section="general"
             hint="A imagem é guardada em public/uploads/categories/general/."
+          />
+        </div>
+        <div>
+          <ImageUploadField
+            label="Ícone da categoria"
+            value={iconSvg}
+            onChange={setIconSvg}
+            page="categories"
+            section={isNew ? "icons-new" : `cat-${id}`}
+            listUploadsForWholePage
+            hint="Ícone guardado nesta categoria (submenu Produtos e cartões na página Produtos). Novos ficheiros vão para a pasta desta categoria; a grelha mostra todos os ícones já carregados em Categorias para poder selecionar o correto."
           />
         </div>
         <div>

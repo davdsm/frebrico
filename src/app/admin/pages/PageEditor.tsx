@@ -7,6 +7,7 @@ import { useToast } from "../components/Toast";
 import { StructuredJsonField } from "../components/StructuredJsonField";
 import { ContentProductsPicker } from "../components/ContentProductsPicker";
 import { ContentCategoriesPicker } from "../components/ContentCategoriesPicker";
+import { ImageUploadField } from "../components/ImageUploadField";
 
 const PAGES: Record<string, string> = {
   home: "Home",
@@ -29,6 +30,7 @@ const SECTION_LABELS: Record<string, Record<string, string>> = {
     content_tab1: "Conteúdo (Tab 1)",
     content_tab2: "Conteúdo (Tab 2)",
     content_tab3: "Conteúdo (Tab 3)",
+    content_images: "Imagens da secção",
     solutions: "Soluções",
   },
   contact: {
@@ -195,6 +197,7 @@ export default function PageEditor() {
                 value={value}
                 defaultValue={defaultValue}
                 sectionKey={currentSection}
+                pageSlug={pageSlug}
                 onChange={(v) => setDraftField(key, v)}
               />
             ))}
@@ -227,22 +230,215 @@ export default function PageEditor() {
   );
 }
 
+function ContentImagesListEditor({
+  value,
+  pageSlug,
+  sectionKey,
+  onChange,
+  onItemChange,
+  onRemoveSlot,
+}: {
+  value: string;
+  pageSlug: string;
+  sectionKey: string;
+  onChange: (value: string) => void;
+  onItemChange: (index: number, path: string) => void;
+  onRemoveSlot: (index: number) => void;
+}) {
+  const parseItems = (raw: string): { path: string }[] => {
+    try {
+      const arr = JSON.parse(raw || "[]");
+      return Array.isArray(arr) ? arr.map((x) => ({ path: typeof x?.path === "string" ? x.path : "" })) : [];
+    } catch {
+      return [];
+    }
+  };
+  const items = parseItems(value);
+  const minItems = 1;
+  const displayItems = items.length >= minItems ? items : [{ path: "" }];
+
+  const addSlot = () => {
+    const next = [...parseItems(value), { path: "" }];
+    onChange(JSON.stringify(next));
+  };
+
+  return (
+    <div>
+      <p className="text-[12px] text-[#5a5a59] mb-3">Carregue múltiplas imagens para esta secção. As imagens vão aparecer no slider desta área.</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {displayItems.map((item, i) => (
+          <div key={i} className="relative border border-[#e5e5e3] rounded-xl p-4 bg-[#fafaf9]">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-[12px] font-medium text-[#131313]">Imagem {i + 1}</p>
+              {displayItems.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => onRemoveSlot(i)}
+                  className="text-[11px] font-medium text-red-600 hover:text-red-700 hover:underline"
+                  title="Eliminar esta imagem do carrossel"
+                >
+                  Eliminar slot
+                </button>
+              )}
+            </div>
+            <ImageUploadField
+              label=""
+              value={item.path}
+              onChange={(p) => onItemChange(i, p)}
+              page={pageSlug}
+              section={sectionKey}
+            />
+          </div>
+        ))}
+      </div>
+      <button
+        type="button"
+        onClick={addSlot}
+        className="mt-3 text-[12px] font-medium text-[#313b2e] hover:underline"
+      >
+        + Adicionar mais uma imagem
+      </button>
+    </div>
+  );
+}
+
 const PRODUCT_SECTIONS = ["carousel", "grid", "related"];
 const CATEGORIES_FIELD = "categories";
 const CATEGORIES_HERO_SECTION = "hero";
 const CATEGORIES_MOBILE_SECTION = "mobile";
+const CONTENT_IMAGES_SECTION = "content_images";
+const CONTENT_IMAGES_ITEMS_FIELD = "items";
+const HOME_PAGE = "home";
+const HERO_SECTION = "hero";
+const HERO_IMAGES_FIELD = "images";
+const FEATURES_SECTION = "features";
+const FEATURES_IMAGE_FIELD = "image";
+const ABOUT_PAGE = "about";
+const SOLUTIONS_SECTION = "solutions";
+const SOLUTIONS_ITEMS_FIELD = "items";
+const ABOUT_HERO_IMAGE_FIELD = "image";
+
+type SolutionItemDraft = { number: string; title: string; description: string; image: string };
+
+function parseSolutionsItems(raw: string): SolutionItemDraft[] {
+  try {
+    const arr = JSON.parse(raw || "[]");
+    if (!Array.isArray(arr)) return [];
+    return arr.map((x) => ({
+      number: typeof x?.number === "string" ? x.number : "",
+      title: typeof x?.title === "string" ? x.title : "",
+      description: typeof x?.description === "string" ? x.description : "",
+      image: typeof x?.image === "string" ? x.image : "",
+    }));
+  } catch {
+    return [];
+  }
+}
+
+function AboutSolutionsItemsEditor({
+  value,
+  pageSlug,
+  onChange,
+}: {
+  value: string;
+  pageSlug: string;
+  onChange: (v: string) => void;
+}) {
+  const items = parseSolutionsItems(value);
+  const displayItems = items.length ? items : [{ number: "", title: "", description: "", image: "" }];
+
+  const updateItem = (index: number, partial: Partial<SolutionItemDraft>) => {
+    const next = [...parseSolutionsItems(value)];
+    while (next.length <= index) next.push({ number: "", title: "", description: "", image: "" });
+    next[index] = { ...next[index], ...partial };
+    onChange(JSON.stringify(next));
+  };
+
+  const addItem = () => {
+    onChange(JSON.stringify([...parseSolutionsItems(value), { number: "", title: "", description: "", image: "" }]));
+  };
+
+  const removeItem = (index: number) => {
+    const next = parseSolutionsItems(value).filter((_, i) => i !== index);
+    onChange(JSON.stringify(next.length ? next : [{ number: "", title: "", description: "", image: "" }]));
+  };
+
+  return (
+    <div className="space-y-4">
+      <p className="text-[12px] text-[#5a5a59]">
+        Edite cada solução: número, título, texto e imagem do cartão. As imagens são guardadas em <code className="text-[11px]">uploads/{pageSlug}/solutions/</code>.
+      </p>
+      {displayItems.map((item, i) => (
+        <div key={i} className="border border-[#e5e5e3] rounded-xl p-4 bg-[#fafaf9] space-y-3">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[12px] font-semibold text-[#131313]">Solução {i + 1}</span>
+            {displayItems.length > 1 && (
+              <button
+                type="button"
+                onClick={() => removeItem(i)}
+                className="text-[11px] font-medium text-red-600 hover:text-red-700 hover:underline"
+              >
+                Eliminar item
+              </button>
+            )}
+          </div>
+          <div>
+            <label className="block text-[11px] font-medium text-[#5a5a59] mb-1">Número (ex. 01/03)</label>
+            <input
+              type="text"
+              value={item.number}
+              onChange={(e) => updateItem(i, { number: e.target.value })}
+              className="w-full px-3 py-2 border border-[#e5e5e3] rounded-lg text-[13px] bg-white"
+            />
+          </div>
+          <div>
+            <label className="block text-[11px] font-medium text-[#5a5a59] mb-1">Título</label>
+            <input
+              type="text"
+              value={item.title}
+              onChange={(e) => updateItem(i, { title: e.target.value })}
+              className="w-full px-3 py-2 border border-[#e5e5e3] rounded-lg text-[13px] bg-white"
+            />
+          </div>
+          <div>
+            <label className="block text-[11px] font-medium text-[#5a5a59] mb-1">Descrição</label>
+            <textarea
+              value={item.description}
+              onChange={(e) => updateItem(i, { description: e.target.value })}
+              rows={3}
+              className="w-full px-3 py-2 border border-[#e5e5e3] rounded-lg text-[13px] bg-white resize-y"
+            />
+          </div>
+          <ImageUploadField
+            label="Imagem do cartão"
+            value={item.image}
+            onChange={(p) => updateItem(i, { image: p })}
+            page={pageSlug}
+            section={SOLUTIONS_SECTION}
+            hint="Imagem no topo do cartão na secção Soluções (Sobre Nós)."
+          />
+        </div>
+      ))}
+      <button type="button" onClick={addItem} className="text-[12px] font-medium text-[#313b2e] hover:underline">
+        + Adicionar solução
+      </button>
+    </div>
+  );
+}
 
 function FieldRow({
   fieldKey,
   value,
   defaultValue,
   sectionKey,
+  pageSlug,
   onChange,
 }: {
   fieldKey: string;
   value: string;
   defaultValue: string;
   sectionKey: string;
+  pageSlug: string;
   onChange: (value: string) => void;
 }) {
   const isJson = defaultValue.trim().startsWith("[") || defaultValue.trim().startsWith("{");
@@ -251,11 +447,72 @@ function FieldRow({
   const isCategoriesField =
     fieldKey === CATEGORIES_FIELD &&
     (sectionKey === CATEGORIES_HERO_SECTION || sectionKey === CATEGORIES_MOBILE_SECTION);
+  const isContentImagesField =
+    sectionKey === CONTENT_IMAGES_SECTION && fieldKey === CONTENT_IMAGES_ITEMS_FIELD;
+  const isHomeHeroImagesField =
+    pageSlug === HOME_PAGE && sectionKey === HERO_SECTION && fieldKey === HERO_IMAGES_FIELD;
+  const isHomeFeaturesImageField =
+    pageSlug === HOME_PAGE && sectionKey === FEATURES_SECTION && fieldKey === FEATURES_IMAGE_FIELD;
+  const isAboutSolutionsItemsField =
+    pageSlug === ABOUT_PAGE && sectionKey === SOLUTIONS_SECTION && fieldKey === SOLUTIONS_ITEMS_FIELD;
+  /** About hero uses singular `image` (right column); Home hero uses plural `images` (carousel). */
+  const isAboutHeroImageField =
+    pageSlug === ABOUT_PAGE && sectionKey === HERO_SECTION && fieldKey === ABOUT_HERO_IMAGE_FIELD;
+
+  const parseItems = (raw: string): { path: string }[] => {
+    try {
+      const arr = JSON.parse(raw || "[]");
+      return Array.isArray(arr) ? arr.map((x) => ({ path: typeof x?.path === "string" ? x.path : "" })) : [];
+    } catch {
+      return [];
+    }
+  };
+
+  const updateItemPath = (index: number, path: string) => {
+    const items = parseItems(value);
+    while (items.length <= index) items.push({ path: "" });
+    items[index] = { path };
+    onChange(JSON.stringify(items));
+  };
+
+  const removeSlot = (index: number) => {
+    const items = parseItems(value).filter((_, i) => i !== index);
+    onChange(JSON.stringify(items.length ? items : [{ path: "" }]));
+  };
 
   return (
     <div className="group">
       <label className="block text-[13px] font-medium text-[#131313] mb-1.5">{fieldKey}</label>
-      {isProductsField ? (
+      {isContentImagesField || isHomeHeroImagesField ? (
+        <ContentImagesListEditor
+          value={value}
+          pageSlug={pageSlug}
+          sectionKey={sectionKey}
+          onChange={onChange}
+          onItemChange={updateItemPath}
+          onRemoveSlot={removeSlot}
+        />
+      ) : isHomeFeaturesImageField ? (
+        <ImageUploadField
+          label="Imagem"
+          value={value}
+          onChange={onChange}
+          page={pageSlug}
+          section={sectionKey}
+          hint="Imagem principal da secção 'Cada espaço tem desafios diferentes.'"
+        />
+      ) : isAboutHeroImageField ? (
+        <ImageUploadField
+          label="Imagem do hero"
+          value={value}
+          onChange={onChange}
+          page={pageSlug}
+          section={sectionKey}
+          hint="Imagem à direita no topo da página Sobre Nós (mesmo campo que o site usa)."
+        />
+      ) : isAboutSolutionsItemsField ? (
+        <AboutSolutionsItemsEditor value={value} pageSlug={pageSlug} onChange={onChange} />
+      ) : isProductsField ? (
         <ContentProductsPicker
           value={value}
           onChange={onChange}

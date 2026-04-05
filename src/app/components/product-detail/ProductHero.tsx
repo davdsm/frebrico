@@ -4,7 +4,7 @@ import { ContentLink } from '../common/ContentLink';
 import svgPaths from '../../../imports/svg-1y6ddsd0a6';
 import { FadeInUpInView } from '../atoms/FadeInUpInView';
 import { useCart } from '../../cart/CartContext';
-import type { Product } from '../../api/shop';
+import { resolveImageUrl, type Product } from '../../api/shop';
 
 type AttributeValueItem = { name: string; image_url?: string };
 type AttributeGroup = { attribute_id: number; attribute_name: string; values: AttributeValueItem[] };
@@ -20,7 +20,7 @@ function parseAttributeGroups(raw: string): AttributeGroup[] {
         attribute_id: Number(x.attribute_id) || 0,
         attribute_name: String(x.attribute_name ?? ''),
         values: Array.isArray(x.values)
-          ? (x.values as AttributeValueItem[]).map((v) => ({ name: String(v?.name ?? ''), image_url: v?.image_url != null ? String(v.image_url) : undefined }))
+          ? (x.values as AttributeValueItem[]).map((v) => ({ name: String(v?.name ?? ''), image_url: v?.image_url != null ? resolveImageUrl(String(v.image_url)) : undefined }))
           : [],
       }));
     }
@@ -61,7 +61,7 @@ export function ProductHero({ product, categoryName, categorySlug }: ProductHero
   }, [attributeGroups.length]);
 
   const downloads = parseDownloads(product.downloads ?? '[]');
-  const mainImage = product.image || '';
+  const mainImage = resolveImageUrl(product.image);
   const hasAttributes = attributeGroups.length > 0;
   const allSelected =
     !hasAttributes ||

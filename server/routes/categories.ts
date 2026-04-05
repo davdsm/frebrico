@@ -45,7 +45,7 @@ categoriesRouter.get("/:slugOrId", (req, res) => {
 });
 
 categoriesRouter.post("/", requireAdmin, (req, res) => {
-  const { slug, name, description, parent_id, image, sort_order } = req.body;
+  const { slug, name, description, parent_id, image, icon_svg, sort_order } = req.body;
   if (!slug || !name) {
     return res.status(400).json({ error: "slug and name required" });
   }
@@ -58,6 +58,7 @@ categoriesRouter.post("/", requireAdmin, (req, res) => {
       description != null ? String(description) : "",
       Number.isFinite(parentId) ? parentId : null,
       image != null ? String(image) : "",
+      icon_svg != null ? String(icon_svg) : "",
       sortOrder
     );
     const row = getCategoryById(id);
@@ -70,7 +71,7 @@ categoriesRouter.post("/", requireAdmin, (req, res) => {
 categoriesRouter.put("/:id", requireAdmin, (req, res) => {
   const id = Number(req.params.id);
   if (!Number.isFinite(id)) return res.status(400).json({ error: "Invalid id" });
-  const { slug, name, description, parent_id, image, sort_order } = req.body;
+  const { slug, name, description, parent_id, image, icon_svg, sort_order } = req.body;
   if (!slug || !name) {
     return res.status(400).json({ error: "slug and name required" });
   }
@@ -83,6 +84,7 @@ categoriesRouter.put("/:id", requireAdmin, (req, res) => {
     description != null ? String(description) : "",
     Number.isFinite(parentId) ? parentId : null,
     image != null ? String(image) : "",
+    icon_svg != null ? String(icon_svg) : "",
     sortOrder
   );
   if (!ok) return res.status(404).json({ error: "Not found" });

@@ -2,14 +2,27 @@ import React, { useRef, useMemo } from "react";
 import svgPaths2 from "../../../imports/svg-vhld1ns7ue";
 import { ContentLink } from "../../components/common/ContentLink";
 import { useContent } from "../../content/useContent";
+import { getApiBase } from "../../content/api";
 import { FadeInUpInView } from "../../components/atoms/FadeInUpInView";
 import { StaggeredFadeInUpInView } from "../../components/atoms/StaggeredFadeInUpInView";
 
-const defaultSolutions = [
-  { number: "01/03", title: "Vedações residenciais", description: "Soluções de vedação para habitação, jardins e perímetros residenciais, com foco em durabilidade e estética." },
-  { number: "02/03", title: "Redes metálicas", description: "Redes e malhas metálicas para aplicações agrícolas, industriais e de segurança." },
-  { number: "03/03", title: "Portões metálicos", description: "Portões automáticos e manuais para garagens, entradas e áreas industriais." },
+type SolutionItem = { number: string; title: string; description: string; image?: string };
+
+const defaultSolutions: SolutionItem[] = [
+  { number: "01/03", title: "Vedações residenciais", description: "Soluções de vedação para habitação, jardins e perímetros residenciais, com foco em durabilidade e estética.", image: "" },
+  { number: "02/03", title: "Redes metálicas", description: "Redes e malhas metálicas para aplicações agrícolas, industriais e de segurança.", image: "" },
+  { number: "03/03", title: "Portões metálicos", description: "Portões automáticos e manuais para garagens, entradas e áreas industriais.", image: "" },
 ];
+
+function normalizeSolutions(parsed: unknown): SolutionItem[] {
+  if (!Array.isArray(parsed)) return defaultSolutions;
+  return parsed.map((x) => ({
+    number: typeof (x as SolutionItem)?.number === "string" ? (x as SolutionItem).number : "",
+    title: typeof (x as SolutionItem)?.title === "string" ? (x as SolutionItem).title : "",
+    description: typeof (x as SolutionItem)?.description === "string" ? (x as SolutionItem).description : "",
+    image: typeof (x as SolutionItem)?.image === "string" ? (x as SolutionItem).image : "",
+  }));
+}
 
 export function AboutSolutions() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -18,10 +31,11 @@ export function AboutSolutions() {
   const ctaButton = useContent("about", "solutions", "cta_button");
   const ctaButtonUrl = useContent("about", "solutions", "cta_button_url");
   const itemsJson = useContent("about", "solutions", "items");
+  const apiBase = getApiBase();
   const solutions = useMemo(() => {
     try {
       const parsed = itemsJson ? JSON.parse(itemsJson) : defaultSolutions;
-      return Array.isArray(parsed) ? parsed : defaultSolutions;
+      return normalizeSolutions(parsed);
     } catch {
       return defaultSolutions;
     }
@@ -46,7 +60,15 @@ export function AboutSolutions() {
           >
             {solutions.map((solution, index) => (
               <div key={index} className="bg-white rounded-[20px] shrink-0 w-[280px] md:w-[360px] lg:w-[400px] border border-[#f1f1f1]">
-                <div className="bg-[#f1f1f1] rounded-t-[20px] h-[200px] md:h-[240px]" />
+                <div className="bg-[#f1f1f1] rounded-t-[20px] h-[200px] md:h-[240px] overflow-hidden">
+                  {solution.image ? (
+                    <img
+                      src={`${apiBase}${solution.image}`}
+                      alt=""
+                      className="w-full h-full object-cover"
+                    />
+                  ) : null}
+                </div>
                 <div className="p-6">
                   <p className="text-sm text-[#5a5a59] mb-2">{solution.number}</p>
                   <h3 className="text-xl md:text-2xl font-semibold text-black mb-3">{solution.title}</h3>

@@ -26,7 +26,7 @@ interface StaggeredFadeInUpInViewProps extends React.HTMLAttributes<HTMLDivEleme
  */
 export const StaggeredFadeInUpInView = React.forwardRef<HTMLDivElement, StaggeredFadeInUpInViewProps>(
   function StaggeredFadeInUpInView(
-    { children, className, stagger = 0.1, amount = 0.4, ...rest },
+    { children, className, stagger = 0.1, amount = 0.15, ...rest },
     ref
   ) {
     const items = React.Children.toArray(children ?? null);

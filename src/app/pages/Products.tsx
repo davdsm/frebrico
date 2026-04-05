@@ -4,7 +4,6 @@ import { ProductsServices } from '../components/products/ProductsServices';
 import { ProductsGrid } from '../components/products/ProductsGrid';
 import { SEO } from '../components/common/SEO';
 import { useContent } from '../content/useContent';
-import { DominoFadeInDown } from '../components/atoms/DominoFadeInDown';
 import { fetchCategories, fetchProducts, type Category } from '../api/shop';
 import type { Product } from '../components/common/ProductCard';
 
@@ -27,7 +26,18 @@ export default function Products() {
       setError(null);
       try {
         const [cats, prods] = await Promise.all([fetchCategories(), fetchProducts()]);
-        setCategories(cats.map((c) => ({ name: c.name, slug: c.slug })));
+        // Top-level categories only (same set as header submenu), sorted like the API
+        const roots = cats
+          .filter((c) => c.parent_id == null)
+          .sort((a, b) => (a.sort_order - b.sort_order) || a.name.localeCompare(b.name));
+        setCategories(
+          roots.map((c) => ({
+            name: c.name,
+            slug: c.slug,
+            image: c.image,
+            icon_svg: (c.icon_svg || "").trim(),
+          }))
+        );
         setProducts(prods.map(toCardProduct));
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Erro ao carregar');
@@ -41,11 +51,9 @@ export default function Products() {
   return (
     <>
       <SEO title={seoTitle} description={seoDescription} path="/products" />
-      <DominoFadeInDown initialDelay={0.15} stagger={0.05}>
-        <ProductsHero categoriesFromApi={categories} />
-        <ProductsServices />
-        <ProductsGrid products={products} loading={loading} error={error} />
-      </DominoFadeInDown>
+      <ProductsHero categoriesFromApi={categories} />
+      <ProductsServices />
+      <ProductsGrid products={products} loading={loading} error={error} />
     </>
   );
 }

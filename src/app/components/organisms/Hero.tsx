@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Icon } from '../atoms/Icon';
 import { ContentLink } from '../common/ContentLink';
 import { useContent } from '../../content/useContent';
+import { getApiBase } from '../../content/api';
 
 export function Hero() {
   const title = useContent('home', 'hero', 'title');
@@ -11,9 +12,42 @@ export function Hero() {
   const description = useContent('home', 'hero', 'description');
   const linkText = useContent('home', 'hero', 'link_text');
   const linkUrl = useContent('home', 'hero', 'link_url');
+  const imagesJson = useContent('home', 'hero', 'images');
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const carouselSectionRef = useRef<HTMLDivElement>(null);
   const [isPaused, setIsPaused] = useState(false);
+  const apiBase = getApiBase();
+
+  const heroImages = (() => {
+    try {
+      const parsed = JSON.parse(imagesJson || "[]");
+      if (!Array.isArray(parsed)) return [];
+      return parsed
+        .map((item) => (typeof item?.path === "string" ? item.path : ""))
+        .filter(Boolean);
+    } catch {
+      return [];
+    }
+  })();
+
+  const fallbackCardHeights = [
+    "h-[280px] sm:h-[340px] md:h-[380px]",
+    "h-[180px] sm:h-[200px] md:h-[220px]",
+    "h-[280px] sm:h-[340px] md:h-[380px]",
+    "h-[240px] sm:h-[270px] md:h-[290px]",
+    "h-[280px] sm:h-[300px] md:h-[320px]",
+    "h-[240px] sm:h-[260px] md:h-[280px]",
+    "h-[280px] sm:h-[300px] md:h-[320px]",
+    "h-[240px] sm:h-[260px] md:h-[280px]",
+  ];
+  const cardHeightPattern = [
+    "h-[280px] sm:h-[340px] md:h-[380px]",
+    "h-[180px] sm:h-[200px] md:h-[220px]",
+    "h-[280px] sm:h-[340px] md:h-[380px]",
+    "h-[240px] sm:h-[270px] md:h-[290px]",
+  ];
+
+  const sliderImages = heroImages.length > 1 ? [...heroImages, ...heroImages] : heroImages;
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollContainerRef.current) {
@@ -33,9 +67,11 @@ export function Hero() {
     if (scrollContainerRef.current) {
       const container = scrollContainerRef.current;
       const maxScroll = container.scrollWidth - container.clientWidth;
+      const hasLoopSet = heroImages.length > 1;
+      const loopLimit = hasLoopSet ? container.scrollWidth / 2 : maxScroll;
 
       // If we're at the end, scroll back to the beginning
-      if (container.scrollLeft >= maxScroll - 10) {
+      if (container.scrollLeft >= loopLimit - 10) {
         container.scrollTo({
           left: 0,
           behavior: 'smooth'
@@ -162,54 +198,27 @@ export function Hero() {
             onMouseLeave={() => setIsPaused(false)}
             className="flex gap-6 md:gap-10 overflow-x-auto scrollbar-hide scroll-smooth"
           >
-            <motion.div
-              initial={{ opacity: 0, y: 28 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 2, ease: [0.22, 1, 0.36, 1], delay: 1.0 }}
-              className="bg-[#f1f1f1] h-[280px] w-[240px] sm:h-[340px] sm:w-[280px] md:h-[380px] md:w-[320px] rounded-[20px] shrink-0"
-            />
-            <motion.div
-              initial={{ opacity: 0, y: 28 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 2, ease: [0.22, 1, 0.36, 1], delay: 1.1 }}
-              className="bg-[#f1f1f1] h-[180px] w-[240px] sm:h-[200px] sm:w-[280px] md:h-[220px] md:w-[320px] rounded-[20px] shrink-0"
-            />
-            <motion.div
-              initial={{ opacity: 0, y: 28 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 2, ease: [0.22, 1, 0.36, 1], delay: 1.2 }}
-              className="bg-[#f1f1f1] h-[280px] w-[240px] sm:h-[340px] sm:w-[280px] md:h-[380px] md:w-[320px] rounded-[20px] shrink-0"
-            />
-            <motion.div
-              initial={{ opacity: 0, y: 28 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 2, ease: [0.22, 1, 0.36, 1], delay: 1.3 }}
-              className="bg-[#f1f1f1] h-[240px] w-[240px] sm:h-[270px] sm:w-[280px] md:h-[290px] md:w-[320px] rounded-[20px] shrink-0"
-            />
-            <motion.div
-              initial={{ opacity: 0, y: 28 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 2, ease: [0.22, 1, 0.36, 1], delay: 1.4 }}
-              className="bg-[#f1f1f1] h-[280px] w-[240px] sm:h-[300px] sm:w-[280px] md:h-[320px] md:w-[320px] rounded-[20px] shrink-0"
-            />
-            <motion.div
-              initial={{ opacity: 0, y: 28 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 2, ease: [0.22, 1, 0.36, 1], delay: 1.5 }}
-              className="bg-[#f1f1f1] h-[240px] w-[240px] sm:h-[260px] sm:w-[280px] md:h-[280px] md:w-[320px] rounded-[20px] shrink-0"
-            />
-            <motion.div
-              initial={{ opacity: 0, y: 28 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 2, ease: [0.22, 1, 0.36, 1], delay: 1.6 }}
-              className="bg-[#f1f1f1] h-[280px] w-[240px] sm:h-[300px] sm:w-[280px] md:h-[320px] md:w-[320px] rounded-[20px] shrink-0"
-            />
-            <motion.div
-              initial={{ opacity: 0, y: 28 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 2, ease: [0.22, 1, 0.36, 1], delay: 1.7 }}
-              className="bg-[#f1f1f1] h-[240px] w-[240px] sm:h-[260px] sm:w-[280px] md:h-[280px] md:w-[320px] rounded-[20px] shrink-0"
-            />
+            {(heroImages.length ? sliderImages : fallbackCardHeights).map((item, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 28 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 2, ease: [0.22, 1, 0.36, 1], delay: 1.0 + index * 0.1 }}
+                className={
+                  heroImages.length
+                    ? `w-[240px] sm:w-[280px] md:w-[320px] ${cardHeightPattern[index % cardHeightPattern.length]} rounded-[20px] shrink-0 overflow-hidden bg-[#f1f1f1]`
+                    : `bg-[#f1f1f1] ${item} w-[240px] sm:w-[280px] md:w-[320px] rounded-[20px] shrink-0`
+                }
+              >
+                {heroImages.length ? (
+                  <img
+                    src={`${apiBase}${item}`}
+                    alt=""
+                    className="w-full h-full object-cover"
+                  />
+                ) : null}
+              </motion.div>
+            ))}
 
           </div>
         </div>
