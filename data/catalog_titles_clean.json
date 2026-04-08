@@ -1,0 +1,552 @@
+[
+  {
+    "page": 10,
+    "title": "ARAME CALVANIZADO",
+    "norm": "ARAME CALVANIZADO"
+  },
+  {
+    "page": 11,
+    "title": "ARAME GALVANIZADO FINO",
+    "norm": "ARAME GALVANIZADO FINO"
+  },
+  {
+    "page": 12,
+    "title": "ARAME GALVALTEC T-70",
+    "norm": "ARAME GALVALTEC T-70"
+  },
+  {
+    "page": 14,
+    "title": "ARAME RECOZIDO",
+    "norm": "ARAME RECOZIDO"
+  },
+  {
+    "page": 16,
+    "title": "ARAME PLASTIFICADO",
+    "norm": "ARAME PLASTIFICADO"
+  },
+  {
+    "page": 18,
+    "title": "ARAME FARPADO DE ALTA RESISTENCIA PLASTIFICADO ‘RICCIO’ PVC",
+    "norm": "ARAME FARPADO DE ALTA RESISTENCIA PLASTIFICADO ‘RICCIO’ PVC"
+  },
+  {
+    "page": 20,
+    "title": "ARAME DE ATAR E BRICOLAGE",
+    "norm": "ARAME DE ATAR E BRICOLAGE"
+  },
+  {
+    "page": 26,
+    "title": "REDE OVELEHIRA BEZINAL MEDIA",
+    "norm": "REDE OVELEHIRA BEZINAL MEDIA"
+  },
+  {
+    "page": 28,
+    "title": "REDE OVELHEIRA TITAN",
+    "norm": "REDE OVELHEIRA TITAN"
+  },
+  {
+    "page": 30,
+    "title": "REDE HEXAGONAL NACIONAL",
+    "norm": "REDE HEXAGONAL NACIONAL"
+  },
+  {
+    "page": 32,
+    "title": "AGRISALD",
+    "norm": "AGRISALD"
+  },
+  {
+    "page": 34,
+    "title": "ESAPLAX",
+    "norm": "ESAPLAX"
+  },
+  {
+    "page": 36,
+    "title": "NOVAPLAX",
+    "norm": "NOVAPLAX"
+  },
+  {
+    "page": 38,
+    "title": "DECOPLAX EVOLUCAO",
+    "norm": "DECOPLAX EVOLUCAO"
+  },
+  {
+    "page": 40,
+    "title": "STILPLAX",
+    "norm": "STILPLAX"
+  },
+  {
+    "page": 42,
+    "title": "TEIA METALICA GALVANIZADA",
+    "norm": "TEIA METALICA GALVANIZADA"
+  },
+  {
+    "page": 44,
+    "title": "REDE METAL DISTENDIDO",
+    "norm": "REDE METAL DISTENDIDO"
+  },
+  {
+    "page": 46,
+    "title": "REDE ONDULADA / TREMIDA",
+    "norm": "REDE ONDULADA / TREMIDA"
+  },
+  {
+    "page": 50,
+    "title": "POSTE T",
+    "norm": "POSTE T"
+  },
+  {
+    "page": 51,
+    "title": "POSTE REDONDO GALVANIZADO/ LACADO VERDE",
+    "norm": "POSTE REDONDO GALVANIZADO/ LACADO VERDE"
+  },
+  {
+    "page": 52,
+    "title": "POSTE TUBOGRAF",
+    "norm": "POSTE TUBOGRAF"
+  },
+  {
+    "page": 53,
+    "title": "POSTE DE PINHO NORDICO TORNEADO C/ BICO",
+    "norm": "POSTE DE PINHO NORDICO TORNEADO C/ BICO"
+  },
+  {
+    "page": 58,
+    "title": "PAVITEC",
+    "norm": "PAVITEC"
+  },
+  {
+    "page": 59,
+    "title": "PAVISOL",
+    "norm": "PAVISOL"
+  },
+  {
+    "page": 60,
+    "title": "PAINEL ELETROSOLDADO",
+    "norm": "PAINEL ELETROSOLDADO"
+  },
+  {
+    "page": 61,
+    "title": "PAINEL TOP",
+    "norm": "PAINEL TOP"
+  },
+  {
+    "page": 62,
+    "title": "POSTE TOP",
+    "norm": "POSTE TOP"
+  },
+  {
+    "page": 63,
+    "title": "POSTE TOP DE CANTO",
+    "norm": "POSTE TOP DE CANTO"
+  },
+  {
+    "page": 64,
+    "title": "PAINEL DEFENDER",
+    "norm": "PAINEL DEFENDER"
+  },
+  {
+    "page": 65,
+    "title": "POSTE SEM FURACAO",
+    "norm": "POSTE SEM FURACAO"
+  },
+  {
+    "page": 66,
+    "title": "PAINEL TWIN",
+    "norm": "PAINEL TWIN"
+  },
+  {
+    "page": 67,
+    "title": "POSTE TWIN / POSTE TWIN DE CANTO",
+    "norm": "POSTE TWIN / POSTE TWIN DE CANTO"
+  },
+  {
+    "page": 68,
+    "title": "PORTA E PORTAO TOP",
+    "norm": "PORTA E PORTAO TOP"
+  },
+  {
+    "page": 69,
+    "title": "PORTA E PORTAO TWIN",
+    "norm": "PORTA E PORTAO TWIN"
+  },
+  {
+    "page": 70,
+    "title": "PORTA LITE",
+    "norm": "PORTA LITE"
+  },
+  {
+    "page": 74,
+    "title": "QUADRA",
+    "norm": "QUADRA"
+  },
+  {
+    "page": 75,
+    "title": "QUADRA BRICO",
+    "norm": "QUADRA BRICO"
+  },
+  {
+    "page": 76,
+    "title": "EXAGON / EXAGON BRICO",
+    "norm": "EXAGON / EXAGON BRICO"
+  },
+  {
+    "page": 77,
+    "title": "QUADRA BRICO",
+    "norm": "QUADRA BRICO"
+  },
+  {
+    "page": 78,
+    "title": "MOSQUITO",
+    "norm": "MOSQUITO"
+  },
+  {
+    "page": 79,
+    "title": "AVIARY / AVIARY BRICO",
+    "norm": "AVIARY / AVIARY BRICO"
+  },
+  {
+    "page": 80,
+    "title": "FLORA / ORTOFLEX",
+    "norm": "FLORA / ORTOFLEX"
+  },
+  {
+    "page": 81,
+    "title": "REDE TUTORAGEM / ANTI-PASSARO",
+    "norm": "REDE TUTORAGEM / ANTI-PASSARO"
+  },
+  {
+    "page": 82,
+    "title": "SACCOCLIMA / TUBOCLIMA PLUS",
+    "norm": "SACCOCLIMA / TUBOCLIMA PLUS"
+  },
+  {
+    "page": 83,
+    "title": "ORTOCLIMA",
+    "norm": "ORTOCLIMA"
+  },
+  {
+    "page": 84,
+    "title": "COVER PRO GREEN",
+    "norm": "COVER PRO GREEN"
+  },
+  {
+    "page": 85,
+    "title": "REDE TUTORAGEM / ANTI-PASSARO",
+    "norm": "REDE TUTORAGEM / ANTI-PASSARO"
+  },
+  {
+    "page": 86,
+    "title": "TELA DE SOLOS",
+    "norm": "TELA DE SOLOS"
+  },
+  {
+    "page": 87,
+    "title": "STICK UP / STAND UP",
+    "norm": "STICK UP / STAND UP"
+  },
+  {
+    "page": 88,
+    "title": "REDE PROTECAO DE PLANTAS",
+    "norm": "REDE PROTECAO DE PLANTAS"
+  },
+  {
+    "page": 89,
+    "title": "REDE SOMBRA 80%",
+    "norm": "REDE SOMBRA 80%"
+  },
+  {
+    "page": 90,
+    "title": "REDE SOMBRA 90%",
+    "norm": "REDE SOMBRA 90%"
+  },
+  {
+    "page": 91,
+    "title": "ALOHA 90% BRICO (MINI ROLO)",
+    "norm": "ALOHA 90% BRICO (MINI ROLO)"
+  },
+  {
+    "page": 92,
+    "title": "SOLEADO CORTEN BRICO / SOLEADO BRANCO BRICO / JAMAICA BRICO (MINI ROLO)",
+    "norm": "SOLEADO CORTEN BRICO / SOLEADO BRANCO BRICO / JAMAICA BRICO (MINI ROLO)"
+  },
+  {
+    "page": 93,
+    "title": "REDE RASCHEL SIMPLES OU DUPLA",
+    "norm": "REDE RASCHEL SIMPLES OU DUPLA"
+  },
+  {
+    "page": 94,
+    "title": "STANDART GREEN",
+    "norm": "STANDART GREEN"
+  },
+  {
+    "page": 95,
+    "title": "DIVY OPTIMA",
+    "norm": "DIVY OPTIMA"
+  },
+  {
+    "page": 96,
+    "title": "REDES PARA DESPORTO E PARA-BOLAS",
+    "norm": "REDES PARA DESPORTO E PARA-BOLAS"
+  },
+  {
+    "page": 98,
+    "title": "REDE PARQUES DE VOO",
+    "norm": "REDE PARQUES DE VOO"
+  },
+  {
+    "page": 99,
+    "title": "LABOR",
+    "norm": "LABOR"
+  },
+  {
+    "page": 100,
+    "title": "REDE DE SINALIZACAO SUBTERRANEA",
+    "norm": "REDE DE SINALIZACAO SUBTERRANEA"
+  },
+  {
+    "page": 101,
+    "title": "FITA SINALIZACAO",
+    "norm": "FITA SINALIZACAO"
+  },
+  {
+    "page": 102,
+    "title": "ARMATEK",
+    "norm": "ARMATEK"
+  },
+  {
+    "page": 103,
+    "title": "MANTO GEOTEXTIL",
+    "norm": "MANTO GEOTEXTIL"
+  },
+  {
+    "page": 104,
+    "title": "LAMINA DRENANTE",
+    "norm": "LAMINA DRENANTE"
+  },
+  {
+    "page": 108,
+    "title": "CORRENTE GENOVESA ITALIANA",
+    "norm": "CORRENTE GENOVESA ITALIANA"
+  },
+  {
+    "page": 109,
+    "title": "CORRENTE COMERCIAL DIN 5685-A",
+    "norm": "CORRENTE COMERCIAL DIN 5685-A"
+  },
+  {
+    "page": 110,
+    "title": "CORRENTE ACO GRAU 80",
+    "norm": "CORRENTE ACO GRAU 80"
+  },
+  {
+    "page": 111,
+    "title": "CABO DE ACO GALVANIZADO",
+    "norm": "CABO DE ACO GALVANIZADO"
+  },
+  {
+    "page": 113,
+    "title": "CABO DE ACO ANTI-GIRATORIO",
+    "norm": "CABO DE ACO ANTI-GIRATORIO"
+  },
+  {
+    "page": 114,
+    "title": "CABO DE ACO GALVANIZADO PLASTIFICADO",
+    "norm": "CABO DE ACO GALVANIZADO PLASTIFICADO"
+  },
+  {
+    "page": 115,
+    "title": "CABO DE ACO INOX / INOX PLASTIFICADO",
+    "norm": "CABO DE ACO INOX / INOX PLASTIFICADO"
+  },
+  {
+    "page": 118,
+    "title": "CERRA CABO COMERCIAL ZINCADO / CERRA CABO DIN 1142",
+    "norm": "CERRA CABO COMERCIAL ZINCADO / CERRA CABO DIN 1142"
+  },
+  {
+    "page": 119,
+    "title": "ESTICADOR OLHAL E GANCHO ZINCADO",
+    "norm": "ESTICADOR OLHAL E GANCHO ZINCADO"
+  },
+  {
+    "page": 120,
+    "title": "MANILHA DIREITA ZINCADA/ ELO DE LIGACAO RAPIDA ZINCADO",
+    "norm": "MANILHA DIREITA ZINCADA/ ELO DE LIGACAO RAPIDA ZINCADO"
+  },
+  {
+    "page": 121,
+    "title": "MOSQUETAO NIQUELADO COM DESTORCEDOR",
+    "norm": "MOSQUETAO NIQUELADO COM DESTORCEDOR"
+  },
+  {
+    "page": 122,
+    "title": "MOSQUETAO DE BOMBEIRO GALVANIZADO COM E SEM SEGURANCA",
+    "norm": "MOSQUETAO DE BOMBEIRO GALVANIZADO COM E SEM SEGURANCA"
+  },
+  {
+    "page": 123,
+    "title": "MOSQUETAO NIQUELADO AUTOMATICO / DESTORCEDORES / SAPATILHO GALVANIZADO",
+    "norm": "MOSQUETAO NIQUELADO AUTOMATICO / DESTORCEDORES / SAPATILHO GALVANIZADO"
+  },
+  {
+    "page": 124,
+    "title": "GANCHO 'S' GALVANIZADO / GULPILHA COM ARGOLA ZINCADA / GULPILHA BETA ZINCADA",
+    "norm": "GANCHO 'S' GALVANIZADO / GULPILHA COM ARGOLA ZINCADA / GULPILHA BETA ZINCADA"
+  },
+  {
+    "page": 126,
+    "title": "OLHAL DE SUSPENSAO MACHO E FEMEA ZINCADO",
+    "norm": "OLHAL DE SUSPENSAO MACHO E FEMEA ZINCADO"
+  },
+  {
+    "page": 127,
+    "title": "GANCHO DE OLHAL",
+    "norm": "GANCHO DE OLHAL"
+  },
+  {
+    "page": 128,
+    "title": "CERRA CABO INOX / ESTICADOR OLHAL E GANCHO INOX / ELO DE LIGACAO RAPIDA INOX",
+    "norm": "CERRA CABO INOX / ESTICADOR OLHAL E GANCHO INOX / ELO DE LIGACAO RAPIDA INOX"
+  },
+  {
+    "page": 129,
+    "title": "MANILHA DIREITA INOX / GANCHO 'S' INOX / MOSQUETAO DE BOMBEIRO COM E SEM SEGURANCA INOX",
+    "norm": "MANILHA DIREITA INOX / GANCHO 'S' INOX / MOSQUETAO DE BOMBEIRO COM E SEM SEGURANCA INOX"
+  },
+  {
+    "page": 130,
+    "title": "CERRA CABO INOX / ESTICADOR OLHAL E GANCHO INOX / ELO DE LIGACAO RAPIDA INOX",
+    "norm": "CERRA CABO INOX / ESTICADOR OLHAL E GANCHO INOX / ELO DE LIGACAO RAPIDA INOX"
+  },
+  {
+    "page": 131,
+    "title": "MANILHA DIREITA INOX / GANCHO 'S' INOX / MOSQUETAO DE BOMBEIRO COM E SEM SEGURANCA INOX",
+    "norm": "MANILHA DIREITA INOX / GANCHO 'S' INOX / MOSQUETAO DE BOMBEIRO COM E SEM SEGURANCA INOX"
+  },
+  {
+    "page": 132,
+    "title": "MANILHA MEIA LUA DE ALTA RESISTENCIA",
+    "norm": "MANILHA MEIA LUA DE ALTA RESISTENCIA"
+  },
+  {
+    "page": 133,
+    "title": "ARGOLAO / CONJUNTO DE ARGOLAO",
+    "norm": "ARGOLAO / CONJUNTO DE ARGOLAO"
+  },
+  {
+    "page": 134,
+    "title": "GANCHO CLEVIS AUTOBLOCANTE / GANCHO DE OLHAL AUTOBLOCANTE / GANCHO DE OLHAL GIRATORIO AUTOBLOCANTE / ELO DE LIGACAO",
+    "norm": "GANCHO CLEVIS AUTOBLOCANTE / GANCHO DE OLHAL AUTOBLOCANTE / GANCHO DE OLHAL GIRATORIO AUTOBLOCANTE / ELO DE LIGACAO"
+  },
+  {
+    "page": 136,
+    "title": "CINTA DE AMARRACAO",
+    "norm": "CINTA DE AMARRACAO"
+  },
+  {
+    "page": 137,
+    "title": "CINTA DE REBOQUE / ACESSORIOS PARA CINTAS DE AMARRACAO",
+    "norm": "CINTA DE REBOQUE / ACESSORIOS PARA CINTAS DE AMARRACAO"
+  },
+  {
+    "page": 138,
+    "title": "CINTA DE ELEVACAO",
+    "norm": "CINTA DE ELEVACAO"
+  },
+  {
+    "page": 142,
+    "title": "PREGO QUADRADO",
+    "norm": "PREGO QUADRADO"
+  },
+  {
+    "page": 143,
+    "title": "PREGO REDONDO",
+    "norm": "PREGO REDONDO"
+  },
+  {
+    "page": 144,
+    "title": "PREGO DE ACO",
+    "norm": "PREGO DE ACO"
+  },
+  {
+    "page": 145,
+    "title": "PREGO DE ACO CAVATORTA",
+    "norm": "PREGO DE ACO CAVATORTA"
+  },
+  {
+    "page": 148,
+    "title": "GRIPPLE PLUS",
+    "norm": "GRIPPLE PLUS"
+  },
+  {
+    "page": 149,
+    "title": "ESTICADORES, PARAFUSOS, PASSA-FIOS, TAMPAS E CLIPS",
+    "norm": "ESTICADORES, PARAFUSOS, PASSA-FIOS, TAMPAS E CLIPS"
+  },
+  {
+    "page": 150,
+    "title": "GRAMPOS BARBELADOS ZINCO / ALUMINIO, GRAMPOS NORMAIS/GALVANIZADOS, GRAMPOS MULTIUSOS",
+    "norm": "GRAMPOS BARBELADOS ZINCO / ALUMINIO, GRAMPOS NORMAIS/GALVANIZADOS, GRAMPOS MULTIUSOS"
+  },
+  {
+    "page": 151,
+    "title": "ESTICADORES, PARAFUSOS, PASSA-FIOS, TAMPAS E CLIPS",
+    "norm": "ESTICADORES, PARAFUSOS, PASSA-FIOS, TAMPAS E CLIPS"
+  },
+  {
+    "page": 152,
+    "title": "AGRAFOS E ALICATES",
+    "norm": "AGRAFOS E ALICATES"
+  },
+  {
+    "page": 153,
+    "title": "ABRACADEIRA DE SERRILHA",
+    "norm": "ABRACADEIRA DE SERRILHA"
+  },
+  {
+    "page": 156,
+    "title": "TURQUESA ARMADOR KNIPEX",
+    "norm": "TURQUESA ARMADOR KNIPEX"
+  },
+  {
+    "page": 157,
+    "title": "TURQUESA RUSSA KNIPEX",
+    "norm": "TURQUESA RUSSA KNIPEX"
+  },
+  {
+    "page": 158,
+    "title": "KNIPEX CORTA ARAME COBOLT®",
+    "norm": "KNIPEX CORTA ARAME COBOLT®"
+  },
+  {
+    "page": 159,
+    "title": "KNIPEX CORTA CABO DE ACO",
+    "norm": "KNIPEX CORTA CABO DE ACO"
+  },
+  {
+    "page": 160,
+    "title": "PA E ABRE BURACOS DKV",
+    "norm": "PA E ABRE BURACOS DKV"
+  },
+  {
+    "page": 164,
+    "title": "REDE HEXAGONAL L.A.",
+    "norm": "REDE HEXAGONAL L.A."
+  },
+  {
+    "page": 165,
+    "title": "REDE ELETROSOLDADA L.A. GALVANIZADA APOS SOLDADURA",
+    "norm": "REDE ELETROSOLDADA L.A. GALVANIZADA APOS SOLDADURA"
+  },
+  {
+    "page": 166,
+    "title": "REDE ELETROSOLDADA L.A. GALVANIZADA E PLASTIFICADA",
+    "norm": "REDE ELETROSOLDADA L.A. GALVANIZADA E PLASTIFICADA"
+  },
+  {
+    "page": 167,
+    "title": "REDE ELETROSOLDADA L.A.",
+    "norm": "REDE ELETROSOLDADA L.A."
+  }
+]

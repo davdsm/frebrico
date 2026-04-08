@@ -94,7 +94,7 @@ export function Hero() {
   }, [isPaused]);
 
   return (
-    <section className="w-full bg-white py-12 md:py-24">
+    <section className="w-full overflow-x-clip bg-white py-12 md:py-24">
       <div className="max-w-[1304px] mx-auto px-4 md:px-8">
         {/* Main Title */}
         <div className="mb-8 md:mb-16">
@@ -103,14 +103,14 @@ export function Hero() {
               initial={{ opacity: 0, y: 28 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
-              className="text-5xl sm:text-7xl md:text-8xl lg:text-[128px] font-semibold leading-none">{title}</motion.h1>
+              className="animate-hero-title-gradient text-5xl sm:text-7xl md:text-8xl lg:text-[128px] font-semibold leading-[1.06] pb-2 bg-gradient-to-r from-[#0f0f0f] via-[#1d2b1a] to-[#313b2e] bg-clip-text text-transparent bg-[length:220%_220%]">{title}</motion.h1>
             <motion.div
               initial={{ opacity: 0, y: 28 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 2, ease: [0.22, 1, 0.36, 1], delay: 0.4 }}
-              className="bg-[#f8f8f8] rounded-full w-[100px] h-[60px] md:w-[164px] md:h-[94px] flex items-center justify-center"
+              className="bg-[#313b2e] rounded-full w-[100px] h-[72px] md:w-[164px] md:h-[110px] flex items-center justify-center"
             >
-              <span className="text-4xl md:text-[72px]">&</span>
+              <span className="text-4xl md:text-[72px] text-white">à</span>
             </motion.div>
           </div>
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -118,7 +118,7 @@ export function Hero() {
               initial={{ opacity: 0, y: 28 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 2, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
-              className="text-5xl sm:text-7xl md:text-8xl lg:text-[128px] font-semibold leading-none">{title2}</motion.h1>
+              className="animate-hero-title-gradient text-5xl sm:text-7xl md:text-8xl lg:text-[128px] font-semibold leading-[1.06] pb-2 bg-gradient-to-r from-[#0f0f0f] via-[#1d2b1a] to-[#313b2e] bg-clip-text text-transparent bg-[length:220%_220%]">{title2}</motion.h1>
             <motion.div
               initial={{ opacity: 0, y: 28 }}
               animate={{ opacity: 1, y: 0 }}
@@ -191,7 +191,7 @@ export function Hero() {
         </div>
 
         {/* Image Cards - Scrollable - Full width edge-to-edge */}
-        <div ref={carouselSectionRef} className="carousel-fade-wrapper w-screen -ml-[50vw] left-[50%] relative">
+        <div ref={carouselSectionRef} className="carousel-fade-wrapper relative left-1/2 w-[100dvw] -translate-x-1/2">
           <div
             ref={scrollContainerRef}
             onMouseEnter={() => setIsPaused(true)}

@@ -7,22 +7,22 @@ export function ContactForm() {
       <div className="flex flex-col sm:flex-row gap-6 w-full">
         <div className="flex flex-col gap-4 w-full sm:w-[220px]">
           <label className="text-base font-medium leading-normal text-black/40">Nome</label>
-          <input type="text" placeholder="David" className="h-12 w-full px-4 py-3 rounded-xl border border-[#dcdcdc] text-lg leading-normal text-black outline-none focus:border-[#313b2e] transition-colors" />
+          <input type="text" placeholder="Nome" className="h-12 w-full px-4 py-3 rounded-xl border border-[#dcdcdc] text-lg leading-normal text-black outline-none focus:border-[#313b2e] transition-colors" />
         </div>
         <div className="flex flex-col gap-4 w-full sm:w-[220px]">
           <label className="text-base font-medium leading-normal text-black/40">Apelido</label>
-          <input type="text" placeholder="Teste Apelido" className="h-12 w-full px-4 py-3 rounded-xl border border-[#dcdcdc] text-lg leading-normal text-black outline-none focus:border-[#313b2e] transition-colors" />
+          <input type="text" placeholder="Apelido" className="h-12 w-full px-4 py-3 rounded-xl border border-[#dcdcdc] text-lg leading-normal text-black outline-none focus:border-[#313b2e] transition-colors" />
         </div>
       </div>
 
       <div className="flex flex-col gap-4 w-full">
         <label className="text-base font-medium leading-normal text-black/40">EMAIL</label>
-        <input type="email" placeholder="hello@sazconpt.co" className="h-12 w-full px-4 py-3 rounded-xl border border-[#dcdcdc] text-lg leading-normal text-black outline-none focus:border-[#313b2e] transition-colors" />
+        <input type="email" placeholder="Email" className="h-12 w-full px-4 py-3 rounded-xl border border-[#dcdcdc] text-lg leading-normal text-black outline-none focus:border-[#313b2e] transition-colors" />
       </div>
 
       <div className="flex flex-col gap-4 w-full">
         <label className="text-base font-medium leading-normal text-black/40">Mensagem</label>
-        <textarea placeholder="Omega Orion" className="h-[177px] w-full px-4 py-3 rounded-xl border border-[#dcdcdc] text-lg leading-normal text-black outline-none focus:border-[#313b2e] transition-colors resize-none" />
+        <textarea placeholder="Mensagem" className="h-[177px] w-full px-4 py-3 rounded-xl border border-[#dcdcdc] text-lg leading-normal text-black outline-none focus:border-[#313b2e] transition-colors resize-none" />
       </div>
 
       <button className="bg-[#313b2e] hover:bg-[#3d4937] transition-colors rounded-[40px] px-8 py-4 flex items-center justify-center gap-2.5 w-fit">

@@ -109,14 +109,14 @@ const defaults: DefaultsMap = {
     carousel: {
       title: "Produtos pensados e preparados para si",
       products: JSON.stringify([
-        { name: "Armatek", price: "5.85", badge: "Destaque 🔥" },
-        { name: "Armatek", price: "5.85" },
-        { name: "Armatek", price: "5.85" },
-        { name: "Armatek", price: "5.85" },
-        { name: "Armatek", price: "5.85" },
-        { name: "Armatek", price: "5.85" },
-        { name: "Armatek", price: "5.85" },
-        { name: "Armatek", price: "5.85" },
+        { name: "Armatek", price: "5.85", featured: 1, image: "", slug: "" },
+        { name: "Armatek", price: "5.85", image: "", slug: "" },
+        { name: "Armatek", price: "5.85", image: "", slug: "" },
+        { name: "Armatek", price: "5.85", image: "", slug: "" },
+        { name: "Armatek", price: "5.85", image: "", slug: "" },
+        { name: "Armatek", price: "5.85", image: "", slug: "" },
+        { name: "Armatek", price: "5.85", image: "", slug: "" },
+        { name: "Armatek", price: "5.85", image: "", slug: "" },
       ]),
     },
     faq: {
@@ -184,6 +184,12 @@ const defaults: DefaultsMap = {
       title: "Deixe a sua mensagem",
       description: "Disponibilizamos os nossos contactos para uma comunicação mais simples e eficaz. Peça orçamentos, esclareça dúvidas técnicas ou solicite informações sobre os nossos produtos.",
     },
+    map: {
+      image: "",
+      title: "Visite-nos",
+      address_1: "Sede na Urbanização Ind. do Soeiro, Lote 21, 4745-457 S. Mamede do Coronado",
+      address_2: "Rua Delfim Ferreira, Lote 133, Zona Industrial da Maia I, Sector VII, 4470-436 Maia",
+    },
   },
   category: {
     seo: { title_template: "{{title}} | Frebrico", description_template: "Produtos da categoria {{title}}. Vedações, portões, arames e bricolage na Frebrico." },
@@ -224,6 +230,7 @@ const defaults: DefaultsMap = {
       badge: "FAQs",
       title: "Perguntas Frequentes",
       description: "Encontre aqui as respostas às perguntas que nos fazem com mais frequência.",
+      image: "/uploads/home/hero/2-2-1774025592994.jpg",
       button: "Falar com a equipa",
       button_url: "/contact",
       items: JSON.stringify([

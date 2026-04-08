@@ -1,18 +1,38 @@
-import React, { useRef, useEffect, useState } from 'react';
-import { ProductCard } from '../molecules/ProductCard';
+import React, { useRef, useEffect, useMemo, useState } from 'react';
+import {
+  ProductCard,
+  cmsProductItemKey,
+  cmsProductItemToCardProduct,
+} from '../common/ProductCard';
 import { Icon } from '../atoms/Icon';
-import { useContent, useContentJson } from '../../content/useContent';
+import { useContent } from '../../content/useContent';
 import { FadeInUpInView } from '../atoms/FadeInUpInView';
 import { StaggeredFadeInUpInView } from '../atoms/StaggeredFadeInUpInView';
 
-type CarouselProduct = { name: string; price: string; badge?: string };
+function shuffleArray<T>(items: T[]): T[] {
+  const copy = [...items];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
 
 export function ProductCarousel() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [isPaused, setIsPaused] = useState(false);
   const title = useContent('home', 'carousel', 'title');
-  const products = useContentJson<CarouselProduct[]>('home', 'carousel', 'products', []);
-  const productList = Array.isArray(products) ? products : [];
+  const productsRaw = useContent('home', 'carousel', 'products', '');
+  const productList = useMemo(() => {
+    if (!productsRaw) return [];
+    try {
+      const parsed = JSON.parse(productsRaw) as unknown;
+      if (!Array.isArray(parsed)) return [];
+      return shuffleArray(parsed as Record<string, unknown>[]);
+    } catch {
+      return [];
+    }
+  }, [productsRaw]);
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollContainerRef.current) {
@@ -58,7 +78,7 @@ export function ProductCarousel() {
 
   return (
     <FadeInUpInView>
-      <section className="w-full bg-white py-16 md:py-32">
+      <section className="w-full overflow-x-clip bg-white py-16 md:py-32">
       <div className="max-w-[1240px] mx-auto px-4 md:px-8">
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-8 mb-12 md:mb-16">
@@ -84,7 +104,7 @@ export function ProductCarousel() {
         </div>
 
         {/* Product Carousel - Full width edge-to-edge */}
-        <div className="carousel-fade-wrapper w-screen -ml-[50vw] left-[50%] relative">
+        <div className="carousel-fade-wrapper relative left-1/2 w-[100dvw] -translate-x-1/2">
           <StaggeredFadeInUpInView
             ref={scrollContainerRef}
             onMouseEnter={() => setIsPaused(true)}
@@ -92,8 +112,12 @@ export function ProductCarousel() {
             className="flex gap-4 md:gap-8 overflow-x-auto pb-4 scrollbar-hide scroll-smooth"
             stagger={0.1}
           >
-            {productList.map((product, index) => (
-              <ProductCard key={index} {...product} />
+            {productList.map((raw, index) => (
+              <ProductCard
+                key={cmsProductItemKey(raw, index)}
+                product={cmsProductItemToCardProduct(raw)}
+                className="w-[200px] sm:w-[220px] md:w-[250px] shrink-0"
+              />
             ))}
           </StaggeredFadeInUpInView>
         </div>

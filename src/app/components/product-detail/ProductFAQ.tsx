@@ -5,6 +5,7 @@ import { ContentLink } from '../common/ContentLink';
 import { useContent } from '../../content/useContent';
 import { FadeInUpInView } from '../atoms/FadeInUpInView';
 import { StaggeredFadeInUpInView } from '../atoms/StaggeredFadeInUpInView';
+import { resolveImageUrl } from '../../api/shop';
 
 interface FAQItem {
   question: string;
@@ -32,6 +33,16 @@ export function ProductFAQ({ product }: ProductFAQProps) {
   const faqs = productFaqs.length > 0 ? productFaqs : defaultFaqs;
   const buttonText = useContent("product-detail", "faq", "button");
   const buttonUrl = useContent("product-detail", "faq", "button_url");
+  const faqImageRaw = useContent("product-detail", "faq", "image");
+  const faqImagePath = React.useMemo(() => {
+    const raw = (faqImageRaw || "").trim();
+    if (!raw) return "/uploads/home/hero/2-2-1774025592994.jpg";
+    // Accept accidentally saved filesystem-style values and map to public uploads URL.
+    if (raw.startsWith("/data/uploads/")) return raw.replace("/data/uploads/", "/uploads/");
+    if (raw.startsWith("data/uploads/")) return `/${raw.replace("data/uploads/", "uploads/")}`;
+    return raw;
+  }, [faqImageRaw]);
+  const faqImageUrl = resolveImageUrl(faqImagePath);
 
   const toggleFAQ = (index: number) => {
     setOpenIndex(openIndex === index ? -1 : index);
@@ -84,7 +95,11 @@ export function ProductFAQ({ product }: ProductFAQProps) {
           
           {/* Left - Image Placeholder */}
           <div className="bg-white rounded-[20px] p-3.5 hidden lg:block">
-            <div className="bg-[#eee] rounded-[12px] w-full h-[352px]" />
+            <img
+              src={faqImageUrl}
+              alt="FAQ"
+              className="rounded-[12px] w-full h-[352px] object-cover"
+            />
           </div>
 
           {/* Right - FAQ Items */}

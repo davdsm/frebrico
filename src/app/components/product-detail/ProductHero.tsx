@@ -1,9 +1,8 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router';
+import { Link } from 'react-router';
 import { ContentLink } from '../common/ContentLink';
 import svgPaths from '../../../imports/svg-1y6ddsd0a6';
 import { FadeInUpInView } from '../atoms/FadeInUpInView';
-import { useCart } from '../../cart/CartContext';
 import { resolveImageUrl, type Product } from '../../api/shop';
 
 type AttributeValueItem = { name: string; image_url?: string };
@@ -42,6 +41,48 @@ function parseDownloads(raw: string): DownloadItem[] {
   }
 }
 
+function formatDescriptionHtml(raw: string): string {
+  const text = (raw || '')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/\r\n/g, '\n')
+    .trim();
+  if (!text) return '';
+
+  const lines = text.split('\n');
+  const firstBulletIndex = lines.findIndex((line) => line.trim().startsWith('-'));
+  const esc = (v: string) =>
+    v
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+
+  if (firstBulletIndex < 0) {
+    return lines.map((line) => esc(line)).join('<br/>');
+  }
+
+  const before = lines.slice(0, firstBulletIndex).map((line) => esc(line)).join('<br/>').trim();
+  const bullets = lines
+    .slice(firstBulletIndex)
+    .filter((line) => line.trim() !== '')
+    .map((line) => esc(line.trim()))
+    .join('<br/>');
+
+  return before ? `${before}<br/><br/>${bullets}` : bullets;
+}
+
+function parseProductImages(raw: string | undefined | null): string[] {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .map((x) => (typeof x === 'string' ? resolveImageUrl(x) : ''))
+      .filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
 interface ProductHeroProps {
   product: Product;
   categoryName?: string;
@@ -50,23 +91,36 @@ interface ProductHeroProps {
 
 export function ProductHero({ product, categoryName, categorySlug }: ProductHeroProps) {
   const attributeGroups = React.useMemo(() => parseAttributeGroups(product.variants ?? '[]'), [product.variants]);
-  const [selectedByGroup, setSelectedByGroup] = React.useState<number[]>(() => attributeGroups.map(() => -1));
+  const [selectedByGroup, setSelectedByGroup] = React.useState<number[]>(() =>
+    attributeGroups.map((group) => (group.values.length === 1 ? 0 : -1))
+  );
   const [showDownloads, setShowDownloads] = React.useState(false);
-  const [justAdded, setJustAdded] = React.useState(false);
-  const { addItem } = useCart();
-  const navigate = useNavigate();
 
   React.useEffect(() => {
-    setSelectedByGroup(attributeGroups.map(() => -1));
-  }, [attributeGroups.length]);
+    // Auto-select groups that have a single possible value (e.g. only one color).
+    setSelectedByGroup(attributeGroups.map((group) => (group.values.length === 1 ? 0 : -1)));
+  }, [attributeGroups]);
 
   const downloads = parseDownloads(product.downloads ?? '[]');
-  const mainImage = resolveImageUrl(product.image);
+  const galleryImages = React.useMemo(() => {
+    const fromMain = resolveImageUrl(product.image);
+    const extra = parseProductImages(product.images);
+    const all = [fromMain, ...extra].filter(Boolean);
+    const seen = new Set<string>();
+    return all.filter((img) => {
+      if (seen.has(img)) return false;
+      seen.add(img);
+      return true;
+    });
+  }, [product.image, product.images]);
+  const [activeImageIndex, setActiveImageIndex] = React.useState(0);
+  const thumbsViewportRef = React.useRef<HTMLDivElement | null>(null);
+  const [showThumbNav, setShowThumbNav] = React.useState(false);
+  React.useEffect(() => {
+    setActiveImageIndex(0);
+  }, [galleryImages.length, product.id]);
+  const mainImage = galleryImages[activeImageIndex] ?? '';
   const hasAttributes = attributeGroups.length > 0;
-  const allSelected =
-    !hasAttributes ||
-    attributeGroups.every((g, i) => selectedByGroup[i] >= 0 && selectedByGroup[i] < g.values.length);
-  const canOrder = allSelected && !justAdded;
 
   const selectGroupValue = (groupIndex: number, valueIndex: number) => {
     setSelectedByGroup((prev) => {
@@ -76,19 +130,39 @@ export function ProductHero({ product, categoryName, categorySlug }: ProductHero
     });
   };
 
-  const variantLabel =
-    hasAttributes && allSelected
-      ? attributeGroups
-          .map((g, i) => g.values[selectedByGroup[i]]?.name)
-          .filter(Boolean)
-          .join(' / ')
-      : undefined;
-
   React.useEffect(() => {
     const handleClickOutside = () => { if (showDownloads) setShowDownloads(false); };
     if (showDownloads) document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
   }, [showDownloads]);
+
+  React.useEffect(() => {
+    const checkOverflow = () => {
+      const el = thumbsViewportRef.current;
+      if (!el) {
+        setShowThumbNav(false);
+        return;
+      }
+      setShowThumbNav(el.scrollHeight > el.clientHeight + 1);
+    };
+    checkOverflow();
+    window.addEventListener("resize", checkOverflow);
+    return () => window.removeEventListener("resize", checkOverflow);
+  }, [galleryImages.length]);
+
+  const scrollThumbs = (direction: "up" | "down") => {
+    const el = thumbsViewportRef.current;
+    if (!el) return;
+    const delta = direction === "up" ? -84 : 84;
+    el.scrollBy({ top: delta, behavior: "smooth" });
+  };
+
+  const scrollToSpecsTable = () => {
+    const specs = document.getElementById('product-specs-table');
+    if (specs) {
+      specs.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
 
   return (
       <section className="w-full bg-white py-8 md:py-12 lg:py-16">
@@ -109,13 +183,53 @@ export function ProductHero({ product, categoryName, categorySlug }: ProductHero
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-[128px]">
           <FadeInUpInView>
           <div className="relative">
-            <div className="bg-[#f1f1f1] rounded-[53px] w-full aspect-square max-w-[620px] relative flex items-center justify-center">
-              {mainImage ? <img src={mainImage} alt={product.name} className="w-[68%] h-auto object-contain" /> : <div className="w-[68%] aspect-square bg-[#e5e5e3] rounded-xl" />}
-              {product.availability && (
-                <div className="absolute top-8 left-8 bg-[#00c8b3] px-6 py-3 rounded-[53px]">
-                  <p className="text-lg font-semibold text-white leading-normal">{product.availability}</p>
+            <div className="flex items-stretch gap-4">
+              {galleryImages.length > 1 && (
+                <div className="hidden md:flex flex-col items-center gap-2 h-full max-h-[620px] py-1">
+                  {showThumbNav && (
+                    <button
+                      type="button"
+                      onClick={() => scrollThumbs("up")}
+                      className="w-8 h-8 rounded-full border border-[#d9d9d6] bg-white text-[#313b2e] hover:bg-[#f3f3f2] transition-colors"
+                      aria-label="Subir miniaturas"
+                    >
+                      ↑
+                    </button>
+                  )}
+                  <div ref={thumbsViewportRef} className="flex flex-col gap-2 overflow-y-auto scrollbar-hide">
+                    {galleryImages.map((img, idx) => (
+                      <button
+                        key={`${img}-${idx}`}
+                        type="button"
+                        onClick={() => setActiveImageIndex(idx)}
+                        className={`w-16 h-16 rounded-xl overflow-hidden border-2 transition-colors shrink-0 ${
+                          activeImageIndex === idx ? 'border-[#313b2e]' : 'border-[#e5e5e3] hover:border-[#c9c9c5]'
+                        }`}
+                      >
+                        <img src={img} alt={`${product.name} ${idx + 1}`} className="w-full h-full object-cover" />
+                      </button>
+                    ))}
+                  </div>
+                  {showThumbNav && (
+                    <button
+                      type="button"
+                      onClick={() => scrollThumbs("down")}
+                      className="w-8 h-8 rounded-full border border-[#d9d9d6] bg-white text-[#313b2e] hover:bg-[#f3f3f2] transition-colors"
+                      aria-label="Descer miniaturas"
+                    >
+                      ↓
+                    </button>
+                  )}
                 </div>
               )}
+              <div className="bg-[#f1f1f1] rounded-[53px] w-full aspect-square max-w-[620px] relative flex items-center justify-center">
+                {mainImage ? <img src={mainImage} alt={product.name} className="w-full h-full object-cover rounded-xl" /> : <div className="w-full h-full bg-[#e5e5e3] rounded-xl" />}
+                {product.availability && (
+                  <div className="absolute top-8 left-8 bg-[#00c8b3] px-6 py-3 rounded-[53px]">
+                    <p className="text-lg font-semibold text-white leading-normal">{product.availability}</p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
           </FadeInUpInView>
@@ -130,9 +244,14 @@ export function ProductHero({ product, categoryName, categorySlug }: ProductHero
               </div>
             )}
 
-            <h1 className="text-[42px] font-semibold text-[#1e1b13] leading-[74px]">{product.name}</h1>
+            <h1 className="text-[42px] font-semibold text-[#1e1b13] leading-[1.1]">{product.name}</h1>
 
-            {product.description && <p className="text-lg text-[#5a5a59] leading-normal">{product.description}</p>}
+            {product.description && (
+              <p
+                className="text-lg text-[#5a5a59] leading-normal"
+                dangerouslySetInnerHTML={{ __html: formatDescriptionHtml(product.description) }}
+              />
+            )}
 
             {(product.type_label || product.type_text) && (
               <div className="flex flex-col gap-4">
@@ -181,40 +300,21 @@ export function ProductHero({ product, categoryName, categorySlug }: ProductHero
                     </div>
                   </div>
                 ))}
-                {!allSelected && <p className="text-sm text-[#b91c1c]">Por favor selecione uma opção em cada atributo antes de encomendar.</p>}
               </>
             )}
 
             <div className="flex items-center gap-4 relative">
               <button
                 type="button"
-                onClick={() => {
-                  if (!canOrder) return;
-                  const variantName = variantLabel ?? '—';
-                  addItem({
-                    id: String(product.id),
-                    name: product.name,
-                    variant: variantName ?? '—',
-                    price: Number(product.price),
-                    image: mainImage,
-                  });
-                  setJustAdded(true);
-                  window.setTimeout(() => { setJustAdded(false); navigate('/cart'); }, 900);
-                }}
-                disabled={!canOrder}
-                className={`px-8 py-4 rounded-[40px] inline-flex items-center justify-center gap-2.5 transition-colors text-white ${justAdded ? "bg-emerald-600 hover:bg-emerald-700" : "bg-[#313b2e] hover:bg-[#3d4937]"} ${!canOrder ? "opacity-60 cursor-not-allowed" : ""}`}
+                onClick={scrollToSpecsTable}
+                className="px-8 py-4 rounded-[40px] inline-flex items-center justify-center gap-2.5 transition-colors text-white bg-[#313b2e] hover:bg-[#3d4937]"
               >
-                {justAdded ? (
-                  <><span className="text-base font-bold leading-normal">Adicionado ao carrinho</span>
-                    <svg className="w-6 h-6 shrink-0 align-middle" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="white" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg></>
-                ) : (
-                  <><span className="text-base font-bold leading-normal">Encomendar Produto</span>
-                    <svg className="w-6 h-6 shrink-0 align-middle" fill="none" viewBox="0 0 16 16">
-                      <path d={svgPaths.p39ee6532} stroke="white" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
-                      <path d="M5.66667 8H9.66667" stroke="white" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
-                      <path d={svgPaths.p26542a40} stroke="white" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
-                    </svg></>
-                )}
+                <><span className="text-base font-bold leading-normal">Encomendar Produto</span>
+                  <svg className="w-6 h-6 shrink-0 align-middle" fill="none" viewBox="0 0 16 16">
+                    <path d={svgPaths.p39ee6532} stroke="white" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
+                    <path d="M5.66667 8H9.66667" stroke="white" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
+                    <path d={svgPaths.p26542a40} stroke="white" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
+                  </svg></>
               </button>
 
               {downloads.length > 0 && (

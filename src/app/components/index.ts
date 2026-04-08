@@ -5,7 +5,7 @@ export { Icon } from './atoms/Icon';
 
 // Molecules
 export { NavItem } from './molecules/NavItem';
-export { ProductCard } from './molecules/ProductCard';
+export { ProductCard } from './common/ProductCard';
 
 // Organisms
 export { Header } from './organisms/Header';

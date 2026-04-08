@@ -116,7 +116,7 @@ export default function CategoryEditor() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
-            placeholder="Ex: Vedações"
+            placeholder="Nome da categoria"
             className="w-full px-4 py-2.5 border border-[#e5e5e3] rounded-xl text-[13px] bg-[#fafaf9] focus:bg-white focus:border-[#313b2e] focus:ring-2 focus:ring-[#313b2e]/8 outline-none"
           />
         </div>
@@ -126,7 +126,7 @@ export default function CategoryEditor() {
             type="text"
             value={slug}
             onChange={(e) => setSlug(e.target.value)}
-            placeholder="Ex: vedacoes (deixar vazio para gerar a partir do nome)"
+            placeholder="slug-da-categoria (deixe vazio para gerar automaticamente)"
             className="w-full px-4 py-2.5 border border-[#e5e5e3] rounded-xl text-[13px] font-mono bg-[#fafaf9] focus:bg-white focus:border-[#313b2e] focus:ring-2 focus:ring-[#313b2e]/8 outline-none"
           />
         </div>

@@ -1,5 +1,4 @@
 import React from "react";
-import svgPaths from "../../../imports/svg-r95mhu04wd";
 import { ContentLink } from "../common/ContentLink";
 import { Logo } from "../atoms/Logo";
 import { FadeInUpInView } from "../atoms/FadeInUpInView";
@@ -107,79 +106,6 @@ export function NewFooter() {
                 {companyDescription}
               </p>
 
-              {/* Social Media Icons */}
-              <div className="flex gap-4">
-                {/* Twitter */}
-                <a
-                  href="#"
-                  className="border border-[rgba(19,19,19,0.1)] rounded-[40px] p-4 hover:bg-black/5 transition-colors"
-                >
-                  <svg
-                    className="w-6 h-6 shrink-0 align-middle"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      clipRule="evenodd"
-                      d={svgPaths.p3fa7fa80}
-                      fill="#131313"
-                    />
-                    <path d={svgPaths.p3e368c00} fill="white" />
-                  </svg>
-                </a>
-
-                {/* Facebook */}
-                <a
-                  href="#"
-                  className="border border-[rgba(19,19,19,0.1)] rounded-[40px] p-4 hover:bg-black/5 transition-colors"
-                >
-                  <svg
-                    className="w-6 h-6 shrink-0 align-middle"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      d={svgPaths.p28ce4740}
-                      fill="#131313"
-                    />
-                  </svg>
-                </a>
-
-                {/* Instagram */}
-                <a
-                  href="#"
-                  className="border border-[rgba(19,19,19,0.1)] rounded-[40px] p-4 hover:bg-black/5 transition-colors"
-                >
-                  <svg
-                    className="w-6 h-6 shrink-0 align-middle"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      d={svgPaths.p35d17b00}
-                      fill="#131313"
-                    />
-                  </svg>
-                </a>
-
-                {/* LinkedIn */}
-                <a
-                  href="#"
-                  className="border border-[rgba(19,19,19,0.1)] rounded-[40px] p-4 hover:bg-black/5 transition-colors"
-                >
-                  <svg
-                    className="w-6 h-6 shrink-0 align-middle"
-                    fill="none"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      d={svgPaths.p13132a00}
-                      fill="#131313"
-                    />
-                  </svg>
-                </a>
-              </div>
             </div>
             </FadeInUpInView>
 

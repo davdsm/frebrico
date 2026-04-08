@@ -2,14 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router';
 import { CategoryHero } from '../components/category/CategoryHero';
 import { CategoryProductGrid } from '../components/category/CategoryProductGrid';
-import { Product } from '../components/common/ProductCard';
+import { shopProductToCardProduct, type Product } from '../components/common/ProductCard';
 import { SEO } from '../components/common/SEO';
 import { DominoFadeInDown } from '../components/atoms/DominoFadeInDown';
 import { fetchCategoryBySlug, fetchProducts } from '../api/shop';
-
-function toCardProduct(p: { id: number; name: string; price: number; featured?: number; image?: string }): Product {
-  return { id: p.id, name: p.name, price: Number(p.price), featured: Boolean(p.featured), image: p.image };
-}
 
 export default function Category() {
   const { slug } = useParams<{ slug: string }>();
@@ -35,7 +31,7 @@ export default function Category() {
         ]);
         if (cat) {
           setTitle(cat.name);
-          setProducts(prods.map(toCardProduct));
+          setProducts(prods.map(shopProductToCardProduct));
         } else {
           setNotFound(true);
           setProducts([]);

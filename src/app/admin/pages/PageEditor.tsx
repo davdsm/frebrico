@@ -36,6 +36,7 @@ const SECTION_LABELS: Record<string, Record<string, string>> = {
   contact: {
     seo: "SEO",
     hero: "Hero",
+    map: "Mapa e Moradas",
   },
 };
 
@@ -317,6 +318,9 @@ const ABOUT_PAGE = "about";
 const SOLUTIONS_SECTION = "solutions";
 const SOLUTIONS_ITEMS_FIELD = "items";
 const ABOUT_HERO_IMAGE_FIELD = "image";
+const CONTACT_PAGE = "contact";
+const CONTACT_MAP_SECTION = "map";
+const CONTACT_MAP_IMAGE_FIELD = "image";
 
 type SolutionItemDraft = { number: string; title: string; description: string; image: string };
 
@@ -458,6 +462,8 @@ function FieldRow({
   /** About hero uses singular `image` (right column); Home hero uses plural `images` (carousel). */
   const isAboutHeroImageField =
     pageSlug === ABOUT_PAGE && sectionKey === HERO_SECTION && fieldKey === ABOUT_HERO_IMAGE_FIELD;
+  const isContactMapImageField =
+    pageSlug === CONTACT_PAGE && sectionKey === CONTACT_MAP_SECTION && fieldKey === CONTACT_MAP_IMAGE_FIELD;
 
   const parseItems = (raw: string): { path: string }[] => {
     try {
@@ -509,6 +515,15 @@ function FieldRow({
           page={pageSlug}
           section={sectionKey}
           hint="Imagem à direita no topo da página Sobre Nós (mesmo campo que o site usa)."
+        />
+      ) : isContactMapImageField ? (
+        <ImageUploadField
+          label="Imagem do mapa/contactos"
+          value={value}
+          onChange={onChange}
+          page={pageSlug}
+          section={sectionKey}
+          hint="Imagem de fundo da secção de mapa na página Contactos."
         />
       ) : isAboutSolutionsItemsField ? (
         <AboutSolutionsItemsEditor value={value} pageSlug={pageSlug} onChange={onChange} />

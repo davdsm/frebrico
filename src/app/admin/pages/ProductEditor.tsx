@@ -106,6 +106,7 @@ export default function ProductEditor() {
   const [price, setPrice] = useState("");
   const [featured, setFeatured] = useState(false);
   const [image, setImage] = useState("");
+  const [images, setImages] = useState<string[]>([]);
   const [categoryId, setCategoryId] = useState<number | null>(null);
   const [description, setDescription] = useState("");
   const [badge, setBadge] = useState("");
@@ -154,6 +155,7 @@ export default function ProductEditor() {
           setPrice(String(product.price));
           setFeatured(Boolean(product.featured));
           setImage(product.image ?? "");
+          setImages(parseJsonArray<string>(product.images, []));
           setCategoryId(product.category_id);
           setDescription(product.description ?? "");
           setBadge(product.badge ?? "");
@@ -185,6 +187,7 @@ export default function ProductEditor() {
         price: Number(price) || 0,
         featured: featured ? 1 : 0,
         image: image.trim(),
+        images: JSON.stringify(images),
         category_id: categoryId,
         description: description.trim(),
         badge: badge.trim(),
@@ -241,11 +244,11 @@ export default function ProductEditor() {
           <div className="space-y-4">
             <div>
               <label className={labelClass}>Nome *</label>
-              <input type="text" value={name} onChange={(e) => setName(e.target.value)} required placeholder="Ex: Armatek" className={inputClass} />
+              <input type="text" value={name} onChange={(e) => setName(e.target.value)} required placeholder="Nome do produto" className={inputClass} />
             </div>
             <div>
               <label className={labelClass}>Slug (URL)</label>
-              <input type="text" value={slug} onChange={(e) => setSlug(e.target.value)} placeholder="Ex: armatek (opcional)" className={inputClass} />
+              <input type="text" value={slug} onChange={(e) => setSlug(e.target.value)} placeholder="slug-do-produto (opcional)" className={inputClass} />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>

@@ -1,6 +1,16 @@
 import React from "react";
 import { Link } from "react-router";
 import { useAuth } from "../../auth/AuthContext";
+import { listAdminOrders, type AdminOrder } from "../../auth/authApi";
+
+function getStatusLabel(status: string): string {
+  const normalized = status.trim().toLowerCase();
+  if (normalized === "pending") return "Pendente";
+  if (normalized === "shipped") return "Enviada";
+  if (normalized === "completed") return "Concluida";
+  if (normalized === "canceled") return "Cancelada";
+  return status;
+}
 
 const quickLinks = [
   {
@@ -54,8 +64,14 @@ const quickLinks = [
 ];
 
 export default function Dashboard() {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const firstName = user?.email?.split("@")[0] ?? "Admin";
+  const [orders, setOrders] = React.useState<AdminOrder[]>([]);
+
+  React.useEffect(() => {
+    if (!token) return;
+    void listAdminOrders(token).then((data) => setOrders(data.slice(0, 8))).catch(() => setOrders([]));
+  }, [token]);
 
   return (
     <div>
@@ -106,6 +122,32 @@ export default function Dashboard() {
             </p>
           </div>
         </div>
+      </div>
+
+      <div className="mt-8 p-5 rounded-2xl bg-white border border-[#e5e5e3]">
+        <div className="flex items-center justify-between gap-3 mb-3">
+          <h2 className="text-lg font-semibold text-[#131313]">Ultimas encomendas</h2>
+          <Link to="/admin/orders" className="text-sm text-[#313b2e] hover:underline">Ver todas</Link>
+        </div>
+        {orders.length === 0 ? (
+          <p className="text-sm text-[#5a5a59]">Sem encomendas registadas ainda.</p>
+        ) : (
+          <div className="space-y-2">
+            {orders.map((order) => (
+              <Link to={`/admin/orders/${order.id}`} key={order.id} className="rounded-xl border border-[#efefef] px-4 py-3 flex items-center justify-between gap-4 hover:border-[#cfd4ce] transition-colors">
+                <div>
+                  <p className="text-sm font-semibold text-[#131313]">#{order.orderNumber}</p>
+                  <p className="text-xs text-[#5a5a59]">{order.customerName || order.email} • NIF {order.nif || "-"}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-semibold text-[#131313]">€{order.total.toFixed(2)}</p>
+                  <p className="text-xs text-[#5a5a59]">{getStatusLabel(order.status)}</p>
+                  <p className="text-xs text-[#5a5a59]">{new Date(order.createdAt).toLocaleDateString("pt-PT")}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -56,7 +56,7 @@ export function DownloadsEditor({ value, onChange, label = "Downloads" }: Downlo
                   type="text"
                   value={item.label ?? ""}
                   onChange={(e) => update(index, { label: e.target.value })}
-                  placeholder="Ex: Ficha técnica"
+                  placeholder="Etiqueta do ficheiro"
                   className={inputClass}
                 />
               </div>

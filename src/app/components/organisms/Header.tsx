@@ -8,6 +8,7 @@ import { MobileMenu } from "./MobileMenu";
 import { useCart } from "../../cart/CartContext";
 import { useContent, useContentJson } from "../../content/useContent";
 import { motion } from "framer-motion";
+import { useCustomerAuth } from "../../auth/CustomerAuthContext";
 
 const CLOSE_DELAY_MS = 180;
 
@@ -20,6 +21,7 @@ export function Header({ isCompact = false }: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { totalCount } = useCart();
+  const { user } = useCustomerAuth();
   const layoutLogoDesktop = useContent("_settings", "layout", "logo_desktop");
   const layoutLogoMobile = useContent("_settings", "layout", "logo_mobile");
   const headerLogoDesktop = useContent("header", "logo", "desktop");
@@ -56,7 +58,7 @@ export function Header({ isCompact = false }: HeaderProps) {
 
   return (
     <header
-      className={`pr-4 md:pd-0 w-full max-w-[1200px] mx-auto relative transition-all duration-500 ${isCompact ? "" : "py-4"
+      className={`pr-4 md:pr-0 w-full max-w-[1200px] mx-auto relative transition-all duration-500 ${isCompact ? "" : "py-4"
         }`}
     >
       <div className="flex items-center justify-between transition-all duration-500">
@@ -161,9 +163,14 @@ export function Header({ isCompact = false }: HeaderProps) {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 2, ease: [0.22, 1, 0.36, 1], delay: 2.2 }}
-            className="relative"
+            className="flex items-center gap-3"
           >
-            <Link to="/cart" className="relative">
+            <Link to={user ? "/account/dashboard" : "/login?mode=customer"} className="inline-flex">
+              <svg className="w-6 h-6 shrink-0 align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+              </svg>
+            </Link>
+            <Link to="/cart" className="relative inline-flex">
               <svg
                 className="w-6 h-6 shrink-0 align-middle transition-all duration-500"
                 fill="none"
@@ -195,7 +202,17 @@ export function Header({ isCompact = false }: HeaderProps) {
             className="hidden sm:flex"
           >
             <Link to="/contact" className="hidden sm:flex">
-              <Button variant="primary" size={isCompact ? "sm" : "md"} children={navList.find((i) => i.url === "/contact")?.label ?? ""} />
+              <Button
+                variant="primary"
+                size={isCompact ? "sm" : "md"}
+                className="!bg-transparent hover:!bg-transparent border border-white/20"
+                style={{
+                  backgroundImage: "url(/images/jungle.png)",
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                }}
+                children={navList.find((i) => i.url === "/contact")?.label ?? ""}
+              />
             </Link>
           </motion.div>
 

@@ -37,7 +37,7 @@ export function FaqsEditor({ value, onChange, label = "FAQs" }: FaqsEditorProps)
                 type="text"
                 value={item.question}
                 onChange={(e) => update(index, { question: e.target.value })}
-                placeholder="Ex: Qual a garantia?"
+                placeholder="Pergunta frequente"
                 className={inputClass}
               />
             </div>
@@ -46,7 +46,7 @@ export function FaqsEditor({ value, onChange, label = "FAQs" }: FaqsEditorProps)
               <textarea
                 value={item.answer}
                 onChange={(e) => update(index, { answer: e.target.value })}
-                placeholder="Ex: Oferecemos 2 anos de garantia."
+                placeholder="Resposta"
                 rows={2}
                 className={inputClass + " resize-y"}
               />

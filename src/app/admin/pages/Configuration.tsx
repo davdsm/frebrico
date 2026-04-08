@@ -294,7 +294,7 @@ function NotificationsPanel({ getVal, save, saving, savedKey }: {
         <FieldInput
           label="Email principal"
           value={getVal("notifications", "email", "")}
-          placeholder="admin@frebrico.pt"
+          placeholder="info@frebrico.pt"
           onSave={(v) => save("notifications", "email", v)}
           saving={saving === "notifications.email"}
           justSaved={savedKey === "notifications.email"}
@@ -305,7 +305,7 @@ function NotificationsPanel({ getVal, save, saving, savedKey }: {
           <FieldInput
             label="Email secundário (CC)"
             value={getVal("notifications", "email_cc", "")}
-            placeholder="equipa@frebrico.pt"
+            placeholder="info@frebrico.pt"
             onSave={(v) => save("notifications", "email_cc", v)}
             saving={saving === "notifications.email_cc"}
             justSaved={savedKey === "notifications.email_cc"}

@@ -7,25 +7,21 @@ import { ProductFAQ } from '../components/product-detail/ProductFAQ';
 import { SEO } from '../components/common/SEO';
 import { DominoFadeInDown } from '../components/atoms/DominoFadeInDown';
 import { fetchProductByIdOrSlug, fetchCategoryById, fetchProducts, type Product } from '../api/shop';
-import type { Product as CardProduct } from '../components/common/ProductCard';
-
-function toCardProduct(p: Product): CardProduct {
-  return { id: p.id, name: p.name, price: Number(p.price), featured: Boolean(p.featured), image: p.image };
-}
+import { shopProductToCardProduct, type Product as CardProduct } from '../components/common/ProductCard';
 
 export default function ProductDetail() {
-  const { id } = useParams<{ id: string }>();
-  const productId = id ?? '';
+  const { idOrSlug } = useParams<{ idOrSlug: string }>();
+  const productIdOrSlug = idOrSlug ?? '';
 
   const [product, setProduct] = useState<Product | null>(null);
   const [categoryName, setCategoryName] = useState<string>('');
   const [categorySlug, setCategorySlug] = useState<string>('');
   const [relatedProducts, setRelatedProducts] = useState<CardProduct[]>([]);
-  const [loading, setLoading] = useState(!!productId);
+  const [loading, setLoading] = useState(!!productIdOrSlug);
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
-    if (!productId) {
+    if (!productIdOrSlug) {
       setLoading(false);
       return;
     }
@@ -33,7 +29,7 @@ export default function ProductDetail() {
       setLoading(true);
       setNotFound(false);
       try {
-        const p = await fetchProductByIdOrSlug(productId);
+        const p = await fetchProductByIdOrSlug(productIdOrSlug);
         if (!p) {
           setProduct(null);
           setNotFound(true);
@@ -63,7 +59,7 @@ export default function ProductDetail() {
         } else {
           related = related.slice(0, 5);
         }
-        setRelatedProducts(related.map(toCardProduct));
+        setRelatedProducts(related.map(shopProductToCardProduct));
       } catch {
         setProduct(null);
         setNotFound(true);
@@ -72,9 +68,9 @@ export default function ProductDetail() {
         setLoading(false);
       }
     })();
-  }, [productId]);
+  }, [productIdOrSlug]);
 
-  if (!productId) {
+  if (!productIdOrSlug) {
     return (
       <>
         <SEO title="Produto" description="Detalhes do produto." path="/product" />
@@ -88,7 +84,7 @@ export default function ProductDetail() {
   if (loading) {
     return (
       <>
-        <SEO title="Produto" description="A carregar..." path={`/product/${productId}`} />
+        <SEO title="Produto" description="A carregar..." path={`/product/${productIdOrSlug}`} />
         <div className="w-full bg-white py-16 px-4 text-center text-[#5a5a59]">A carregar...</div>
       </>
     );
@@ -97,7 +93,7 @@ export default function ProductDetail() {
   if (notFound || !product) {
     return (
       <>
-        <SEO title="Produto não encontrado" path={`/product/${productId}`} />
+        <SEO title="Produto não encontrado" path={`/product/${productIdOrSlug}`} />
         <div className="w-full bg-white py-16 px-4 text-center">
           <h1 className="text-2xl font-semibold text-[#131313]">Produto não encontrado</h1>
           <p className="text-[#5a5a59] mt-2">O produto solicitado não existe.</p>
@@ -111,7 +107,7 @@ export default function ProductDetail() {
       <SEO
         title={product.name}
         description={product.description ? product.description.slice(0, 160) : `Detalhes do produto ${product.name} na Frebrico.`}
-        path={`/product/${product.id}`}
+        path={`/product/${product.slug || product.id}`}
       />
       <DominoFadeInDown initialDelay={0.15} stagger={0.05}>
         <ProductHero product={product} categoryName={categoryName} categorySlug={categorySlug} />

@@ -38,6 +38,7 @@ productsRouter.post("/", requireAdmin, (req, res) => {
   const price = Number(body.price);
   const featured = Boolean(body.featured);
   const image = body.image != null ? String(body.image) : "";
+  const images = typeof body.images === "string" ? body.images : JSON.stringify(body.images || []);
   const categoryId = body.category_id != null && Number.isFinite(Number(body.category_id)) ? Number(body.category_id) : null;
   const description = body.description != null ? String(body.description) : "";
   const badge = body.badge != null ? String(body.badge) : "";
@@ -57,6 +58,7 @@ productsRouter.post("/", requireAdmin, (req, res) => {
       Number.isFinite(price) ? price : 0,
       featured,
       image,
+      images,
       categoryId,
       description,
       badge,
@@ -86,6 +88,7 @@ productsRouter.put("/:id", requireAdmin, (req, res) => {
   const price = Number(body.price);
   const featured = Boolean(body.featured);
   const image = body.image != null ? String(body.image) : "";
+  const images = typeof body.images === "string" ? body.images : JSON.stringify(body.images || []);
   const categoryId = body.category_id != null && Number.isFinite(Number(body.category_id)) ? Number(body.category_id) : null;
   const description = body.description != null ? String(body.description) : "";
   const badge = body.badge != null ? String(body.badge) : "";
@@ -105,6 +108,7 @@ productsRouter.put("/:id", requireAdmin, (req, res) => {
     Number.isFinite(price) ? price : 0,
     featured,
     image,
+    images,
     categoryId,
     description,
     badge,

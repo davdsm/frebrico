@@ -1,0 +1,2636 @@
+{
+  "product_count_website": 137,
+  "category_counts": {
+    "acessórios-de-vedação-e-diversos": 5,
+    "arames": 11,
+    "correntes-cabos-de-aco": 5,
+    "ferragens-e-acessórios": 36,
+    "ferramentas": 5,
+    "linha-alternativa": 6,
+    "postes-paineis": 15,
+    "pregos": 4,
+    "redes": 23,
+    "redes-plasticas": 27
+  },
+  "issues": [
+    [
+      "High",
+      "acessórios-de-vedação-e-diversos",
+      "agrafos-e-alicates",
+      "spec_row_text_not_found_in_catalog_page"
+    ],
+    [
+      "High",
+      "correntes-cabos-de-aco",
+      "cabos-de-aco",
+      "spec_row_text_not_found_in_catalog_page"
+    ],
+    [
+      "Blocking",
+      "correntes-cabos-de-aco",
+      "corrente-plastica",
+      "product_name_not_found_in_catalog"
+    ],
+    [
+      "High",
+      "ferragens-e-acessórios",
+      "manilha-meia-lua-de-alta-resistencia",
+      "spec_row_text_not_found_in_catalog_page"
+    ],
+    [
+      "High",
+      "postes-paineis",
+      "porta-e-portao-top",
+      "spec_row_text_not_found_in_catalog_page"
+    ],
+    [
+      "High",
+      "postes-paineis",
+      "porta-e-portao-twin",
+      "spec_row_text_not_found_in_catalog_page"
+    ],
+    [
+      "High",
+      "postes-paineis",
+      "porta-lite",
+      "spec_row_text_not_found_in_catalog_page"
+    ],
+    [
+      "High",
+      "postes-paineis",
+      "poste-sem-furacao",
+      "spec_row_text_not_found_in_catalog_page"
+    ],
+    [
+      "High",
+      "postes-paineis",
+      "poste-top",
+      "spec_row_text_not_found_in_catalog_page"
+    ],
+    [
+      "High",
+      "postes-paineis",
+      "poste-top-de-canto",
+      "spec_row_text_not_found_in_catalog_page"
+    ],
+    [
+      "High",
+      "redes-plasticas",
+      "redes-para-desporto-e-para-bolas-2-linha",
+      "spec_row_text_not_found_in_catalog_page"
+    ],
+    [
+      "High",
+      "redes-plasticas",
+      "saccoclima-tuboclima-plus",
+      "spec_row_text_not_found_in_catalog_page"
+    ],
+    [
+      "High",
+      "redes-plasticas",
+      "stick-up-stand-up",
+      "spec_row_text_not_found_in_catalog_page"
+    ]
+  ],
+  "issue_count": 13,
+  "snapshot": [
+    {
+      "id": 162,
+      "slug": "abracadeira-de-serrilha",
+      "name": "ABRAÇADEIRA DE SERRILHA",
+      "category": "acessórios-de-vedação-e-diversos",
+      "desc_merge": true,
+      "cols": 7,
+      "rows": 21,
+      "images": 12,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        146,
+        153
+      ]
+    },
+    {
+      "id": 161,
+      "slug": "agrafos-e-alicates",
+      "name": "AGRAFOS E ALICATES",
+      "category": "acessórios-de-vedação-e-diversos",
+      "desc_merge": true,
+      "cols": 5,
+      "rows": 22,
+      "images": 11,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": false,
+      "candidate_pages": [
+        146,
+        152
+      ]
+    },
+    {
+      "id": 159,
+      "slug": "esticadores-parafusos-passa-fios-tampas-e-clips",
+      "name": "ESTICADORES, PARAFUSOS, PASSA-FIOS, TAMPAS E CLIPS",
+      "category": "acessórios-de-vedação-e-diversos",
+      "desc_merge": true,
+      "cols": 5,
+      "rows": 12,
+      "images": 0,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        146,
+        149,
+        151
+      ]
+    },
+    {
+      "id": 160,
+      "slug": "grampos-barbelados-zinco-aluminio-grampos-normais-galvanizados-grampos-multiusos",
+      "name": "GRAMPOS BARBELADOS ZINCO / ALUMÍNIO, GRAMPOS NORMAIS/GALVANIZADOS, GRAMPOS MULTIUSOS",
+      "category": "acessórios-de-vedação-e-diversos",
+      "desc_merge": true,
+      "cols": 4,
+      "rows": 10,
+      "images": 21,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        146,
+        150
+      ]
+    },
+    {
+      "id": 158,
+      "slug": "gripple-plus",
+      "name": "GRIPPLE PLUS",
+      "category": "acessórios-de-vedação-e-diversos",
+      "desc_merge": true,
+      "cols": 6,
+      "rows": 4,
+      "images": 18,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        146,
+        148
+      ]
+    },
+    {
+      "id": 19,
+      "slug": "arame-de-atar-e-bricolage",
+      "name": "ARAME DE ATAR E BRICOLAGE",
+      "category": "arames",
+      "desc_merge": true,
+      "cols": 6,
+      "rows": 16,
+      "images": 14,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        8,
+        20,
+        143
+      ]
+    },
+    {
+      "id": 16,
+      "slug": "arame-farpado-de-alta-resistencia-galvanizado-riccio",
+      "name": "ARAME FARPADO DE ALTA RESISTÊNCIA GALVANIZADO ‘RICCIO’",
+      "category": "arames",
+      "desc_merge": true,
+      "cols": 7,
+      "rows": 2,
+      "images": 9,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        8,
+        17,
+        18,
+        19,
+        26,
+        28,
+        148,
+        150
+      ]
+    },
+    {
+      "id": 17,
+      "slug": "arame-farpado-de-alta-resistencia-plastificado-riccio-pvc",
+      "name": "ARAME FARPADO DE ALTA RESISTÊNCIA PLASTIFICADO ‘RICCIO’ PVC",
+      "category": "arames",
+      "desc_merge": true,
+      "cols": 7,
+      "rows": 2,
+      "images": 9,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        8,
+        17,
+        18,
+        19,
+        26,
+        28,
+        148,
+        150
+      ]
+    },
+    {
+      "id": 18,
+      "slug": "arame-farpado-galvanizado",
+      "name": "ARAME FARPADO GALVANIZADO",
+      "category": "arames",
+      "desc_merge": true,
+      "cols": 7,
+      "rows": 2,
+      "images": 5,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        8,
+        17,
+        18,
+        19,
+        62
+      ]
+    },
+    {
+      "id": 12,
+      "slug": "arame-galvaltec-t-100",
+      "name": "ARAME GALVALTEC T-100",
+      "category": "arames",
+      "desc_merge": true,
+      "cols": 8,
+      "rows": 8,
+      "images": 4,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        8,
+        12,
+        13
+      ]
+    },
+    {
+      "id": 11,
+      "slug": "arame-galvaltec-t-70",
+      "name": "ARAME GALVALTEC T-70",
+      "category": "arames",
+      "desc_merge": true,
+      "cols": 8,
+      "rows": 8,
+      "images": 3,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        8,
+        12,
+        13
+      ]
+    },
+    {
+      "id": 9,
+      "slug": "arame-galvanizado",
+      "name": "ARAME GALVANIZADO",
+      "category": "arames",
+      "desc_merge": true,
+      "cols": 7,
+      "rows": 8,
+      "images": 2,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        8,
+        10,
+        11,
+        12,
+        13,
+        15,
+        16,
+        17
+      ]
+    },
+    {
+      "id": 10,
+      "slug": "arame-galvanizado-fino",
+      "name": "ARAME GALVANIZADO FINO",
+      "category": "arames",
+      "desc_merge": true,
+      "cols": 7,
+      "rows": 10,
+      "images": 9,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        8,
+        11
+      ]
+    },
+    {
+      "id": 15,
+      "slug": "arame-plastificado",
+      "name": "ARAME PLASTIFICADO",
+      "category": "arames",
+      "desc_merge": true,
+      "cols": 7,
+      "rows": 3,
+      "images": 4,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        8,
+        15,
+        16,
+        18,
+        24,
+        39,
+        40,
+        41
+      ]
+    },
+    {
+      "id": 14,
+      "slug": "arame-plastificado-por-fluidizacao-galvaplax",
+      "name": "ARAME PLASTIFICADO POR FLUIDIZAÇÃO ‘GALVAPLAX’",
+      "category": "arames",
+      "desc_merge": true,
+      "cols": 7,
+      "rows": 1,
+      "images": 6,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        8,
+        15,
+        16,
+        18,
+        39,
+        40,
+        114,
+        115
+      ]
+    },
+    {
+      "id": 13,
+      "slug": "arame-recozido",
+      "name": "ARAME RECOZIDO",
+      "category": "arames",
+      "desc_merge": true,
+      "cols": 6,
+      "rows": 4,
+      "images": 2,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        8,
+        14
+      ]
+    },
+    {
+      "id": 88,
+      "slug": "cabos-de-aco",
+      "name": "CABOS DE AÇO",
+      "category": "correntes-cabos-de-aco",
+      "desc_merge": true,
+      "cols": 6,
+      "rows": 7,
+      "images": 16,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": false,
+      "candidate_pages": [
+        21,
+        106,
+        107,
+        108,
+        109,
+        110,
+        111,
+        112
+      ]
+    },
+    {
+      "id": 87,
+      "slug": "corrente-aco-grau-80",
+      "name": "CORRENTE AÇO GRAU 80",
+      "category": "correntes-cabos-de-aco",
+      "desc_merge": true,
+      "cols": 6,
+      "rows": 6,
+      "images": 5,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        106,
+        110,
+        133,
+        134,
+        135
+      ]
+    },
+    {
+      "id": 86,
+      "slug": "corrente-comercial-din-5685-a",
+      "name": "CORRENTE COMERCIAL DIN 5685-A",
+      "category": "correntes-cabos-de-aco",
+      "desc_merge": true,
+      "cols": 8,
+      "rows": 3,
+      "images": 5,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        106,
+        109,
+        116,
+        118,
+        119,
+        120,
+        129,
+        131
+      ]
+    },
+    {
+      "id": 85,
+      "slug": "corrente-genovesa-italiana",
+      "name": "CORRENTE GENOVESA ITALIANA",
+      "category": "correntes-cabos-de-aco",
+      "desc_merge": true,
+      "cols": 7,
+      "rows": 5,
+      "images": 6,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        106,
+        108
+      ]
+    },
+    {
+      "id": 89,
+      "slug": "corrente-plastica",
+      "name": "CORRENTE PLÁSTICA",
+      "category": "correntes-cabos-de-aco",
+      "desc_merge": true,
+      "cols": 3,
+      "rows": 2,
+      "images": 6,
+      "main_second_ok": true,
+      "name_in_catalog": false,
+      "row_sample_in_catalog": true,
+      "candidate_pages": []
+    },
+    {
+      "id": 140,
+      "slug": "acessorios-para-cintas-de-amarracao",
+      "name": "ACESSÓRIOS PARA CINTAS DE AMARRAÇÃO",
+      "category": "ferragens-e-acessórios",
+      "desc_merge": true,
+      "cols": 7,
+      "rows": 7,
+      "images": 5,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        116,
+        136,
+        137,
+        153
+      ]
+    },
+    {
+      "id": 128,
+      "slug": "argolao",
+      "name": "ARGOLÃO",
+      "category": "ferragens-e-acessórios",
+      "desc_merge": true,
+      "cols": 6,
+      "rows": 11,
+      "images": 6,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        116,
+        133
+      ]
+    },
+    {
+      "id": 105,
+      "slug": "cerra-cabo-comercial-zincado",
+      "name": "CERRA CABO COMERCIAL ZINCADO",
+      "category": "ferragens-e-acessórios",
+      "desc_merge": true,
+      "cols": 6,
+      "rows": 15,
+      "images": 17,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        116,
+        118,
+        119,
+        120
+      ]
+    },
+    {
+      "id": 106,
+      "slug": "cerra-cabo-din-1142",
+      "name": "CERRA CABO DIN 1142",
+      "category": "ferragens-e-acessórios",
+      "desc_merge": true,
+      "cols": 6,
+      "rows": 15,
+      "images": 17,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        116,
+        118,
+        128,
+        130
+      ]
+    },
+    {
+      "id": 121,
+      "slug": "cerra-cabo-inox",
+      "name": "CERRA CABO INOX",
+      "category": "ferragens-e-acessórios",
+      "desc_merge": true,
+      "cols": 6,
+      "rows": 14,
+      "images": 14,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        116,
+        128,
+        130
+      ]
+    },
+    {
+      "id": 138,
+      "slug": "cinta-de-amarracao",
+      "name": "CINTA DE AMARRAÇÃO",
+      "category": "ferragens-e-acessórios",
+      "desc_merge": true,
+      "cols": 7,
+      "rows": 10,
+      "images": 16,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        116,
+        136,
+        137
+      ]
+    },
+    {
+      "id": 141,
+      "slug": "cinta-de-elevacao",
+      "name": "CINTA DE ELEVAÇÃO",
+      "category": "ferragens-e-acessórios",
+      "desc_merge": true,
+      "cols": 7,
+      "rows": 8,
+      "images": 5,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        116,
+        136,
+        138
+      ]
+    },
+    {
+      "id": 139,
+      "slug": "cinta-de-reboque",
+      "name": "CINTA DE REBOQUE",
+      "category": "ferragens-e-acessórios",
+      "desc_merge": true,
+      "cols": 7,
+      "rows": 7,
+      "images": 16,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        116,
+        137
+      ]
+    },
+    {
+      "id": 129,
+      "slug": "conjunto-de-argolao",
+      "name": "CONJUNTO DE ARGOLÃO",
+      "category": "ferragens-e-acessórios",
+      "desc_merge": true,
+      "cols": 6,
+      "rows": 11,
+      "images": 6,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        116,
+        133
+      ]
+    },
+    {
+      "id": 113,
+      "slug": "destorcedores",
+      "name": "DESTORCEDORES",
+      "category": "ferragens-e-acessórios",
+      "desc_merge": true,
+      "cols": 7,
+      "rows": 15,
+      "images": 18,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        116,
+        123
+      ]
+    },
+    {
+      "id": 123,
+      "slug": "elo-de-ligacao-rapida-inox",
+      "name": "ELO DE LIGACÃO RÁPIDA INOX",
+      "category": "ferragens-e-acessórios",
+      "desc_merge": true,
+      "cols": 6,
+      "rows": 14,
+      "images": 14,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        116,
+        120,
+        128,
+        130
+      ]
+    },
+    {
+      "id": 133,
+      "slug": "elo-de-ligacao",
+      "name": "ELO DE LIGAÇÃO",
+      "category": "ferragens-e-acessórios",
+      "desc_merge": true,
+      "cols": 6,
+      "rows": 20,
+      "images": 14,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        116,
+        120,
+        128,
+        130,
+        134,
+        142
+      ]
+    },
+    {
+      "id": 109,
+      "slug": "elo-de-ligacao-rapida-zincado",
+      "name": "ELO DE LIGAÇÃO RÁPIDA ZINCADO",
+      "category": "ferragens-e-acessórios",
+      "desc_merge": true,
+      "cols": 7,
+      "rows": 17,
+      "images": 20,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        116,
+        120,
+        128,
+        130
+      ]
+    },
+    {
+      "id": 122,
+      "slug": "esticador-olhal-e-gancho-inox",
+      "name": "ESTICADOR OLHAL E GANCHO INOX",
+      "category": "ferragens-e-acessórios",
+      "desc_merge": true,
+      "cols": 6,
+      "rows": 14,
+      "images": 14,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        116,
+        119,
+        128,
+        130
+      ]
+    },
+    {
+      "id": 107,
+      "slug": "esticador-olhal-e-gancho-zincado",
+      "name": "ESTICADOR OLHAL E GANCHO ZINCADO",
+      "category": "ferragens-e-acessórios",
+      "desc_merge": true,
+      "cols": 7,
+      "rows": 10,
+      "images": 17,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        116,
+        119,
+        127,
+        128,
+        130
+      ]
+    },
+    {
+      "id": 115,
+      "slug": "gancho-s-galvanizado",
+      "name": "GANCHO 'S' GALVANIZADO",
+      "category": "ferragens-e-acessórios",
+      "desc_merge": true,
+      "cols": 5,
+      "rows": 16,
+      "images": 12,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        116,
+        119,
+        124,
+        127,
+        137
+      ]
+    },
+    {
+      "id": 125,
+      "slug": "gancho-s-inox",
+      "name": "GANCHO 'S' INOX",
+      "category": "ferragens-e-acessórios",
+      "desc_merge": true,
+      "cols": 7,
+      "rows": 16,
+      "images": 14,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        116,
+        128,
+        129,
+        130,
+        131
+      ]
+    },
+    {
+      "id": 130,
+      "slug": "gancho-clevis-autoblocante",
+      "name": "GANCHO CLEVIS AUTOBLOCANTE",
+      "category": "ferragens-e-acessórios",
+      "desc_merge": true,
+      "cols": 6,
+      "rows": 20,
+      "images": 20,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        116,
+        134
+      ]
+    },
+    {
+      "id": 136,
+      "slug": "gancho-de-forqueta-com-patilha-de-seguranca-encurtador-de-corrente",
+      "name": "GANCHO DE FORQUETA COM PATILHA DE SEGURANÇA ENCURTADOR DE CORRENTE",
+      "category": "ferragens-e-acessórios",
+      "desc_merge": true,
+      "cols": 6,
+      "rows": 14,
+      "images": 9,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        116,
+        135
+      ]
+    },
+    {
+      "id": 134,
+      "slug": "gancho-de-forqueta-encurtador-de-corrente",
+      "name": "GANCHO DE FORQUETA ENCURTADOR DE CORRENTE",
+      "category": "ferragens-e-acessórios",
+      "desc_merge": true,
+      "cols": 6,
+      "rows": 14,
+      "images": 9,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        116,
+        135
+      ]
+    },
+    {
+      "id": 135,
+      "slug": "gancho-de-forqueta-passador-de-corrente",
+      "name": "GANCHO DE FORQUETA PASSADOR DE CORRENTE",
+      "category": "ferragens-e-acessórios",
+      "desc_merge": true,
+      "cols": 6,
+      "rows": 14,
+      "images": 9,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        116,
+        135
+      ]
+    },
+    {
+      "id": 120,
+      "slug": "gancho-de-olhal",
+      "name": "GANCHO DE OLHAL",
+      "category": "ferragens-e-acessórios",
+      "desc_merge": true,
+      "cols": 4,
+      "rows": 16,
+      "images": 14,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        116,
+        119,
+        127,
+        128,
+        130,
+        134
+      ]
+    },
+    {
+      "id": 131,
+      "slug": "gancho-de-olhal-autoblocante",
+      "name": "GANCHO DE OLHAL AUTOBLOCANTE",
+      "category": "ferragens-e-acessórios",
+      "desc_merge": true,
+      "cols": 6,
+      "rows": 20,
+      "images": 20,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        116,
+        134
+      ]
+    },
+    {
+      "id": 132,
+      "slug": "gancho-de-olhal-giratorio-autoblocante",
+      "name": "GANCHO DE OLHAL GIRATÓRIO AUTOBLOCANTE",
+      "category": "ferragens-e-acessórios",
+      "desc_merge": true,
+      "cols": 6,
+      "rows": 20,
+      "images": 20,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        116,
+        134
+      ]
+    },
+    {
+      "id": 117,
+      "slug": "gulpilha-beta-zincada",
+      "name": "GULPILHA BETA ZINCADA",
+      "category": "ferragens-e-acessórios",
+      "desc_merge": true,
+      "cols": 5,
+      "rows": 16,
+      "images": 12,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        116,
+        124
+      ]
+    },
+    {
+      "id": 116,
+      "slug": "gulpilha-com-argola-zincada",
+      "name": "GULPILHA COM ARGOLA ZINCADA",
+      "category": "ferragens-e-acessórios",
+      "desc_merge": true,
+      "cols": 5,
+      "rows": 16,
+      "images": 12,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        116,
+        124
+      ]
+    },
+    {
+      "id": 118,
+      "slug": "malha-de-uniao-zincada",
+      "name": "MALHA DE UNIÃO ZINCADA",
+      "category": "ferragens-e-acessórios",
+      "desc_merge": true,
+      "cols": 5,
+      "rows": 7,
+      "images": 15,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        116,
+        125
+      ]
+    },
+    {
+      "id": 124,
+      "slug": "manilha-direita-inox",
+      "name": "MANILHA DIREITA INOX",
+      "category": "ferragens-e-acessórios",
+      "desc_merge": true,
+      "cols": 7,
+      "rows": 16,
+      "images": 18,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        116,
+        129,
+        131
+      ]
+    },
+    {
+      "id": 108,
+      "slug": "manilha-direita-zincada",
+      "name": "MANILHA DIREITA ZINCADA",
+      "category": "ferragens-e-acessórios",
+      "desc_merge": true,
+      "cols": 7,
+      "rows": 17,
+      "images": 20,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        116,
+        120
+      ]
+    },
+    {
+      "id": 127,
+      "slug": "manilha-meia-lua-de-alta-resistencia",
+      "name": "MANILHA MEIA LUA DE ALTA RESISTÊNCIA",
+      "category": "ferragens-e-acessórios",
+      "desc_merge": true,
+      "cols": 7,
+      "rows": 9,
+      "images": 6,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": false,
+      "candidate_pages": [
+        116,
+        132
+      ]
+    },
+    {
+      "id": 126,
+      "slug": "mosquetao-de-bombeiro-com-e-sem-seguranca-inox",
+      "name": "MOSQUETÃO DE BOMBEIRO COM E SEM SEGURANÇA INOX",
+      "category": "ferragens-e-acessórios",
+      "desc_merge": true,
+      "cols": 7,
+      "rows": 16,
+      "images": 18,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        116,
+        122,
+        129,
+        131
+      ]
+    },
+    {
+      "id": 111,
+      "slug": "mosquetao-de-bombeiro-galvanizado-com-e-sem-seguranca",
+      "name": "MOSQUETÃO DE BOMBEIRO GALVANIZADO COM E SEM SEGURANÇA",
+      "category": "ferragens-e-acessórios",
+      "desc_merge": true,
+      "cols": 6,
+      "rows": 14,
+      "images": 21,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        116,
+        121,
+        122,
+        123,
+        129,
+        131
+      ]
+    },
+    {
+      "id": 112,
+      "slug": "mosquetao-niquelado-automatico",
+      "name": "MOSQUETÃO NIQUELADO AUTOMÁTICO",
+      "category": "ferragens-e-acessórios",
+      "desc_merge": true,
+      "cols": 7,
+      "rows": 15,
+      "images": 18,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        116,
+        123
+      ]
+    },
+    {
+      "id": 110,
+      "slug": "mosquetao-niquelado-com-destorcedor",
+      "name": "MOSQUETÃO NIQUELADO COM DESTORCEDOR",
+      "category": "ferragens-e-acessórios",
+      "desc_merge": true,
+      "cols": 5,
+      "rows": 9,
+      "images": 21,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        116,
+        121,
+        123
+      ]
+    },
+    {
+      "id": 119,
+      "slug": "olhal-de-suspensao-macho-e-femea-zincado",
+      "name": "OLHAL DE SUSPENSÃO MACHO E FÊMEA ZINCADO",
+      "category": "ferragens-e-acessórios",
+      "desc_merge": true,
+      "cols": 5,
+      "rows": 18,
+      "images": 15,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        116,
+        126
+      ]
+    },
+    {
+      "id": 114,
+      "slug": "sapatilho-galvanizado",
+      "name": "SAPATILHO GALVANIZADO",
+      "category": "ferragens-e-acessórios",
+      "desc_merge": true,
+      "cols": 7,
+      "rows": 15,
+      "images": 18,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        116,
+        123
+      ]
+    },
+    {
+      "id": 165,
+      "slug": "knipex-corta-arame-cobolt",
+      "name": "KNIPEX CORTA ARAME COBOLT®",
+      "category": "ferramentas",
+      "desc_merge": true,
+      "cols": 6,
+      "rows": 9,
+      "images": 14,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        154,
+        156,
+        157,
+        158,
+        159
+      ]
+    },
+    {
+      "id": 166,
+      "slug": "knipex-corta-cabo-de-aco",
+      "name": "KNIPEX CORTA CABO DE AÇO",
+      "category": "ferramentas",
+      "desc_merge": true,
+      "cols": 7,
+      "rows": 2,
+      "images": 5,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        110,
+        154,
+        156,
+        157,
+        158,
+        159
+      ]
+    },
+    {
+      "id": 167,
+      "slug": "pa-e-abre-buracos-dkv",
+      "name": "PÁ E ABRE BURACOS DKV",
+      "category": "ferramentas",
+      "desc_merge": true,
+      "cols": 6,
+      "rows": 6,
+      "images": 4,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        154,
+        160
+      ]
+    },
+    {
+      "id": 163,
+      "slug": "turquesa-armador-knipex",
+      "name": "TURQUESA ARMADOR KNIPEX",
+      "category": "ferramentas",
+      "desc_merge": true,
+      "cols": 6,
+      "rows": 4,
+      "images": 20,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        154,
+        156
+      ]
+    },
+    {
+      "id": 164,
+      "slug": "turquesa-russa-knipex",
+      "name": "TURQUESA RUSSA KNIPEX",
+      "category": "ferramentas",
+      "desc_merge": true,
+      "cols": 6,
+      "rows": 9,
+      "images": 29,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        154,
+        157
+      ]
+    },
+    {
+      "id": 6,
+      "slug": "forplast-ligeira",
+      "name": "REDE ELETROSOLDADA L.A.",
+      "category": "linha-alternativa",
+      "desc_merge": true,
+      "cols": 7,
+      "rows": 1,
+      "images": 6,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        31,
+        51,
+        162,
+        165,
+        166,
+        167
+      ]
+    },
+    {
+      "id": 7,
+      "slug": "forplast-media",
+      "name": "REDE ELETROSOLDADA L.A.",
+      "category": "linha-alternativa",
+      "desc_merge": true,
+      "cols": 7,
+      "rows": 1,
+      "images": 6,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        31,
+        51,
+        162,
+        165,
+        166,
+        167
+      ]
+    },
+    {
+      "id": 8,
+      "slug": "forplast-super",
+      "name": "REDE ELETROSOLDADA L.A.",
+      "category": "linha-alternativa",
+      "desc_merge": true,
+      "cols": 7,
+      "rows": 1,
+      "images": 6,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        31,
+        51,
+        162,
+        165,
+        166,
+        167
+      ]
+    },
+    {
+      "id": 4,
+      "slug": "elts-la-galv-apos",
+      "name": "REDE ELETROSOLDADA L.A. GALVANIZADA APÓS SOLDADURA",
+      "category": "linha-alternativa",
+      "desc_merge": true,
+      "cols": 7,
+      "rows": 7,
+      "images": 9,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        31,
+        51,
+        162,
+        165,
+        166,
+        167
+      ]
+    },
+    {
+      "id": 5,
+      "slug": "rede-elts-plt-la",
+      "name": "REDE ELETROSOLDADA L.A. GALVANIZADA E PLASTIFICADA",
+      "category": "linha-alternativa",
+      "desc_merge": true,
+      "cols": 7,
+      "rows": 2,
+      "images": 7,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        24,
+        51,
+        162,
+        165,
+        166,
+        167
+      ]
+    },
+    {
+      "id": 3,
+      "slug": "rede-hexagonal-la",
+      "name": "REDE HEXAGONAL L.A.",
+      "category": "linha-alternativa",
+      "desc_merge": true,
+      "cols": 7,
+      "rows": 5,
+      "images": 6,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        22,
+        29,
+        30,
+        162,
+        164,
+        166
+      ]
+    },
+    {
+      "id": 53,
+      "slug": "painel-defender",
+      "name": "PAINEL DEFENDER",
+      "category": "postes-paineis",
+      "desc_merge": true,
+      "cols": 8,
+      "rows": 3,
+      "images": 2,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        56,
+        64
+      ]
+    },
+    {
+      "id": 49,
+      "slug": "painel-eletrosoldado",
+      "name": "PAINEL ELETROSOLDADO",
+      "category": "postes-paineis",
+      "desc_merge": true,
+      "cols": 8,
+      "rows": 3,
+      "images": 10,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        56,
+        60
+      ]
+    },
+    {
+      "id": 50,
+      "slug": "painel-top",
+      "name": "PAINEL TOP",
+      "category": "postes-paineis",
+      "desc_merge": true,
+      "cols": 8,
+      "rows": 3,
+      "images": 0,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        56,
+        61,
+        62,
+        63,
+        65,
+        68,
+        70
+      ]
+    },
+    {
+      "id": 48,
+      "slug": "pavisol",
+      "name": "PAVISOL",
+      "category": "postes-paineis",
+      "desc_merge": true,
+      "cols": 8,
+      "rows": 2,
+      "images": 3,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        56,
+        59
+      ]
+    },
+    {
+      "id": 47,
+      "slug": "pavitec",
+      "name": "PAVITEC",
+      "category": "postes-paineis",
+      "desc_merge": true,
+      "cols": 8,
+      "rows": 1,
+      "images": 5,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        56,
+        58
+      ]
+    },
+    {
+      "id": 55,
+      "slug": "porta-e-portao-top",
+      "name": "PORTA E PORTÃO TOP",
+      "category": "postes-paineis",
+      "desc_merge": true,
+      "cols": 6,
+      "rows": 16,
+      "images": 6,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": false,
+      "candidate_pages": [
+        56,
+        68,
+        70
+      ]
+    },
+    {
+      "id": 56,
+      "slug": "porta-e-portao-twin",
+      "name": "PORTA E PORTÃO TWIN",
+      "category": "postes-paineis",
+      "desc_merge": true,
+      "cols": 6,
+      "rows": 14,
+      "images": 6,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": false,
+      "candidate_pages": [
+        56,
+        69,
+        70
+      ]
+    },
+    {
+      "id": 57,
+      "slug": "porta-lite",
+      "name": "PORTA LITE",
+      "category": "postes-paineis",
+      "desc_merge": true,
+      "cols": 6,
+      "rows": 5,
+      "images": 3,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": false,
+      "candidate_pages": [
+        56,
+        70
+      ]
+    },
+    {
+      "id": 46,
+      "slug": "poste-de-pinho-nordico-torneado-c-bico",
+      "name": "POSTE DE PINHO NÓRDICO TORNEADO C/ BICO",
+      "category": "postes-paineis",
+      "desc_merge": true,
+      "cols": 6,
+      "rows": 10,
+      "images": 1,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        48,
+        53,
+        54
+      ]
+    },
+    {
+      "id": 44,
+      "slug": "poste-redondo-galvanizado-lacado-verde",
+      "name": "POSTE REDONDO GALVANIZADO / LACADO VERDE",
+      "category": "postes-paineis",
+      "desc_merge": true,
+      "cols": 8,
+      "rows": 9,
+      "images": 4,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        41,
+        48,
+        51,
+        150
+      ]
+    },
+    {
+      "id": 54,
+      "slug": "poste-sem-furacao",
+      "name": "POSTE SEM FURAÇÃO",
+      "category": "postes-paineis",
+      "desc_merge": true,
+      "cols": 5,
+      "rows": 22,
+      "images": 8,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": false,
+      "candidate_pages": [
+        56,
+        65
+      ]
+    },
+    {
+      "id": 43,
+      "slug": "poste-t",
+      "name": "POSTE T",
+      "category": "postes-paineis",
+      "desc_merge": true,
+      "cols": 8,
+      "rows": 12,
+      "images": 3,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        48,
+        50,
+        52,
+        53,
+        54,
+        56,
+        62,
+        63
+      ]
+    },
+    {
+      "id": 51,
+      "slug": "poste-top",
+      "name": "POSTE TOP",
+      "category": "postes-paineis",
+      "desc_merge": true,
+      "cols": 5,
+      "rows": 24,
+      "images": 5,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": false,
+      "candidate_pages": [
+        50,
+        51,
+        52,
+        56,
+        62,
+        63,
+        65,
+        68
+      ]
+    },
+    {
+      "id": 52,
+      "slug": "poste-top-de-canto",
+      "name": "POSTE TOP DE CANTO",
+      "category": "postes-paineis",
+      "desc_merge": true,
+      "cols": 5,
+      "rows": 24,
+      "images": 4,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": false,
+      "candidate_pages": [
+        50,
+        51,
+        52,
+        56,
+        62,
+        63
+      ]
+    },
+    {
+      "id": 45,
+      "slug": "poste-tubograf",
+      "name": "POSTE TUBOGRAF",
+      "category": "postes-paineis",
+      "desc_merge": true,
+      "cols": 8,
+      "rows": 10,
+      "images": 9,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        48,
+        52
+      ]
+    },
+    {
+      "id": 144,
+      "slug": "prego-de-aco",
+      "name": "PREGO DE AÇO",
+      "category": "pregos",
+      "desc_merge": true,
+      "cols": 6,
+      "rows": 7,
+      "images": 18,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        97,
+        140,
+        142,
+        143,
+        144,
+        145,
+        158
+      ]
+    },
+    {
+      "id": 145,
+      "slug": "prego-de-aco-cavatorta",
+      "name": "PREGO DE AÇO CAVATORTA",
+      "category": "pregos",
+      "desc_merge": true,
+      "cols": 7,
+      "rows": 15,
+      "images": 7,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        140,
+        145
+      ]
+    },
+    {
+      "id": 142,
+      "slug": "prego-quadrado",
+      "name": "PREGO QUADRADO",
+      "category": "pregos",
+      "desc_merge": true,
+      "cols": 6,
+      "rows": 13,
+      "images": 4,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        97,
+        140,
+        142
+      ]
+    },
+    {
+      "id": 143,
+      "slug": "prego-redondo",
+      "name": "PREGO REDONDO",
+      "category": "pregos",
+      "desc_merge": true,
+      "cols": 7,
+      "rows": 7,
+      "images": 9,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        140,
+        143
+      ]
+    },
+    {
+      "id": 28,
+      "slug": "agrisald",
+      "name": "AGRISALD",
+      "category": "redes",
+      "desc_merge": true,
+      "cols": 8,
+      "rows": 4,
+      "images": 2,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        22,
+        32
+      ]
+    },
+    {
+      "id": 37,
+      "slug": "arcoplax",
+      "name": "ARCOPLAX",
+      "category": "redes",
+      "desc_merge": true,
+      "cols": 8,
+      "rows": 1,
+      "images": 3,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        22,
+        41
+      ]
+    },
+    {
+      "id": 34,
+      "slug": "decoplax-evolucao",
+      "name": "DECOPLAX EVOLUÇÃO",
+      "category": "redes",
+      "desc_merge": true,
+      "cols": 8,
+      "rows": 1,
+      "images": 5,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        22,
+        38
+      ]
+    },
+    {
+      "id": 30,
+      "slug": "esaplax",
+      "name": "ESAPLAX",
+      "category": "redes",
+      "desc_merge": true,
+      "cols": 8,
+      "rows": 3,
+      "images": 5,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        22,
+        34
+      ]
+    },
+    {
+      "id": 33,
+      "slug": "everplax",
+      "name": "EVERPLAX",
+      "category": "redes",
+      "desc_merge": true,
+      "cols": 8,
+      "rows": 2,
+      "images": 8,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        22,
+        37
+      ]
+    },
+    {
+      "id": 31,
+      "slug": "margherita",
+      "name": "MARGHERITA",
+      "category": "redes",
+      "desc_merge": true,
+      "cols": 8,
+      "rows": 1,
+      "images": 5,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        22,
+        35
+      ]
+    },
+    {
+      "id": 29,
+      "slug": "masterfort",
+      "name": "MASTERFORT",
+      "category": "redes",
+      "desc_merge": true,
+      "cols": 8,
+      "rows": 1,
+      "images": 6,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        22,
+        33
+      ]
+    },
+    {
+      "id": 32,
+      "slug": "novaplax",
+      "name": "NOVAPLAX",
+      "category": "redes",
+      "desc_merge": true,
+      "cols": 8,
+      "rows": 1,
+      "images": 7,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        22,
+        36
+      ]
+    },
+    {
+      "id": 35,
+      "slug": "overplax",
+      "name": "OVERPLAX",
+      "category": "redes",
+      "desc_merge": true,
+      "cols": 8,
+      "rows": 1,
+      "images": 9,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        22,
+        39
+      ]
+    },
+    {
+      "id": 27,
+      "slug": "rede-esafort",
+      "name": "REDE ESAFORT",
+      "category": "redes",
+      "desc_merge": true,
+      "cols": 8,
+      "rows": 5,
+      "images": 8,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        22,
+        31
+      ]
+    },
+    {
+      "id": 26,
+      "slug": "rede-hexagonal-nacional",
+      "name": "REDE HEXAGONAL NACIONAL",
+      "category": "redes",
+      "desc_merge": true,
+      "cols": 9,
+      "rows": 5,
+      "images": 4,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        22,
+        30
+      ]
+    },
+    {
+      "id": 20,
+      "slug": "rede-malha-solta-galvanizada",
+      "name": "REDE MALHA SOLTA GALVANIZADA",
+      "category": "redes",
+      "desc_merge": true,
+      "cols": 8,
+      "rows": 6,
+      "images": 7,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        22,
+        24,
+        33,
+        42,
+        44,
+        45,
+        50,
+        51
+      ]
+    },
+    {
+      "id": 40,
+      "slug": "rede-metal-distendido",
+      "name": "REDE METAL DISTENDIDO",
+      "category": "redes",
+      "desc_merge": true,
+      "cols": 8,
+      "rows": 3,
+      "images": 5,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        22,
+        44
+      ]
+    },
+    {
+      "id": 41,
+      "slug": "rede-mosquiteira",
+      "name": "REDE MOSQUITEIRA",
+      "category": "redes",
+      "desc_merge": true,
+      "cols": 8,
+      "rows": 4,
+      "images": 4,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        22,
+        42,
+        43,
+        45,
+        78
+      ]
+    },
+    {
+      "id": 42,
+      "slug": "rede-ondulada-tremida",
+      "name": "REDE ONDULADA / TREMIDA",
+      "category": "redes",
+      "desc_merge": true,
+      "cols": 6,
+      "rows": 3,
+      "images": 6,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        22,
+        46
+      ]
+    },
+    {
+      "id": 22,
+      "slug": "rede-ovelheira-bezinal-media",
+      "name": "REDE OVELHEIRA BEZINAL MÉDIA",
+      "category": "redes",
+      "desc_merge": true,
+      "cols": 8,
+      "rows": 2,
+      "images": 5,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        22,
+        26,
+        27,
+        28
+      ]
+    },
+    {
+      "id": 21,
+      "slug": "rede-ovelheira-ligeira",
+      "name": "REDE OVELHEIRA LIGEIRA",
+      "category": "redes",
+      "desc_merge": true,
+      "cols": 8,
+      "rows": 6,
+      "images": 6,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        22,
+        25
+      ]
+    },
+    {
+      "id": 23,
+      "slug": "rede-ovelheira-nodafort",
+      "name": "REDE OVELHEIRA NODAFORT",
+      "category": "redes",
+      "desc_merge": true,
+      "cols": 8,
+      "rows": 4,
+      "images": 5,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        22,
+        27
+      ]
+    },
+    {
+      "id": 24,
+      "slug": "rede-ovelheira-titan",
+      "name": "REDE OVELHEIRA TITAN",
+      "category": "redes",
+      "desc_merge": true,
+      "cols": 8,
+      "rows": 3,
+      "images": 8,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        22,
+        28
+      ]
+    },
+    {
+      "id": 25,
+      "slug": "rede-trefort",
+      "name": "REDE TREFORT",
+      "category": "redes",
+      "desc_merge": true,
+      "cols": 8,
+      "rows": 3,
+      "images": 5,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        22,
+        29
+      ]
+    },
+    {
+      "id": 36,
+      "slug": "stilplax",
+      "name": "STILPLAX",
+      "category": "redes",
+      "desc_merge": true,
+      "cols": 8,
+      "rows": 1,
+      "images": 0,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        22,
+        40
+      ]
+    },
+    {
+      "id": 38,
+      "slug": "teia-metalica-galvanizada",
+      "name": "TEIA METÁLICA GALVANIZADA",
+      "category": "redes",
+      "desc_merge": true,
+      "cols": 8,
+      "rows": 3,
+      "images": 10,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        22,
+        42
+      ]
+    },
+    {
+      "id": 39,
+      "slug": "teia-metalica-inox",
+      "name": "TEIA METÁLICA INOX",
+      "category": "redes",
+      "desc_merge": true,
+      "cols": 8,
+      "rows": 3,
+      "images": 5,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        22,
+        43
+      ]
+    },
+    {
+      "id": 80,
+      "slug": "aloha-90-brico-mini-rolo",
+      "name": "ALOHA 90% BRICO (MINI ROLO)",
+      "category": "redes-plasticas",
+      "desc_merge": true,
+      "cols": 6,
+      "rows": 3,
+      "images": 3,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        72,
+        91,
+        92
+      ]
+    },
+    {
+      "id": 83,
+      "slug": "armatek",
+      "name": "ARMATEK",
+      "category": "redes-plasticas",
+      "desc_merge": true,
+      "cols": 8,
+      "rows": 4,
+      "images": 10,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        72,
+        102,
+        104
+      ]
+    },
+    {
+      "id": 63,
+      "slug": "aviary-aviary-brico",
+      "name": "AVIARY / AVIARY BRICO",
+      "category": "redes-plasticas",
+      "desc_merge": true,
+      "cols": 7,
+      "rows": 5,
+      "images": 4,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        72,
+        79
+      ]
+    },
+    {
+      "id": 70,
+      "slug": "cover-pro-green",
+      "name": "COVER PRO GREEN",
+      "category": "redes-plasticas",
+      "desc_merge": true,
+      "cols": 6,
+      "rows": 5,
+      "images": 4,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        72,
+        84,
+        85
+      ]
+    },
+    {
+      "id": 82,
+      "slug": "vidy-optima",
+      "name": "DIVY OPTIMA",
+      "category": "redes-plasticas",
+      "desc_merge": true,
+      "cols": 6,
+      "rows": 3,
+      "images": 11,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        72,
+        95
+      ]
+    },
+    {
+      "id": 60,
+      "slug": "exagon-exagon-brico",
+      "name": "EXAGON / EXAGON BRICO",
+      "category": "redes-plasticas",
+      "desc_merge": true,
+      "cols": 7,
+      "rows": 3,
+      "images": 4,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        29,
+        72,
+        76,
+        164,
+        166
+      ]
+    },
+    {
+      "id": 74,
+      "slug": "fita-sinalizacao",
+      "name": "FITA SINALIZAÇÃO",
+      "category": "redes-plasticas",
+      "desc_merge": true,
+      "cols": 6,
+      "rows": 2,
+      "images": 15,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        72,
+        101
+      ]
+    },
+    {
+      "id": 64,
+      "slug": "flora-ortoflex",
+      "name": "FLORA / ORTOFLEX",
+      "category": "redes-plasticas",
+      "desc_merge": true,
+      "cols": 6,
+      "rows": 6,
+      "images": 7,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        72,
+        80
+      ]
+    },
+    {
+      "id": 79,
+      "slug": "labor",
+      "name": "LABOR",
+      "category": "redes-plasticas",
+      "desc_merge": true,
+      "cols": 7,
+      "rows": 1,
+      "images": 13,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        16,
+        72,
+        99,
+        149
+      ]
+    },
+    {
+      "id": 76,
+      "slug": "lamina-drenante",
+      "name": "LÂMINA DRENANTE",
+      "category": "redes-plasticas",
+      "desc_merge": true,
+      "cols": 7,
+      "rows": 2,
+      "images": 28,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        72,
+        104
+      ]
+    },
+    {
+      "id": 75,
+      "slug": "manto-geotextil",
+      "name": "MANTO GEOTÊXTIL",
+      "category": "redes-plasticas",
+      "desc_merge": true,
+      "cols": 7,
+      "rows": 6,
+      "images": 25,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        72,
+        103
+      ]
+    },
+    {
+      "id": 62,
+      "slug": "mosquito",
+      "name": "MOSQUITO",
+      "category": "redes-plasticas",
+      "desc_merge": true,
+      "cols": 7,
+      "rows": 1,
+      "images": 7,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        45,
+        72,
+        78
+      ]
+    },
+    {
+      "id": 67,
+      "slug": "ortoclima",
+      "name": "ORTOCLIMA",
+      "category": "redes-plasticas",
+      "desc_merge": true,
+      "cols": 5,
+      "rows": 5,
+      "images": 1,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        72,
+        83
+      ]
+    },
+    {
+      "id": 58,
+      "slug": "quadra",
+      "name": "QUADRA",
+      "category": "redes-plasticas",
+      "desc_merge": true,
+      "cols": 7,
+      "rows": 6,
+      "images": 6,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        31,
+        34,
+        46,
+        68,
+        69,
+        70,
+        72,
+        74
+      ]
+    },
+    {
+      "id": 59,
+      "slug": "quadra-brico",
+      "name": "QUADRA BRICO",
+      "category": "redes-plasticas",
+      "desc_merge": true,
+      "cols": 7,
+      "rows": 6,
+      "images": 6,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        31,
+        34,
+        46,
+        72,
+        74,
+        75,
+        77,
+        84
+      ]
+    },
+    {
+      "id": 61,
+      "slug": "ranch",
+      "name": "RANCH",
+      "category": "redes-plasticas",
+      "desc_merge": true,
+      "cols": 7,
+      "rows": 2,
+      "images": 3,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        77
+      ]
+    },
+    {
+      "id": 77,
+      "slug": "rede-de-sinalizacao-subterranea",
+      "name": "REDE DE SINALIZAÇÃO SUBTERRÂNEA",
+      "category": "redes-plasticas",
+      "desc_merge": true,
+      "cols": 6,
+      "rows": 4,
+      "images": 17,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        72,
+        100
+      ]
+    },
+    {
+      "id": 69,
+      "slug": "rede-protecao-de-plantas",
+      "name": "REDE PROTEÇÃO DE PLANTAS",
+      "category": "redes-plasticas",
+      "desc_merge": true,
+      "cols": 7,
+      "rows": 2,
+      "images": 4,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        72,
+        74,
+        75,
+        76,
+        80,
+        81,
+        88
+      ]
+    },
+    {
+      "id": 72,
+      "slug": "rede-sombra-80",
+      "name": "REDE SOMBRA 80%",
+      "category": "redes-plasticas",
+      "desc_merge": true,
+      "cols": 6,
+      "rows": 6,
+      "images": 8,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        72,
+        89,
+        90,
+        92,
+        149
+      ]
+    },
+    {
+      "id": 71,
+      "slug": "rede-sombra-90",
+      "name": "REDE SOMBRA 90%",
+      "category": "redes-plasticas",
+      "desc_merge": true,
+      "cols": 6,
+      "rows": 6,
+      "images": 8,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        72,
+        89,
+        90,
+        92,
+        149
+      ]
+    },
+    {
+      "id": 65,
+      "slug": "rede-tutoragem-anti-passaro",
+      "name": "REDE TUTORAGEM / ANTI-PÁSSARO",
+      "category": "redes-plasticas",
+      "desc_merge": true,
+      "cols": 6,
+      "rows": 7,
+      "images": 3,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        72,
+        79,
+        80,
+        81,
+        85
+      ]
+    },
+    {
+      "id": 78,
+      "slug": "redes-para-desporto-e-para-bolas",
+      "name": "REDES PARA DESPORTO E PÁRA-BOLAS",
+      "category": "redes-plasticas",
+      "desc_merge": true,
+      "cols": 7,
+      "rows": 19,
+      "images": 8,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        21,
+        26,
+        28,
+        29,
+        30,
+        31,
+        33,
+        34
+      ]
+    },
+    {
+      "id": 84,
+      "slug": "redes-para-desporto-e-para-bolas-2-linha",
+      "name": "REDES PARA DESPORTO E PÁRA-BOLAS (2ª LINHA)",
+      "category": "redes-plasticas",
+      "desc_merge": true,
+      "cols": 7,
+      "rows": 17,
+      "images": 8,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": false,
+      "candidate_pages": [
+        21,
+        26,
+        28,
+        29,
+        30,
+        31,
+        33,
+        34
+      ]
+    },
+    {
+      "id": 66,
+      "slug": "saccoclima-tuboclima-plus",
+      "name": "SACCOCLIMA / TUBOCLIMA PLUS",
+      "category": "redes-plasticas",
+      "desc_merge": true,
+      "cols": 4,
+      "rows": 3,
+      "images": 1,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": false,
+      "candidate_pages": [
+        72,
+        82
+      ]
+    },
+    {
+      "id": 81,
+      "slug": "soleado-corten-brico-soleado-branco-brico-jamaica-brico",
+      "name": "SOLEADO CORTEN BRICO / SOLEADO BRANCO BRICO / JAMAICA BRICO (MINI ROLO)",
+      "category": "redes-plasticas",
+      "desc_merge": true,
+      "cols": 6,
+      "rows": 6,
+      "images": 8,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        72,
+        92
+      ]
+    },
+    {
+      "id": 68,
+      "slug": "stick-up-stand-up",
+      "name": "STICK UP / STAND UP",
+      "category": "redes-plasticas",
+      "desc_merge": true,
+      "cols": 4,
+      "rows": 5,
+      "images": 3,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": false,
+      "candidate_pages": [
+        72,
+        87
+      ]
+    },
+    {
+      "id": 73,
+      "slug": "tela-de-solos",
+      "name": "TELA DE SOLOS",
+      "category": "redes-plasticas",
+      "desc_merge": true,
+      "cols": 6,
+      "rows": 5,
+      "images": 4,
+      "main_second_ok": true,
+      "name_in_catalog": true,
+      "row_sample_in_catalog": true,
+      "candidate_pages": [
+        72,
+        86
+      ]
+    }
+  ]
+}

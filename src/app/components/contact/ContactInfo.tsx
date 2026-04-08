@@ -14,7 +14,7 @@ export function ContactInfo() {
         </div>
         <div className="flex flex-col gap-2">
           <p className="text-base md:text-lg leading-normal text-black">Contacto</p>
-          <p className="text-base md:text-lg leading-normal text-black/40">+351 123 321 123</p>
+          <p className="text-base md:text-lg leading-normal text-black/40">+351 229 826 344</p>
         </div>
       </div>
 
@@ -29,7 +29,7 @@ export function ContactInfo() {
         </div>
         <div className="flex flex-col gap-2">
           <p className="text-base md:text-lg leading-normal text-black">Email</p>
-          <p className="text-base md:text-lg leading-normal text-black/40">hello@febrico.pt</p>
+          <p className="text-base md:text-lg leading-normal text-black/40">info@frebrico.pt</p>
         </div>
       </div>
     </div>

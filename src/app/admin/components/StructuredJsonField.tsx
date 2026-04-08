@@ -215,7 +215,11 @@ export function StructuredJsonField({
   // —— Array of objects ——
   if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0] === "object" && parsed[0] !== null) {
     const list = parsed as Record<string, unknown>[];
-    const keys = Object.keys(list[0]).filter((k) => typeof list[0][k] === "string" || typeof list[0][k] === "number");
+    const fromFirst = Object.keys(list[0]).filter((k) => typeof list[0][k] === "string" || typeof list[0][k] === "number");
+    const keys =
+      hint === "product"
+        ? [...new Set([...["name", "price", "badge", "image", "slug"], ...fromFirst])]
+        : fromFirst;
 
     const getLabel = (key: string): string => {
       const labels: Record<string, string> = {
@@ -230,6 +234,7 @@ export function StructuredJsonField({
         number: "Número",
         price: "Preço (€)",
         badge: "Badge",
+        image: "Imagem (URL ou caminho)",
         id: "ID",
         featured: "Destaque",
       };
@@ -361,7 +366,7 @@ export function StructuredJsonField({
       else if (hint === "link") emit([{ label: "", url: "" }]);
       else if (hint === "category") emit([{ name: "", slug: "" }]);
       else if (hint === "categoryFull") emit([{ title: "", slug: "", description: "" }]);
-      else if (hint === "product") emit([{ name: "", price: "", badge: "" }]);
+      else if (hint === "product") emit([{ name: "", price: "", badge: "", image: "", slug: "" }]);
       else if (hint === "service") emit([{ number: "01", title: "", description: "" }]);
       else emit([{}]);
     };

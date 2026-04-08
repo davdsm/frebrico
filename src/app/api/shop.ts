@@ -45,6 +45,7 @@ export type Product = {
   price: number;
   featured: number;
   image: string;
+  images: string;
   category_id: number | null;
   description: string;
   badge: string;

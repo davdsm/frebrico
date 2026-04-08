@@ -88,7 +88,7 @@ export default function CreateAdminPage() {
           <input
             type="email"
             autoComplete="email"
-            placeholder="novo@admin.pt"
+            placeholder="admin@frebrico.pt"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required

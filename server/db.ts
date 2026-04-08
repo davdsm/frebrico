@@ -54,6 +54,41 @@ function initSchema(database: Database.Database): void {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
+    CREATE TABLE IF NOT EXISTS user_profiles (
+      user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+      name TEXT DEFAULT '',
+      address TEXT DEFAULT '',
+      region TEXT DEFAULT '',
+      district TEXT DEFAULT '',
+      locality TEXT DEFAULT '',
+      postal_code TEXT DEFAULT '',
+      phone TEXT DEFAULT '',
+      birth_date TEXT DEFAULT '',
+      nif TEXT DEFAULT '',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS orders (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+      order_number TEXT NOT NULL UNIQUE,
+      status TEXT NOT NULL DEFAULT 'pending',
+      email TEXT DEFAULT '',
+      customer_name TEXT DEFAULT '',
+      address TEXT DEFAULT '',
+      region TEXT DEFAULT '',
+      district TEXT DEFAULT '',
+      locality TEXT DEFAULT '',
+      postal_code TEXT DEFAULT '',
+      phone TEXT DEFAULT '',
+      nif TEXT DEFAULT '',
+      items_json TEXT DEFAULT '[]',
+      subtotal REAL NOT NULL DEFAULT 0,
+      total REAL NOT NULL DEFAULT 0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
     CREATE TABLE IF NOT EXISTS categories (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       slug TEXT NOT NULL UNIQUE,
@@ -72,6 +107,7 @@ function initSchema(database: Database.Database): void {
       price REAL NOT NULL DEFAULT 0,
       featured INTEGER NOT NULL DEFAULT 0,
       image TEXT DEFAULT '',
+      images TEXT DEFAULT '[]',
       category_id INTEGER REFERENCES categories(id),
       description TEXT DEFAULT '',
       badge TEXT DEFAULT '',
@@ -100,6 +136,7 @@ function initSchema(database: Database.Database): void {
     CREATE INDEX IF NOT EXISTS idx_products_category ON products(category_id);
     CREATE INDEX IF NOT EXISTS idx_uploads_page_section ON uploads(page_slug, section_key);
     CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users(email);
+    CREATE INDEX IF NOT EXISTS idx_orders_user_id ON orders(user_id);
   `);
 
   // Lightweight migration: add category SVG icon column if missing.
@@ -108,6 +145,24 @@ function initSchema(database: Database.Database): void {
   } catch {
     // Column already exists.
   }
+  // Lightweight migration: add products gallery images column if missing.
+  try {
+    database.exec("ALTER TABLE products ADD COLUMN images TEXT DEFAULT '[]'");
+  } catch {
+    // Column already exists.
+  }
+  // Lightweight migrations: add missing orders columns if needed.
+  try { database.exec("ALTER TABLE orders ADD COLUMN email TEXT DEFAULT ''"); } catch {}
+  try { database.exec("ALTER TABLE orders ADD COLUMN customer_name TEXT DEFAULT ''"); } catch {}
+  try { database.exec("ALTER TABLE orders ADD COLUMN address TEXT DEFAULT ''"); } catch {}
+  try { database.exec("ALTER TABLE orders ADD COLUMN region TEXT DEFAULT ''"); } catch {}
+  try { database.exec("ALTER TABLE orders ADD COLUMN district TEXT DEFAULT ''"); } catch {}
+  try { database.exec("ALTER TABLE orders ADD COLUMN locality TEXT DEFAULT ''"); } catch {}
+  try { database.exec("ALTER TABLE orders ADD COLUMN postal_code TEXT DEFAULT ''"); } catch {}
+  try { database.exec("ALTER TABLE orders ADD COLUMN phone TEXT DEFAULT ''"); } catch {}
+  try { database.exec("ALTER TABLE orders ADD COLUMN nif TEXT DEFAULT ''"); } catch {}
+  try { database.exec("ALTER TABLE orders ADD COLUMN items_json TEXT DEFAULT '[]'"); } catch {}
+  try { database.exec("ALTER TABLE orders ADD COLUMN subtotal REAL NOT NULL DEFAULT 0"); } catch {}
 }
 
 export type ContentRow = {
@@ -242,6 +297,41 @@ export type UserRow = {
   created_at: string;
 };
 
+export type UserProfileRow = {
+  user_id: number;
+  name: string;
+  address: string;
+  region: string;
+  district: string;
+  locality: string;
+  postal_code: string;
+  phone: string;
+  birth_date: string;
+  nif: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type OrderRow = {
+  id: number;
+  user_id: number | null;
+  order_number: string;
+  status: string;
+  email: string;
+  customer_name: string;
+  address: string;
+  region: string;
+  district: string;
+  locality: string;
+  postal_code: string;
+  phone: string;
+  nif: string;
+  items_json: string;
+  subtotal: number;
+  total: number;
+  created_at: string;
+};
+
 export function getUserByEmail(email: string): UserRow | undefined {
   const database = getDb();
   const stmt = database.prepare("SELECT * FROM users WHERE email = ?");
@@ -279,6 +369,121 @@ export function deleteUser(id: number): void {
   const database = getDb();
   const stmt = database.prepare("DELETE FROM users WHERE id = ?");
   stmt.run(id);
+}
+
+export function getUserProfileByUserId(userId: number): UserProfileRow | undefined {
+  const database = getDb();
+  const stmt = database.prepare("SELECT * FROM user_profiles WHERE user_id = ?");
+  return stmt.get(userId) as UserProfileRow | undefined;
+}
+
+export function upsertUserProfile(
+  userId: number,
+  profile: Omit<UserProfileRow, "user_id" | "created_at" | "updated_at">
+): void {
+  const database = getDb();
+  const stmt = database.prepare(`
+    INSERT INTO user_profiles (user_id, name, address, region, district, locality, postal_code, phone, birth_date, nif, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+    ON CONFLICT(user_id)
+    DO UPDATE SET
+      name = excluded.name,
+      address = excluded.address,
+      region = excluded.region,
+      district = excluded.district,
+      locality = excluded.locality,
+      postal_code = excluded.postal_code,
+      phone = excluded.phone,
+      birth_date = excluded.birth_date,
+      nif = excluded.nif,
+      updated_at = datetime('now')
+  `);
+  stmt.run(
+    userId,
+    profile.name || "",
+    profile.address || "",
+    profile.region || "",
+    profile.district || "",
+    profile.locality || "",
+    profile.postal_code || "",
+    profile.phone || "",
+    profile.birth_date || "",
+    profile.nif || ""
+  );
+}
+
+export function listOrdersByUserId(userId: number): OrderRow[] {
+  const database = getDb();
+  const stmt = database.prepare(
+    "SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC"
+  );
+  return stmt.all(userId) as OrderRow[];
+}
+
+export function createOrder(order: {
+  userId: number | null;
+  orderNumber: string;
+  status: string;
+  email: string;
+  customerName: string;
+  address: string;
+  region: string;
+  district: string;
+  locality: string;
+  postalCode: string;
+  phone: string;
+  nif: string;
+  itemsJson: string;
+  subtotal: number;
+  total: number;
+}): number {
+  const database = getDb();
+  const stmt = database.prepare(`
+    INSERT INTO orders (user_id, order_number, status, email, customer_name, address, region, district, locality, postal_code, phone, nif, items_json, subtotal, total)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `);
+  const result = stmt.run(
+    order.userId,
+    order.orderNumber,
+    order.status,
+    order.email,
+    order.customerName,
+    order.address,
+    order.region,
+    order.district,
+    order.locality,
+    order.postalCode,
+    order.phone,
+    order.nif,
+    order.itemsJson,
+    order.subtotal,
+    order.total
+  );
+  return result.lastInsertRowid as number;
+}
+
+export function listOrders(limit = 50): OrderRow[] {
+  const database = getDb();
+  const stmt = database.prepare("SELECT * FROM orders ORDER BY created_at DESC LIMIT ?");
+  return stmt.all(limit) as OrderRow[];
+}
+
+export function getOrderById(id: number): OrderRow | undefined {
+  const database = getDb();
+  const stmt = database.prepare("SELECT * FROM orders WHERE id = ?");
+  return stmt.get(id) as OrderRow | undefined;
+}
+
+export function deleteOrder(id: number): boolean {
+  const database = getDb();
+  const stmt = database.prepare("DELETE FROM orders WHERE id = ?");
+  return stmt.run(id).changes > 0;
+}
+
+export function updateOrderStatus(id: number, status: string): boolean {
+  const database = getDb();
+  const stmt = database.prepare("UPDATE orders SET status = ? WHERE id = ?");
+  return stmt.run(status, id).changes > 0;
 }
 
 // ---------------------------------------------------------------------------
@@ -388,6 +593,7 @@ export type ProductRow = {
   price: number;
   featured: number;
   image: string;
+  images: string;
   category_id: number | null;
   description: string;
   badge: string;
@@ -408,8 +614,22 @@ export function listProducts(categorySlug?: string, featuredOnly?: boolean): Pro
   if (categorySlug) {
     const cat = getCategoryBySlug(categorySlug);
     if (!cat) return [];
-    const stmt = database.prepare("SELECT * FROM products WHERE category_id = ? ORDER BY name ASC");
-    return stmt.all(cat.id) as ProductRow[];
+    // Include products from the selected category and all its descendants.
+    const ids: number[] = [cat.id];
+    const queue: number[] = [cat.id];
+    const childStmt = database.prepare("SELECT id FROM categories WHERE parent_id = ?");
+    while (queue.length > 0) {
+      const parentId = queue.shift()!;
+      const children = childStmt.all(parentId) as Array<{ id: number }>;
+      for (const child of children) {
+        if (ids.includes(child.id)) continue;
+        ids.push(child.id);
+        queue.push(child.id);
+      }
+    }
+    const placeholders = ids.map(() => "?").join(", ");
+    const stmt = database.prepare(`SELECT * FROM products WHERE category_id IN (${placeholders}) ORDER BY name ASC`);
+    return stmt.all(...ids) as ProductRow[];
   }
   if (featuredOnly) {
     const stmt = database.prepare("SELECT * FROM products WHERE featured = 1 ORDER BY name ASC");
@@ -431,12 +651,38 @@ export function getProductBySlug(slug: string): ProductRow | undefined {
   return stmt.get(slug) as ProductRow | undefined;
 }
 
+function makeProductSlug(source: string): string {
+  const base = source
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .replace(/-+/g, "-");
+  return base || "produto";
+}
+
+function ensureUniqueProductSlug(database: Database.Database, baseSlug: string, excludeId?: number): string {
+  let slug = baseSlug;
+  let counter = 2;
+  while (true) {
+    const row = database
+      .prepare("SELECT id FROM products WHERE slug = ?")
+      .get(slug) as { id: number } | undefined;
+    if (!row || (excludeId != null && row.id === excludeId)) return slug;
+    slug = `${baseSlug}-${counter}`;
+    counter += 1;
+  }
+}
+
 export function createProduct(
   slug: string | null,
   name: string,
   price: number,
   featured: boolean,
   image: string,
+  images: string,
   categoryId: number | null,
   description: string,
   badge: string,
@@ -451,12 +697,13 @@ export function createProduct(
 ): number {
   const database = getDb();
   const stmt = database.prepare(`
-    INSERT INTO products (slug, name, price, featured, image, category_id, description, badge, type_label, type_text, availability, variants, downloads, specifications, related_product_ids, faqs)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO products (slug, name, price, featured, image, images, category_id, description, badge, type_label, type_text, availability, variants, downloads, specifications, related_product_ids, faqs)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
-  const slugNorm = slug ? slug.trim().toLowerCase().replace(/\s+/g, "-") : null;
+  const requested = slug ? makeProductSlug(slug) : makeProductSlug(name);
+  const slugNorm = ensureUniqueProductSlug(database, requested);
   const result = stmt.run(
-    slugNorm, name, price, featured ? 1 : 0, image || "", categoryId, description || "", badge || "",
+    slugNorm, name, price, featured ? 1 : 0, image || "", images || "[]", categoryId, description || "", badge || "",
     typeLabel || "", typeText || "", availability || "", variants || "[]", downloads || "[]",
     specifications || "[]", relatedProductIds || "[]", faqs || "[]"
   );
@@ -470,6 +717,7 @@ export function updateProduct(
   price: number,
   featured: boolean,
   image: string,
+  images: string,
   categoryId: number | null,
   description: string,
   badge: string,
@@ -484,12 +732,13 @@ export function updateProduct(
 ): boolean {
   const database = getDb();
   const stmt = database.prepare(`
-    UPDATE products SET slug = ?, name = ?, price = ?, featured = ?, image = ?, category_id = ?, description = ?, badge = ?, type_label = ?, type_text = ?, availability = ?, variants = ?, downloads = ?, specifications = ?, related_product_ids = ?, faqs = ?, updated_at = datetime('now')
+    UPDATE products SET slug = ?, name = ?, price = ?, featured = ?, image = ?, images = ?, category_id = ?, description = ?, badge = ?, type_label = ?, type_text = ?, availability = ?, variants = ?, downloads = ?, specifications = ?, related_product_ids = ?, faqs = ?, updated_at = datetime('now')
     WHERE id = ?
   `);
-  const slugNorm = slug ? slug.trim().toLowerCase().replace(/\s+/g, "-") : null;
+  const requested = slug ? makeProductSlug(slug) : makeProductSlug(name);
+  const slugNorm = ensureUniqueProductSlug(database, requested, id);
   const result = stmt.run(
-    slugNorm, name, price, featured ? 1 : 0, image || "", categoryId, description || "", badge || "",
+    slugNorm, name, price, featured ? 1 : 0, image || "", images || "[]", categoryId, description || "", badge || "",
     typeLabel || "", typeText || "", availability || "", variants || "[]", downloads || "[]",
     specifications || "[]", relatedProductIds || "[]", faqs || "[]", id
   );

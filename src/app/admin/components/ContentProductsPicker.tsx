@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { fetchProducts, type Product } from "../../api/shop";
 
 const inputClass =
   "w-full px-3 py-2 border border-[#e5e5e3] rounded-lg text-[13px] bg-[#fafaf9] focus:bg-white focus:border-[#313b2e] focus:ring-2 focus:ring-[#313b2e]/8 outline-none";
 
-/** Item shape stored in content (carousel/grid/related). Frontend uses name, price, badge; id and image optional. */
+/** Item shape stored in content (carousel/grid/related). Site card uses id/slug, name, price, image, featured; badge optional (legacy). */
 export type ContentProductItem = {
   id?: number;
+  slug?: string;
   name: string;
   price: string | number;
   badge?: string;
@@ -25,6 +26,7 @@ function parseStored(value: string): ContentProductItem[] {
         const o = p as Record<string, unknown>;
         return {
           id: typeof o.id === "number" ? o.id : undefined,
+          slug: typeof o.slug === "string" ? o.slug : undefined,
           name: String(o.name ?? ""),
           price: typeof o.price === "number" ? String(o.price) : String(o.price ?? ""),
           badge: typeof o.badge === "string" ? o.badge : undefined,
@@ -46,10 +48,22 @@ interface ContentProductsPickerProps {
   hint?: string;
 }
 
+function matchesProductQuery(p: Product, query: string): boolean {
+  const q = query.trim().toLowerCase();
+  if (!q) return true;
+  if (p.name.toLowerCase().includes(q)) return true;
+  const slug = (p.slug ?? "").toLowerCase();
+  if (slug && slug.includes(q)) return true;
+  if (String(p.id).includes(q)) return true;
+  return false;
+}
+
 export function ContentProductsPicker({ value, onChange, label = "Produtos", hint }: ContentProductsPickerProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [pickerQuery, setPickerQuery] = useState("");
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const selected = parseStored(value);
 
@@ -66,9 +80,18 @@ export function ContentProductsPicker({ value, onChange, label = "Produtos", hin
     return () => { cancelled = true; };
   }, []);
 
+  useEffect(() => {
+    if (!dropdownOpen) setPickerQuery("");
+  }, [dropdownOpen]);
+
+  useEffect(() => {
+    if (dropdownOpen && !loading) searchInputRef.current?.focus();
+  }, [dropdownOpen, loading]);
+
   const addProduct = (p: Product) => {
     const item: ContentProductItem = {
       id: p.id,
+      slug: p.slug ?? undefined,
       name: p.name,
       price: String(p.price),
       badge: p.badge || undefined,
@@ -100,6 +123,10 @@ export function ContentProductsPicker({ value, onChange, label = "Produtos", hin
 
   const selectedIds = new Set(selected.map((s) => s.id).filter((id): id is number => id != null));
   const available = products.filter((p) => !selectedIds.has(p.id));
+  const filteredAvailable = useMemo(
+    () => available.filter((p) => matchesProductQuery(p, pickerQuery)),
+    [available, pickerQuery]
+  );
 
   return (
     <div>
@@ -122,7 +149,7 @@ export function ContentProductsPicker({ value, onChange, label = "Produtos", hin
                 type="text"
                 value={item.badge ?? ""}
                 onChange={(e) => updateBadge(index, e.target.value)}
-                placeholder="Badge (ex.: Destaque)"
+                placeholder="Badge"
                 className={inputClass + " py-1.5 text-[12px]"}
               />
             </div>
@@ -169,22 +196,43 @@ export function ContentProductsPicker({ value, onChange, label = "Produtos", hin
         </button>
         {dropdownOpen && !loading && (
           <>
-            <div className="absolute z-10 mt-1 w-full rounded-lg border border-[#e5e5e3] bg-white shadow-lg max-h-56 overflow-y-auto">
-              {available.length === 0 ? (
-                <div className="px-3 py-3 text-[12px] text-[#5a5a59]">Todos os produtos já foram adicionados ou não há produtos na loja.</div>
-              ) : (
-                available.map((p) => (
-                  <button
-                    key={p.id}
-                    type="button"
-                    onClick={() => addProduct(p)}
-                    className="block w-full text-left px-3 py-2.5 text-[13px] hover:bg-[#f5f5f4] border-b border-[#e5e5e3] last:border-0"
-                  >
-                    <span className="font-medium text-[#131313]">{p.name}</span>
-                    <span className="text-[#5a5a59] ml-2">{p.price} €</span>
-                  </button>
-                ))
-              )}
+            <div className="absolute z-10 mt-1 w-full flex flex-col rounded-lg border border-[#e5e5e3] bg-white shadow-lg max-h-72 overflow-hidden">
+              <div className="shrink-0 p-2 border-b border-[#e5e5e3] bg-white">
+                <input
+                  ref={searchInputRef}
+                  type="search"
+                  value={pickerQuery}
+                  onChange={(e) => setPickerQuery(e.target.value)}
+                  placeholder="Pesquisar por nome, slug ou ID…"
+                  className={inputClass + " py-2"}
+                  aria-label="Pesquisar produtos para adicionar"
+                  autoComplete="off"
+                />
+              </div>
+              <div className="min-h-0 max-h-52 overflow-y-auto">
+                {available.length === 0 ? (
+                  <div className="px-3 py-3 text-[12px] text-[#5a5a59]">
+                    Todos os produtos já foram adicionados ou não há produtos na loja.
+                  </div>
+                ) : filteredAvailable.length === 0 ? (
+                  <div className="px-3 py-3 text-[12px] text-[#5a5a59]">Nenhum produto corresponde à pesquisa.</div>
+                ) : (
+                  filteredAvailable.map((p) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => addProduct(p)}
+                      className="block w-full text-left px-3 py-2.5 text-[13px] hover:bg-[#f5f5f4] border-b border-[#e5e5e3] last:border-0"
+                    >
+                      <span className="font-medium text-[#131313]">{p.name}</span>
+                      <span className="text-[#5a5a59] ml-2">{p.price} €</span>
+                      {p.slug ? (
+                        <span className="block text-[11px] text-[#8a8a89] mt-0.5 font-mono">{p.slug}</span>
+                      ) : null}
+                    </button>
+                  ))
+                )}
+              </div>
             </div>
             <div className="fixed inset-0 z-[5]" aria-hidden onClick={() => setDropdownOpen(false)} />
           </>

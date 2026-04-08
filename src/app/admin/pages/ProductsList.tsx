@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
 import { fetchProducts, fetchCategories, deleteProductApi, type Product, type Category } from "../../api/shop";
 import { useToast } from "../components/Toast";
@@ -9,6 +9,10 @@ export default function ProductsList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [query, setQuery] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [featuredFilter, setFeaturedFilter] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<string>("name-asc");
   const { toast } = useToast();
 
   const load = async () => {
@@ -49,6 +53,42 @@ export default function ProductsList() {
     }
   };
 
+  const filteredAndSortedList = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    const filtered = list.filter((p) => {
+      const matchQuery =
+        !q ||
+        p.name.toLowerCase().includes(q) ||
+        (p.slug ?? "").toLowerCase().includes(q) ||
+        String(p.id).includes(q);
+      const matchCategory =
+        categoryFilter === "all" ||
+        String(p.category_id ?? "") === categoryFilter;
+      const matchFeatured =
+        featuredFilter === "all" ||
+        (featuredFilter === "featured" ? Boolean(p.featured) : !p.featured);
+      return matchQuery && matchCategory && matchFeatured;
+    });
+
+    return [...filtered].sort((a, b) => {
+      switch (sortBy) {
+        case "name-desc":
+          return a.name.localeCompare(b.name, "pt", { sensitivity: "base" }) * -1;
+        case "price-asc":
+          return Number(a.price) - Number(b.price);
+        case "price-desc":
+          return Number(b.price) - Number(a.price);
+        case "updated-desc":
+          return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+        case "updated-asc":
+          return new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime();
+        case "name-asc":
+        default:
+          return a.name.localeCompare(b.name, "pt", { sensitivity: "base" });
+      }
+    });
+  }, [list, query, categoryFilter, featuredFilter, sortBy]);
+
   return (
     <div>
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -69,11 +109,65 @@ export default function ProductsList() {
         <div className="mb-4 p-4 rounded-xl bg-red-50 text-red-700 text-sm">{error}</div>
       )}
 
+      {!loading && list.length > 0 && (
+        <div className="mb-4 bg-white rounded-2xl border border-[#e5e5e3] p-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Pesquisar por nome, slug ou ID..."
+              className="h-10 rounded-xl border border-[#d9d9d6] px-3 text-[13px] outline-none focus:ring-2 focus:ring-[#313b2e]/20"
+            />
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="h-10 rounded-xl border border-[#d9d9d6] px-3 text-[13px] bg-white outline-none focus:ring-2 focus:ring-[#313b2e]/20"
+            >
+              <option value="all">Todas as categorias</option>
+              {categories.map((c) => (
+                <option key={c.id} value={String(c.id)}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+            <select
+              value={featuredFilter}
+              onChange={(e) => setFeaturedFilter(e.target.value)}
+              className="h-10 rounded-xl border border-[#d9d9d6] px-3 text-[13px] bg-white outline-none focus:ring-2 focus:ring-[#313b2e]/20"
+            >
+              <option value="all">Todos os destaques</option>
+              <option value="featured">Apenas destaque</option>
+              <option value="regular">Sem destaque</option>
+            </select>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="h-10 rounded-xl border border-[#d9d9d6] px-3 text-[13px] bg-white outline-none focus:ring-2 focus:ring-[#313b2e]/20"
+            >
+              <option value="name-asc">Ordenar: Nome (A-Z)</option>
+              <option value="name-desc">Ordenar: Nome (Z-A)</option>
+              <option value="price-asc">Ordenar: Preço (baixo-alto)</option>
+              <option value="price-desc">Ordenar: Preço (alto-baixo)</option>
+              <option value="updated-desc">Ordenar: Atualização (recentes)</option>
+              <option value="updated-asc">Ordenar: Atualização (antigos)</option>
+            </select>
+          </div>
+          <p className="mt-3 text-[12px] text-[#5a5a59]">
+            A mostrar {filteredAndSortedList.length} de {list.length} produtos.
+          </p>
+        </div>
+      )}
+
       {loading ? (
         <div className="py-12 text-center text-[#5a5a59]">A carregar...</div>
       ) : list.length === 0 ? (
         <div className="bg-white rounded-2xl border border-[#e5e5e3] p-12 text-center text-[#5a5a59]">
           Nenhum produto. <Link to="/admin/products/new" className="text-[#313b2e] font-medium hover:underline">Criar o primeiro</Link>.
+        </div>
+      ) : filteredAndSortedList.length === 0 ? (
+        <div className="bg-white rounded-2xl border border-[#e5e5e3] p-12 text-center text-[#5a5a59]">
+          Nenhum produto encontrado para os filtros atuais.
         </div>
       ) : (
         <div className="bg-white rounded-2xl border border-[#e5e5e3] overflow-hidden">
@@ -88,7 +182,7 @@ export default function ProductsList() {
               </tr>
             </thead>
             <tbody>
-              {list.map((p) => (
+              {filteredAndSortedList.map((p) => (
                 <tr key={p.id} className="border-b border-[#e5e5e3] hover:bg-[#fafaf9]">
                   <td className="px-4 py-3 text-[13px] text-[#131313]">{p.name}</td>
                   <td className="px-4 py-3 text-[13px] text-[#5a5a59]">{getCategoryName(p.category_id)}</td>

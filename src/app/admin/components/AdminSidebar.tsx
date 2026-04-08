@@ -7,6 +7,7 @@ const LOJA_ITEMS = [
   { to: "/admin/products", label: "Produtos" },
   { to: "/admin/categories", label: "Categorias" },
   { to: "/admin/attributes", label: "Atributos" },
+  { to: "/admin/orders", label: "Encomendas" },
 ];
 
 const navItems = [
@@ -77,7 +78,8 @@ export function AdminSidebar() {
   const isLojaActive =
     location.pathname.startsWith("/admin/products") ||
     location.pathname.startsWith("/admin/categories") ||
-    location.pathname.startsWith("/admin/attributes");
+    location.pathname.startsWith("/admin/attributes") ||
+    location.pathname.startsWith("/admin/orders");
   useEffect(() => {
     if (isPagesActive) setPagesExpanded(true);
   }, [isPagesActive]);

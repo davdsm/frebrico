@@ -5,30 +5,101 @@ import AdminLayout from "./admin/AdminLayout";
 import { AdminGuard } from "./admin/AdminGuard";
 import { PageLoader } from "./components/atoms/PageLoader";
 
-const Home = React.lazy(() => import("./pages/Home"));
-const About = React.lazy(() => import("./pages/About"));
-const Contact = React.lazy(() => import("./pages/Contact"));
-const Products = React.lazy(() => import("./pages/Products"));
-const Category = React.lazy(() => import("./pages/Category"));
-const ProductDetail = React.lazy(() => import("./pages/ProductDetail"));
-const Cart = React.lazy(() => import("./pages/Cart"));
-const Login = React.lazy(() => import("./pages/Login"));
-const RecoverPassword = React.lazy(() => import("./pages/RecoverPassword"));
-const Terms = React.lazy(() => import("./pages/Terms"));
-const Privacy = React.lazy(() => import("./pages/Privacy"));
+const importHome = () => import("./pages/Home");
+const importAbout = () => import("./pages/About");
+const importContact = () => import("./pages/Contact");
+const importProducts = () => import("./pages/Products");
+const importCategory = () => import("./pages/Category");
+const importProductDetail = () => import("./pages/ProductDetail");
+const importCart = () => import("./pages/Cart");
+const importLogin = () => import("./pages/Login");
+const importRecoverPassword = () => import("./pages/RecoverPassword");
+const importTerms = () => import("./pages/Terms");
+const importPrivacy = () => import("./pages/Privacy");
+const importAccountRegister = () => import("./pages/AccountRegister");
+const importAccountDashboard = () => import("./pages/AccountDashboard");
+const importOrderSuccess = () => import("./pages/OrderSuccess");
+const importAccountOrderDetail = () => import("./pages/AccountOrderDetail");
 
-const AdminDashboard = React.lazy(() => import("./admin/pages/Dashboard"));
-const AdminCreateAdminPage = React.lazy(() => import("./admin/pages/CreateAdminPage"));
-const AdminPagesList = React.lazy(() => import("./admin/pages/PagesList"));
-const AdminPageEditor = React.lazy(() => import("./admin/pages/PageEditor"));
-const AdminMediaLibrary = React.lazy(() => import("./admin/pages/MediaLibrary"));
-const AdminConfiguration = React.lazy(() => import("./admin/pages/Configuration"));
-const AdminCategoriesList = React.lazy(() => import("./admin/pages/CategoriesList"));
-const AdminCategoryEditor = React.lazy(() => import("./admin/pages/CategoryEditor"));
-const AdminProductsList = React.lazy(() => import("./admin/pages/ProductsList"));
-const AdminProductEditor = React.lazy(() => import("./admin/pages/ProductEditor"));
-const AdminAttributesList = React.lazy(() => import("./admin/pages/AttributesList"));
-const AdminAttributeEditor = React.lazy(() => import("./admin/pages/AttributeEditor"));
+const importAdminDashboard = () => import("./admin/pages/Dashboard");
+const importAdminCreateAdminPage = () => import("./admin/pages/CreateAdminPage");
+const importAdminPagesList = () => import("./admin/pages/PagesList");
+const importAdminPageEditor = () => import("./admin/pages/PageEditor");
+const importAdminMediaLibrary = () => import("./admin/pages/MediaLibrary");
+const importAdminConfiguration = () => import("./admin/pages/Configuration");
+const importAdminCategoriesList = () => import("./admin/pages/CategoriesList");
+const importAdminCategoryEditor = () => import("./admin/pages/CategoryEditor");
+const importAdminProductsList = () => import("./admin/pages/ProductsList");
+const importAdminProductEditor = () => import("./admin/pages/ProductEditor");
+const importAdminAttributesList = () => import("./admin/pages/AttributesList");
+const importAdminAttributeEditor = () => import("./admin/pages/AttributeEditor");
+const importAdminOrdersList = () => import("./admin/pages/OrdersList");
+const importAdminOrderDetail = () => import("./admin/pages/OrderDetail");
+
+const Home = React.lazy(importHome);
+const About = React.lazy(importAbout);
+const Contact = React.lazy(importContact);
+const Products = React.lazy(importProducts);
+const Category = React.lazy(importCategory);
+const ProductDetail = React.lazy(importProductDetail);
+const Cart = React.lazy(importCart);
+const Login = React.lazy(importLogin);
+const RecoverPassword = React.lazy(importRecoverPassword);
+const Terms = React.lazy(importTerms);
+const Privacy = React.lazy(importPrivacy);
+const AccountRegister = React.lazy(importAccountRegister);
+const AccountDashboard = React.lazy(importAccountDashboard);
+const OrderSuccess = React.lazy(importOrderSuccess);
+const AccountOrderDetail = React.lazy(importAccountOrderDetail);
+
+const AdminDashboard = React.lazy(importAdminDashboard);
+const AdminCreateAdminPage = React.lazy(importAdminCreateAdminPage);
+const AdminPagesList = React.lazy(importAdminPagesList);
+const AdminPageEditor = React.lazy(importAdminPageEditor);
+const AdminMediaLibrary = React.lazy(importAdminMediaLibrary);
+const AdminConfiguration = React.lazy(importAdminConfiguration);
+const AdminCategoriesList = React.lazy(importAdminCategoriesList);
+const AdminCategoryEditor = React.lazy(importAdminCategoryEditor);
+const AdminProductsList = React.lazy(importAdminProductsList);
+const AdminProductEditor = React.lazy(importAdminProductEditor);
+const AdminAttributesList = React.lazy(importAdminAttributesList);
+const AdminAttributeEditor = React.lazy(importAdminAttributeEditor);
+const AdminOrdersList = React.lazy(importAdminOrdersList);
+const AdminOrderDetail = React.lazy(importAdminOrderDetail);
+
+export async function preloadRouteChunks(): Promise<void> {
+  await Promise.allSettled([
+    importHome(),
+    importAbout(),
+    importContact(),
+    importProducts(),
+    importCategory(),
+    importProductDetail(),
+    importCart(),
+    importLogin(),
+    importRecoverPassword(),
+    importTerms(),
+    importPrivacy(),
+    importAccountRegister(),
+    importAccountDashboard(),
+    importOrderSuccess(),
+    importAccountOrderDetail(),
+    importAdminDashboard(),
+    importAdminCreateAdminPage(),
+    importAdminPagesList(),
+    importAdminPageEditor(),
+    importAdminMediaLibrary(),
+    importAdminConfiguration(),
+    importAdminCategoriesList(),
+    importAdminCategoryEditor(),
+    importAdminProductsList(),
+    importAdminProductEditor(),
+    importAdminAttributesList(),
+    importAdminAttributeEditor(),
+    importAdminOrdersList(),
+    importAdminOrderDetail(),
+  ]);
+}
 
 const SuspenseWrap = ({ children }: { children: React.ReactNode }) => (
   <React.Suspense fallback={<PageLoader />}>{children}</React.Suspense>
@@ -72,12 +143,54 @@ export const router = createBrowserRouter([
       { path: "attributes", element: <SuspenseWrap><AdminAttributesList /></SuspenseWrap> },
       { path: "attributes/new", element: <SuspenseWrap><AdminAttributeEditor /></SuspenseWrap> },
       { path: "attributes/:id", element: <SuspenseWrap><AdminAttributeEditor /></SuspenseWrap> },
+      { path: "orders", element: <SuspenseWrap><AdminOrdersList /></SuspenseWrap> },
+      { path: "orders/:id", element: <SuspenseWrap><AdminOrderDetail /></SuspenseWrap> },
       { path: "register", element: <SuspenseWrap><AdminCreateAdminPage /></SuspenseWrap> },
     ],
   },
   {
     path: "/register",
     element: <Navigate to="/admin/register" replace />,
+  },
+  {
+    path: "/account",
+    element: <Navigate to="/account/dashboard" replace />,
+  },
+  {
+    path: "/account/register",
+    element: (
+      <React.Suspense fallback={<PageLoader />}>
+        <AccountRegister />
+      </React.Suspense>
+    ),
+  },
+  {
+    path: "/account/login",
+    element: <Navigate to="/login?mode=customer" replace />,
+  },
+  {
+    path: "/account/dashboard",
+    element: (
+      <React.Suspense fallback={<PageLoader />}>
+        <AccountDashboard />
+      </React.Suspense>
+    ),
+  },
+  {
+    path: "/account/orders/:id",
+    element: (
+      <React.Suspense fallback={<PageLoader />}>
+        <AccountOrderDetail />
+      </React.Suspense>
+    ),
+  },
+  {
+    path: "/order/success",
+    element: (
+      <React.Suspense fallback={<PageLoader />}>
+        <OrderSuccess />
+      </React.Suspense>
+    ),
   },
   {
     path: "/login",
@@ -132,7 +245,7 @@ export const router = createBrowserRouter([
         ),
       },
       {
-        path: "product/:id",
+        path: "product/:idOrSlug",
         element: (
           <React.Suspense fallback={<PageLoader />}>
             <ProductDetail />

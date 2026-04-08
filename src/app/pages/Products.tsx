@@ -5,11 +5,7 @@ import { ProductsGrid } from '../components/products/ProductsGrid';
 import { SEO } from '../components/common/SEO';
 import { useContent } from '../content/useContent';
 import { fetchCategories, fetchProducts, type Category } from '../api/shop';
-import type { Product } from '../components/common/ProductCard';
-
-function toCardProduct(p: { id: number; name: string; price: number; featured?: number; image?: string }): Product {
-  return { id: p.id, name: p.name, price: Number(p.price), featured: Boolean(p.featured), image: p.image };
-}
+import { shopProductToCardProduct, type Product } from '../components/common/ProductCard';
 
 export default function Products() {
   const seoTitle = useContent('products', 'seo', 'title');
@@ -38,7 +34,7 @@ export default function Products() {
             icon_svg: (c.icon_svg || "").trim(),
           }))
         );
-        setProducts(prods.map(toCardProduct));
+        setProducts(prods.map(shopProductToCardProduct));
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Erro ao carregar');
         setProducts([]);

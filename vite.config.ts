@@ -3,6 +3,8 @@ import path from 'path'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 
+const apiProxyTarget = process.env.VITE_PROXY_TARGET || 'http://localhost:3002'
+
 export default defineConfig({
   plugins: [
     // The React and Tailwind plugins are both required for Make, even if
@@ -24,14 +26,14 @@ export default defineConfig({
 
   server: {
     proxy: {
-      '/api': { target: 'http://localhost:3001', changeOrigin: true },
-      '/uploads': { target: 'http://localhost:3001', changeOrigin: true },
+      '/api': { target: apiProxyTarget, changeOrigin: true },
+      '/uploads': { target: apiProxyTarget, changeOrigin: true },
     },
   },
   preview: {
     proxy: {
-      '/api': { target: 'http://localhost:3001', changeOrigin: true },
-      '/uploads': { target: 'http://localhost:3001', changeOrigin: true },
+      '/api': { target: apiProxyTarget, changeOrigin: true },
+      '/uploads': { target: apiProxyTarget, changeOrigin: true },
     },
   },
 })

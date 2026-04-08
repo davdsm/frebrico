@@ -14,14 +14,18 @@ import { authRouter } from "./routes/auth.js";
 import { categoriesRouter } from "./routes/categories.js";
 import { productsRouter } from "./routes/products.js";
 import { attributesRouter } from "./routes/attributes.js";
+import { createRateLimiter, setSecurityHeaders } from "./middleware/security.js";
+import { ordersRouter } from "./routes/orders.js";
 
 const PORT = Number(process.env.PORT) || 3001;
 const isProduction = process.env.NODE_ENV === "production";
 const allowOrigin = process.env.ALLOW_ORIGIN; // e.g. http://localhost:5173 when backend in Docker + frontend yarn dev
 
 const app = express();
+app.disable("x-powered-by");
 
 app.set("trust proxy", 1);
+app.use(setSecurityHeaders);
 
 if (allowOrigin) {
   // Backend in Docker + frontend yarn dev: allow the dev frontend origin
@@ -41,6 +45,7 @@ if (allowOrigin) {
 }
 
 app.use(express.json({ limit: "2mb" }));
+app.use("/api/auth", createRateLimiter(60_000, 20));
 
 // Serve uploaded files from UPLOADS_DIR (default: server/public/uploads)
 const uploadsDir =
@@ -64,6 +69,7 @@ app.use("/api/uploads", uploadRouter);
 app.use("/api/categories", categoriesRouter);
 app.use("/api/products", productsRouter);
 app.use("/api/attributes", attributesRouter);
+app.use("/api/orders", ordersRouter);
 
 app.get("/api/health", (_req, res) => {
   res.json({ ok: true, env: process.env.NODE_ENV ?? "development" });

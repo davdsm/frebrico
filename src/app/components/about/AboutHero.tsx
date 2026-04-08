@@ -31,7 +31,7 @@ export function AboutHero() {
               </h1>
             </div>
 
-            <p className="text-base md:text-lg text-black/40 max-w-[428px] leading-relaxed">
+            <p className="text-base md:text-lg text-black/40 max-w-[560px] leading-relaxed">
               {description}
             </p>
 

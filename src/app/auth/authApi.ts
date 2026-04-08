@@ -15,6 +15,28 @@ export type AdminUser = {
   createdAt: string;
 };
 
+export type AdminOrder = {
+  id: number;
+  orderNumber: string;
+  status: string;
+  email: string;
+  customerName: string;
+  phone: string;
+  nif: string;
+  total: number;
+  createdAt: string;
+};
+
+export type AdminOrderDetail = AdminOrder & {
+  address: string;
+  region: string;
+  district: string;
+  locality: string;
+  postalCode: string;
+  subtotal: number;
+  items: Array<{ id: string; name: string; variant: string; quantity: number; price: number; image: string }>;
+};
+
 export async function login(email: string, password: string): Promise<LoginResponse> {
   const res = await fetch(`${API_BASE}/api/auth/login`, {
     method: "POST",
@@ -80,4 +102,52 @@ export async function deleteAdminUser(id: number, authToken: string): Promise<vo
     const data = await res.json().catch(() => ({}));
     throw new Error((data as { error?: string }).error ?? "Failed to delete user");
   }
+}
+
+export async function listAdminOrders(authToken: string): Promise<AdminOrder[]> {
+  const res = await fetch(`${API_BASE}/api/orders/admin`, {
+    headers: { Authorization: `Bearer ${authToken}` },
+  });
+  const data = await res.json().catch(() => ([]));
+  if (!res.ok) throw new Error("Failed to load orders");
+  return data as AdminOrder[];
+}
+
+export async function getAdminOrderById(authToken: string, id: number): Promise<AdminOrderDetail> {
+  const res = await fetch(`${API_BASE}/api/orders/${id}`, {
+    headers: { Authorization: `Bearer ${authToken}` },
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error((data as { error?: string }).error ?? "Failed to load order");
+  return data as AdminOrderDetail;
+}
+
+export async function deleteAdminOrder(authToken: string, id: number): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/orders/${id}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${authToken}` },
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error((data as { error?: string }).error ?? "Failed to delete order");
+  }
+}
+
+export type AdminOrderStatus = "pending" | "shipped" | "completed" | "Canceled";
+
+export async function updateAdminOrderStatus(
+  authToken: string,
+  id: number,
+  status: AdminOrderStatus
+): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/orders/${id}/status`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${authToken}`,
+    },
+    body: JSON.stringify({ status }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error((data as { error?: string }).error ?? "Failed to update order status");
 }

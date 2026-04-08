@@ -131,7 +131,7 @@ export default function AttributeEditor() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
-                placeholder="Ex: Acabamento"
+                placeholder="Nome do atributo"
                 className={inputClass}
               />
             </div>
@@ -141,7 +141,7 @@ export default function AttributeEditor() {
                 type="text"
                 value={slug}
                 onChange={(e) => setSlug(e.target.value)}
-                placeholder="Ex: acabamento (deixar vazio para gerar a partir do nome)"
+                placeholder="slug-do-atributo (deixe vazio para gerar automaticamente)"
                 className={inputClass}
               />
             </div>
@@ -174,7 +174,7 @@ export default function AttributeEditor() {
                     type="text"
                     value={item.name}
                     onChange={(e) => updateValue(index, { name: e.target.value })}
-                    placeholder="Ex: Galvanizado"
+                    placeholder="Nome do valor"
                     className={inputClass}
                   />
                 </div>
