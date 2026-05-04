@@ -102,6 +102,22 @@ export async function fetchProducts(categorySlug?: string, featuredOnly?: boolea
   return res.json() as Promise<Product[]>;
 }
 
+export type SiteSearchResponse = {
+  products: Product[];
+  categories: Category[];
+};
+
+/** Search products and categories by name, slug, ID, description, specifications JSON, variants, etc. */
+export async function fetchSiteSearch(query: string): Promise<SiteSearchResponse> {
+  const q = query.trim();
+  if (!q) return { products: [], categories: [] };
+  const params = new URLSearchParams();
+  params.set("q", q);
+  const res = await fetch(`${API_BASE}/api/products/search?${params.toString()}`);
+  if (!res.ok) throw new Error("Failed to search");
+  return res.json() as Promise<SiteSearchResponse>;
+}
+
 export async function fetchProductByIdOrSlug(idOrSlug: string | number): Promise<Product | null> {
   const res = await fetch(`${API_BASE}/api/products/${encodeURIComponent(String(idOrSlug))}`);
   if (res.status === 404) return null;

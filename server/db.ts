@@ -639,6 +639,68 @@ export function listProducts(categorySlug?: string, featuredOnly?: boolean): Pro
   return stmt.all() as ProductRow[];
 }
 
+/** Case-insensitive substring search across product text fields (name, slug, ref in specs JSON, etc.). */
+export function searchProducts(query: string, limit = 40): ProductRow[] {
+  const database = getDb();
+  const raw = query.trim();
+  if (!raw) return [];
+  const esc = raw.replace(/[%_]/g, "");
+  const like = `%${esc}%`;
+  const idExact = /^\d+$/.test(raw) ? Number(raw) : null;
+
+  const sql = `
+    SELECT * FROM products WHERE
+      name LIKE ? COLLATE NOCASE OR
+      IFNULL(slug,'') LIKE ? COLLATE NOCASE OR
+      IFNULL(description,'') LIKE ? COLLATE NOCASE OR
+      IFNULL(badge,'') LIKE ? COLLATE NOCASE OR
+      IFNULL(type_label,'') LIKE ? COLLATE NOCASE OR
+      IFNULL(type_text,'') LIKE ? COLLATE NOCASE OR
+      IFNULL(availability,'') LIKE ? COLLATE NOCASE OR
+      IFNULL(variants,'') LIKE ? COLLATE NOCASE OR
+      IFNULL(specifications,'') LIKE ? COLLATE NOCASE OR
+      IFNULL(downloads,'') LIKE ? COLLATE NOCASE OR
+      IFNULL(faqs,'') LIKE ? COLLATE NOCASE OR
+      IFNULL(related_product_ids,'') LIKE ? COLLATE NOCASE OR
+      IFNULL(images,'') LIKE ? COLLATE NOCASE OR
+      IFNULL(image,'') LIKE ? COLLATE NOCASE
+      ${idExact !== null ? "OR id = ?" : ""}
+    ORDER BY name COLLATE NOCASE ASC
+    LIMIT ?
+  `;
+
+  const stmt = database.prepare(sql);
+  const likes = new Array(14).fill(like);
+  const params =
+    idExact !== null ? [...likes, idExact, Math.min(80, Math.max(1, limit))] : [...likes, Math.min(80, Math.max(1, limit))];
+  return stmt.all(...params) as ProductRow[];
+}
+
+export function searchCategories(query: string, limit = 20): CategoryRow[] {
+  const database = getDb();
+  const raw = query.trim();
+  if (!raw) return [];
+  const esc = raw.replace(/[%_]/g, "");
+  const like = `%${esc}%`;
+  const idExact = /^\d+$/.test(raw) ? Number(raw) : null;
+
+  const sql = `
+    SELECT * FROM categories WHERE
+      name LIKE ? COLLATE NOCASE OR
+      IFNULL(slug,'') LIKE ? COLLATE NOCASE OR
+      IFNULL(description,'') LIKE ? COLLATE NOCASE
+      ${idExact !== null ? "OR id = ?" : ""}
+    ORDER BY name COLLATE NOCASE ASC
+    LIMIT ?
+  `;
+  const stmt = database.prepare(sql);
+  const params =
+    idExact !== null
+      ? [like, like, like, idExact, Math.min(40, Math.max(1, limit))]
+      : [like, like, like, Math.min(40, Math.max(1, limit))];
+  return stmt.all(...params) as CategoryRow[];
+}
+
 export function getProductById(id: number): ProductRow | undefined {
   const database = getDb();
   const stmt = database.prepare("SELECT * FROM products WHERE id = ?");

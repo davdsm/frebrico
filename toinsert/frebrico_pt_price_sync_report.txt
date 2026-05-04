@@ -1,0 +1,139 @@
+rede-hexagonal-la	OK	288/295	Rede Hegagonal L.A.	prices:5
+elts-la-galv-apos	OK	40/296	Rede Eletrosoldada L.A.	prices:7
+rede-elts-plt-la	OK	31/297	Rede Eletrosoldada Plastificada L.A.	prices:2
+forplast-ligeira	OK	31/298	Rede Fortplast L.A.	prices:1
+forplast-media	OK	31/298	Rede Fortplast L.A.	prices:1
+forplast-super	OK	31/298	Rede Fortplast L.A.	prices:1
+arame-galvanizado	OK	74/78	Arame Galvanizado Macio	prices:8
+arame-galvanizado-fino	OK	74/77	Arame Galvanizado Fino	prices:10
+arame-galvaltec-t-70	OK	74/76	Arame Galvatec T70	prices:7
+arame-galvaltec-t-100	OK	74/75	Arame Galvatec T100	prices:8
+arame-recozido	OK	82/83	Arame Recozido	prices:1
+arame-plastificado-por-fluidizacao-galvaplax	OK	79/81	Arame Plastificado por Fluidização ´galvaplax´	prices:1
+arame-plastificado	OK	79/80	Arame Plastificado	prices:3
+arame-farpado-de-alta-resistencia-galvanizado-riccio	OK	71/72	Arame farpado Galvanizado - RICCIO -	prices:2
+arame-farpado-de-alta-resistencia-plastificado-riccio-pvc	OK	71/73	Arame farpado Plastificado - RICCIO PVC -	prices:2
+arame-farpado-galvanizado	OK	71/232	Arame Farpado Galvanizado	prices:2
+arame-de-atar-e-bricolage	OK	65/68	Arame brico em Latão	prices:1
+rede-malha-solta-galvanizada	OK	46/48	Rede Malha Solta Galvanizada	prices:6
+rede-ovelheira-ligeira	OK	284/289	Rede Ovelheira Stopfence	prices:6
+rede-ovelheira-bezinal-media	OK	284/290	Rede Ovelheira Bezinal Média	prices:2
+rede-ovelheira-nodafort	OK	284/291	Rede Ovelheira Nodafort	prices:4
+rede-ovelheira-titan	OK	284/292	Rede Ovelheira TITAN	prices:3
+rede-trefort	OK	288/293	Rede Hexagonal Trefort	prices:3
+rede-hexagonal-nacional	OK	288/294	Rede Hexagonal Nacional	prices:5
+rede-esafort	OK	40/42	Rede Esafort	prices:5
+agrisald	OK	40/41	Rede Agrisald	prices:4
+masterfort	OK	40/43	Rede Masterfort	prices:1
+esaplax	OK	31/34	Rede Esaplax	prices:3
+margherita	OK	31/36	Rede Margherita	prices:1
+novaplax	OK	31/37	Rede Novaplax	prices:1
+everplax	OK	31/35	Rede Everplax	prices:2
+decoplax-evolucao	OK	31/33	Rede Decoplax Evolução	prices:1
+overplax	OK	31/38	Rede Overplax	prices:1
+stilplax	OK	31/39	Rede Stilplax	prices:1
+arcoplax	OK	31/32	Rede Arcoplax	prices:1
+teia-metalica-galvanizada	OK	163/233	Teia Metálica Galvanizada	prices:3
+teia-metalica-inox	OK	162/234	TEIA METÁLICA INOX	prices:3
+rede-metal-distendido	OK	242/243	Rede Metal Distendido	prices:3
+rede-mosquiteira	OK	244/245	Rede Mosquiteira	prices:4
+rede-ondulada-tremida	OK	146/147	Rede Ondulada	prices:3
+poste-t	OK	140/142	Poste T	prices:8
+poste-redondo-galvanizado-lacado-verde	OK	140/144	Poste Redondo	prices:6
+poste-tubograf	OK	140/143	Poste Tubograf	prices:6
+poste-de-pinho-nordico-torneado-c-bico	OK	140/141	Poste Pinho Nórdico Torneado C/ Bico	prices:10
+pavitec	OK	27/29	PAINEL PAVITEC	prices:1
+pavisol	OK	27/300	Painel Pavisol	prices:2
+painel-eletrosoldado	OK	27/28	PAINEL ELECTROSOLDADO	prices:3
+painel-top	OK	2/3	Painel Top	prices:3
+poste-top	OK	2/5	Poste TOP	prices:16
+poste-top-de-canto	OK	2/6	Poste TOP Canto	prices:16
+painel-defender	OK	2/4	Painel Defender	prices:3
+poste-sem-furacao	OK	2/7	Poste S/ Furação	prices:9
+porta-e-portao-top	OK	2/10	PORTA TOP	prices:8
+porta-e-portao-twin	NO_REMOTE_MATCH	PORTA E PORTÃO TWIN
+porta-lite	OK	2/9	PORTA LITE	prices:5
+quadra	OK	51/56	TENAX QUADRA	prices:6
+quadra-brico	OK	65/66	Arame Brico Inox	prices:2
+exagon-exagon-brico	OK	51/256	TENAX EXAGON	prices:3
+ranch	OK	51/257	TENAX RANCH	prices:2
+mosquito	OK	51/258	TENAX MOSQUITO	prices:1
+aviary-aviary-brico	NO_REMOTE_MATCH	AVIARY / AVIARY BRICO
+flora-ortoflex	OK	51/52	TENAX ORTOFLEX	prices:3
+rede-tutoragem-anti-passaro	OK	51/302	Rede Anti-pássaro	prices:3
+saccoclima-tuboclima-plus	NO_REMOTE_MATCH	SACCOCLIMA / TUBOCLIMA PLUS
+ortoclima	OK	51/264	TENAX SACCOCLIMA	prices:3
+stick-up-stand-up	OK	51/304	STICK UP / STAND UP	prices:5
+rede-protecao-de-plantas	OK	46/49	Rede Malha Solta Plastificada	prices:2
+cover-pro-green	NO_REMOTE_MATCH	COVER PRO GREEN
+rede-sombra-90	NO_REMOTE_MATCH	REDE SOMBRA 90%
+rede-sombra-80	OK	51/301	Rede Tutoragem	prices:4
+tela-de-solos	OK	2/277	FITA DE OCULTAÇÃO	prices:5
+fita-sinalizacao	OK	2/277	FITA DE OCULTAÇÃO	prices:2
+manto-geotextil	NO_REMOTE_MATCH	MANTO GEOTÊXTIL
+lamina-drenante	OK	2/4	Painel Defender	prices:1
+rede-de-sinalizacao-subterranea	NO_REMOTE_MATCH	REDE DE SINALIZAÇÃO SUBTERRÂNEA
+redes-para-desporto-e-para-bolas	NO_REMOTE_MATCH	REDES PARA DESPORTO E PÁRA-BOLAS
+labor	NO_REMOTE_MATCH	LABOR
+aloha-90-brico-mini-rolo	OK	51/255	TENAX QUADRA Mini Rolo	prices:3
+soleado-corten-brico-soleado-branco-brico-jamaica-brico	NO_REMOTE_MATCH	SOLEADO CORTEN BRICO / SOLEADO BRANCO BRICO / JAMAICA BRICO (MINI ROLO)
+vidy-optima	NO_REMOTE_MATCH	DIVY OPTIMA
+armatek	NO_REMOTE_MATCH	ARMATEK
+redes-para-desporto-e-para-bolas-2-linha	NO_REMOTE_MATCH	REDES PARA DESPORTO E PÁRA-BOLAS (2ª LINHA)
+corrente-genovesa-italiana	OK	90/91	CORRENTE ITALIANA GENOVESA ZINCADA	prices:5
+corrente-comercial-din-5685-a	OK	87/88	Corrente Comercial L. A. em Saco	prices:3
+corrente-aco-grau-80	OK	85/86	CORRENTE AÇO ALLOY GR 80	prices:6
+cerra-cabo-comercial-zincado	OK	95/97	Cerra cabos zn comercial	prices:11
+cerra-cabo-din-1142	OK	95/96	Cerra cabos DIN 1142	prices:4
+esticador-olhal-e-gancho-zincado	OK	95/101	Esticador olhal / gancho zn comercial	prices:10
+manilha-direita-zincada	OK	95/107	Manilhas ZN	prices:11
+elo-de-ligacao-rapida-zincado	OK	95/100	Elo Ligação Rápido Galvanizado	prices:6
+mosquetao-niquelado-com-destorcedor	OK	95/109	Mosquetão Niquelado com Destorcedor	prices:9
+mosquetao-de-bombeiro-galvanizado-com-e-sem-seguranca	OK	95/111	Mosquetão ZN Bombeiro com segurança	prices:7
+mosquetao-niquelado-automatico	OK	95/108	Mosquetão niquelado automático com destorcedor	prices:2
+destorcedores	OK	95/98	Destorcedor Niquelado	prices:3
+sapatilho-galvanizado	OK	95/104	Sapatilhos Galvanizados	prices:7
+gancho-s-galvanizado	OK	189/193	Agrafes Galvanizados	prices:16
+gulpilha-com-argola-zincada	NO_REMOTE_MATCH	GULPILHA COM ARGOLA ZINCADA
+gulpilha-beta-zincada	OK	131/136	Manilha Direita INOX	prices:5
+malha-de-uniao-zincada	OK	90/91	CORRENTE ITALIANA GENOVESA ZINCADA	prices:7
+olhal-de-suspensao-macho-e-femea-zincado	NO_REMOTE_MATCH	OLHAL DE SUSPENSÃO MACHO E FÊMEA ZINCADO
+gancho-de-olhal	OK	114/122	Gancho De Olhal Com Segurança Pintado	prices:4
+cerra-cabo-inox	OK	131/132	Cerra Cabos Inox	prices:6
+esticador-olhal-e-gancho-inox	OK	131/135	Esticador Olhal/Gancho INOX	prices:5
+elo-de-ligacao-rapida-inox	OK	131/134	Elo Ligação Rápido INOX	prices:4
+manilha-direita-inox	OK	131/136	Manilha Direita INOX	prices:5
+gancho-s-inox	OK	131/133	Gancho S	prices:3
+mosquetao-de-bombeiro-com-e-sem-seguranca-inox	OK	131/137	Mosquetão Bombeiro com Segurança INOX	prices:6
+manilha-meia-lua-de-alta-resistencia	OK	114/130	Manilhas Elevada Resistência Meia-Lua	prices:4
+argolao	OK	114/115	Argolão Oval ALOY	prices:5
+conjunto-de-argolao	OK	114/116	Conjunto Argolão Oval ALLOY	prices:3
+gancho-clevis-autoblocante	OK	114/120	Gancho Clevis Autoblocante	prices:5
+gancho-de-olhal-autoblocante	OK	114/119	Gancho de Olhal GR80 Autoblocante	prices:5
+gancho-de-olhal-giratorio-autoblocante	OK	114/121	Gancho de Olhal Giratório GR80 Autoblocante	prices:5
+elo-de-ligacao	OK	114/117	Elos Ligação GR 80	prices:5
+gancho-de-forqueta-encurtador-de-corrente	OK	114/125	Gancho Forqueta Encurtador de Corrente GR 80	prices:4
+gancho-de-forqueta-passador-de-corrente	OK	114/126	Gancho de Forqueta Passador de Corrente GR80	prices:2
+gancho-de-forqueta-com-patilha-de-seguranca-encurtador-de-corrente	OK	114/123	Gancho de Olhal com Segurança Galvanizado	prices:7
+cinta-de-amarracao	OK	149/150	Cinta de Amarração Sem Roquete	prices:3
+cinta-de-reboque	OK	149/309	CINTA DE REBOQUE	prices:1
+acessorios-para-cintas-de-amarracao	OK	311/313	Acessórios para cintas	prices:7
+cinta-de-elevacao	OK	155/156	Cintas de elevação	prices:8
+prego-quadrado	OK	165/167	PREGO QUADRADO	prices:13
+prego-redondo	OK	165/170	Prego Redondo	prices:7
+prego-de-aco	OK	165/169	PREGO DE AÇO AZULADO	prices:7
+prego-de-aco-cavatorta	OK	165/166	Prego Aço Cavatorta	prices:14
+gripple-plus	OK	189/191	Gripple	prices:3
+esticadores-parafusos-passa-fios-tampas-e-clips	OK	189/213	Passa Fios	prices:1
+grampos-barbelados-zinco-aluminio-grampos-normais-galvanizados-grampos-multiusos	OK	189/314	Grampos Multiusos	prices:4
+agrafos-e-alicates	OK	189/206	Agrafos Rapid	prices:8
+abracadeira-de-serrilha	OK	174/175	Abraçadeira de serrilha	prices:4
+turquesa-armador-knipex	OK	214/221	Turquesa armador KNIPEX	prices:2
+turquesa-russa-knipex	OK	214/224	Turquesa Russa KNIPEX	prices:4
+knipex-corta-arame-cobolt	OK	214/218	Corta Arame Cobolt 200mm / 250mm	prices:2
+knipex-corta-cabo-de-aco	OK	214/215	Alicates corte cabo aço	prices:2
+pa-e-abre-buracos-dkv	NO_REMOTE_MATCH	PÁ E ABRE BURACOS DKV
+cabo-de-aco-galvanizado	OK	183/186+185+184	CABO DE AÇO GALVANIZADO	prices:14
+cabo-de-aco-anti-giratorio	OK	183/187	CABO AÇO ANTI-GIRATÓRIO 19x7	prices:5
+cabo-de-aco-galvanizado-plastificado	OK	181/182	CABO AÇO 6x7 PLASTIFICADO	prices:4
+cabo-de-aco-inox-inox-plastificado	OK	179/180	Cabo Aço Inox	prices:11

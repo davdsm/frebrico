@@ -6,6 +6,8 @@ import {
   createProduct,
   updateProduct,
   deleteProduct,
+  searchProducts,
+  searchCategories,
 } from "../db.js";
 import { requireAdmin } from "../middleware/auth.js";
 
@@ -16,6 +18,21 @@ productsRouter.get("/", (req, res) => {
   const featured = req.query.featured === "1" || req.query.featured === "true";
   const list = listProducts(category, featured);
   res.json(list);
+});
+
+/** Must be registered before /:idOrSlug so "search" is not captured as a slug. */
+productsRouter.get("/search", (req, res) => {
+  const q = String(req.query.q ?? "").trim();
+  const lim = Number(req.query.limit);
+  const limit = Number.isFinite(lim) ? lim : 40;
+  if (!q) {
+    res.json({ products: [], categories: [] });
+    return;
+  }
+  res.json({
+    products: searchProducts(q, limit),
+    categories: searchCategories(q, Math.min(20, Math.max(5, Math.floor(limit / 2)))),
+  });
 });
 
 productsRouter.get("/:idOrSlug", (req, res) => {

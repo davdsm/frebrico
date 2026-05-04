@@ -47,6 +47,19 @@ function parsePriceValue(raw: string, fallback: number): number {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
 }
 
+/** Grid cells need min-w-0 so truncate/ellipsis works; title shows full text on hover. */
+function CellText({ text, className = "" }: { text: string; className?: string }) {
+  const display = text.trim() ? text : "—";
+  return (
+    <span
+      className={`block min-w-0 max-w-full truncate ${className}`.trim()}
+      title={display}
+    >
+      {display}
+    </span>
+  );
+}
+
 interface ProductSpecsProps {
   product: Product;
 }
@@ -75,11 +88,13 @@ export function ProductSpecs({ product }: ProductSpecsProps) {
                 style={{ gridTemplateColumns: `repeat(${columns.length + 1}, minmax(0, 1fr))` }}
               >
                 {columns.map((col, i) => (
-                  <div key={i} className="text-xs text-[#36474f] font-normal">
-                    {col}
+                  <div key={i} className="min-w-0 text-xs text-[#36474f] font-normal">
+                    <CellText text={col} />
                   </div>
                 ))}
-                <div className="text-xs text-[#36474f] font-normal text-right">Carrinho</div>
+                <div className="min-w-0 text-xs text-[#36474f] font-normal text-right">
+                  <CellText text="Carrinho" className="text-right" />
+                </div>
               </div>
               <div className="divide-y divide-[#d6d6d6]">
                 {rows.map((row, rowIndex) => (
@@ -89,16 +104,19 @@ export function ProductSpecs({ product }: ProductSpecsProps) {
                     style={{ gridTemplateColumns: `repeat(${columns.length + 1}, minmax(0, 1fr))` }}
                   >
                     {columns.map((_, colIndex) => {
-                      const cell = row[colIndex] ?? '';
+                      const cell = row[colIndex] ?? "";
+                      const priceText =
+                        colIndex === priceColIndex && hasPriceColumn
+                          ? cell.trim()
+                            ? `€${parsePriceValue(cell, Number(product.price) || 0).toFixed(2)}`
+                            : ""
+                          : null;
                       return (
-                      <div key={colIndex} className="text-base text-[#3f3f3f]">
-                        {colIndex === priceColIndex && hasPriceColumn ? (
-                          <span>{cell.trim() ? `€${parsePriceValue(cell, Number(product.price) || 0).toFixed(2)}` : '—'}</span>
-                        ) : (
-                          (cell || '—')
-                        )}
-                      </div>
-                    ); })}
+                        <div key={colIndex} className="min-w-0 text-base text-[#3f3f3f]">
+                          <CellText text={priceText != null ? priceText : cell} />
+                        </div>
+                      );
+                    })}
                     <div className="flex justify-end">
                       {(() => {
                         const rowId = `${product.id}-spec-${rowIndex}`;

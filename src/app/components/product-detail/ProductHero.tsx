@@ -4,6 +4,7 @@ import { ContentLink } from '../common/ContentLink';
 import svgPaths from '../../../imports/svg-1y6ddsd0a6';
 import { FadeInUpInView } from '../atoms/FadeInUpInView';
 import { resolveImageUrl, type Product } from '../../api/shop';
+import { isColorAttributeName, pastelSwatchDataUrlForColorLabel } from '../../utils/pastelColorSwatch';
 
 type AttributeValueItem = { name: string; image_url?: string };
 type AttributeGroup = { attribute_id: number; attribute_name: string; values: AttributeValueItem[] };
@@ -266,7 +267,13 @@ export function ProductHero({ product, categoryName, categorySlug }: ProductHero
                   <div key={groupIndex} className="flex flex-col gap-3">
                     <p className="text-sm font-medium text-[#5a5a59]">{group.attribute_name}</p>
                     <div className="flex flex-wrap items-center gap-6">
-                      {group.values.map((val, valueIndex) => (
+                      {group.values.map((val, valueIndex) => {
+                        const swatchUrl =
+                          val.image_url ||
+                          (isColorAttributeName(group.attribute_name)
+                            ? pastelSwatchDataUrlForColorLabel(val.name)
+                            : undefined);
+                        return (
                         <button
                           key={valueIndex}
                           type="button"
@@ -274,12 +281,12 @@ export function ProductHero({ product, categoryName, categorySlug }: ProductHero
                           className="flex flex-col items-center gap-3 group"
                         >
                           <div
-                            className={`w-[60px] h-[60px] rounded-full border-[5px] transition-colors overflow-hidden ${
+                            className={`w-[60px] h-[60px] rounded-full border-[5px] transition-colors overflow-hidden bg-[#f5f5f4] ${
                               selectedByGroup[groupIndex] === valueIndex ? 'border-[#36474f]' : 'border-[#f1f1f1] group-hover:border-[#dcdcdc]'
                             }`}
                           >
-                            {val.image_url ? (
-                              <img src={val.image_url} alt={val.name} className="w-full h-full object-cover" />
+                            {swatchUrl ? (
+                              <img src={swatchUrl} alt={val.name} className="w-full h-full object-cover" />
                             ) : (
                               <div className="w-full h-full bg-[#e5e5e3]" />
                             )}
@@ -296,7 +303,7 @@ export function ProductHero({ product, categoryName, categorySlug }: ProductHero
                             )}
                           </p>
                         </button>
-                      ))}
+                      ); })}
                     </div>
                   </div>
                 ))}

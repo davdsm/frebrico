@@ -55,6 +55,12 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
   const navHome = useContent("header", "mobile", "nav_home");
   const navItems = useContentJson<{ label: string; url: string }[]>("header", "nav", "items", []);
   const navList = Array.isArray(navItems) ? navItems : [];
+  const normalizeNavPath = (url: string) => {
+    const p = url.split("?")[0];
+    if (!p.startsWith("/")) return p;
+    return p.replace(/\/+$/, "") || "/";
+  };
+  const navItemsForMenu = navList.filter((item) => normalizeNavPath(item.url) !== "/contact");
   const categoriesTitle = useContent("header", "mobile", "categories_title");
   const categories = useContentJson<CategoryItem[]>("header", "mobile", "categories", []);
   const categoryList = Array.isArray(categories) ? categories : [];
@@ -145,7 +151,16 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                     <span>{navHome}</span>
                   </Link>
                 </motion.div>
-                {navList.map((item, idx) => {
+                <motion.div variants={listItemVariants}>
+                  <Link
+                    to="/search"
+                    onClick={handleLinkClick}
+                    className="py-2 flex items-center justify-between border-b border-black/5"
+                  >
+                    <span>Pesquisa</span>
+                  </Link>
+                </motion.div>
+                {navItemsForMenu.map((item, idx) => {
                   const to = item.url.startsWith("/") ? item.url : "/";
                   return (
                     <motion.div key={`mobile-nav-${idx}-${item.url}`} variants={listItemVariants}>

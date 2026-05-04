@@ -16,6 +16,7 @@ const importLogin = () => import("./pages/Login");
 const importRecoverPassword = () => import("./pages/RecoverPassword");
 const importTerms = () => import("./pages/Terms");
 const importPrivacy = () => import("./pages/Privacy");
+const importSearch = () => import("./pages/Search");
 const importAccountRegister = () => import("./pages/AccountRegister");
 const importAccountDashboard = () => import("./pages/AccountDashboard");
 const importOrderSuccess = () => import("./pages/OrderSuccess");
@@ -47,6 +48,7 @@ const Login = React.lazy(importLogin);
 const RecoverPassword = React.lazy(importRecoverPassword);
 const Terms = React.lazy(importTerms);
 const Privacy = React.lazy(importPrivacy);
+const Search = React.lazy(importSearch);
 const AccountRegister = React.lazy(importAccountRegister);
 const AccountDashboard = React.lazy(importAccountDashboard);
 const OrderSuccess = React.lazy(importOrderSuccess);
@@ -80,6 +82,7 @@ export async function preloadRouteChunks(): Promise<void> {
     importRecoverPassword(),
     importTerms(),
     importPrivacy(),
+    importSearch(),
     importAccountRegister(),
     importAccountDashboard(),
     importOrderSuccess(),
@@ -233,6 +236,14 @@ export const router = createBrowserRouter([
         element: (
           <React.Suspense fallback={<PageLoader />}>
             <Products />
+          </React.Suspense>
+        ),
+      },
+      {
+        path: "search",
+        element: (
+          <React.Suspense fallback={<PageLoader />}>
+            <Search />
           </React.Suspense>
         ),
       },
