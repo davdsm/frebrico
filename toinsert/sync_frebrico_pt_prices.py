@@ -45,7 +45,36 @@ SLUG_REMOTE_OVERRIDE: Dict[str, Tuple[str, str]] = {
     "forplast-super": ("31", "298"),
     "rede-trefort": ("288", "293"),
     "painel-eletrosoldado": ("27", "28"),
+    "aviary-aviary-brico": ("51", "54"),
+    "saccoclima-tuboclima-plus": ("51", "264"),
+    "armatek": ("51", "57"),
+    "labor": ("51", "270"),
+    "manto-geotextil": ("51", "274"),
+    "gulpilha-com-argola-zincada": ("95", "103"),
+    "pa-e-abre-buracos-dkv": ("214", "226"),
+    "rede-de-sinalizacao-subterranea": ("51", "271"),
+    "soleado-corten-brico-soleado-branco-brico-jamaica-brico": ("51", "307"),
 }
+
+# Some products exist and are searchable on frebrico.pt but are not linked from the family pages.
+EXTRA_REMOTE_PAIRS: Tuple[Tuple[str, str], ...] = (
+    ("51", "57"),   # Armatek
+    ("51", "58"),   # Rede Desporto (price on request)
+    ("51", "270"),  # Rede Sinalização (Labor)
+    ("51", "271"),  # Rede Sinalização Subterrânea
+    ("51", "274"),  # Manto Geotêxtil
+    ("51", "307"),  # Rede Sombra Mini Rolo
+    ("95", "102"),  # Gulpilha Beta Zincada
+    ("95", "103"),  # Gulpilha com Argola
+    ("95", "112"),  # Olhal Suspensão Macho
+    ("95", "113"),  # Olhal Suspensão Fêmea
+    ("214", "226"), # Abre Buracos DKV
+    ("214", "227"), # Pá DKV 205A
+    ("214", "228"), # Pá DKV 206A
+    ("214", "229"), # Pá DKV 208A
+    ("214", "230"), # Pá DKV 213A
+    ("214", "231"), # Pá DKV 203A
+)
 
 
 def norm(s: str) -> str:
@@ -98,6 +127,8 @@ def parse_product_page(html: str) -> Tuple[str, List[Tuple[str, str]], Optional[
         if vals and labels and len(vals) == len(labels):
             opts = [(labels[i].strip(), vals[i][1].replace(",", ".")) for i in range(len(vals))]
     single: Optional[str] = None
+    if re.search(r"pre[cç]o\s+sob\s+consulta", html, re.I):
+        return title, opts, None
     if not opts:
         m2 = re.search(
             r'(?:label_preco|id=["\']label_preco["\'])[^>]*>[\s\n]*\s*([0-9]+[.,][0-9]+)\s*',
@@ -109,7 +140,12 @@ def parse_product_page(html: str) -> Tuple[str, List[Tuple[str, str]], Optional[
         else:
             m3 = re.search(r"([0-9]+[.,][0-9]+)\s*&euro;", html)
             if m3:
-                single = m3.group(1).replace(",", ".")
+                candidate = m3.group(1).replace(",", ".")
+                try:
+                    if float(candidate) > 0:
+                        single = candidate
+                except ValueError:
+                    pass
     return title, opts, single
 
 
@@ -129,6 +165,8 @@ def collect_remote_index() -> List[RemoteProduct]:
         for a, b in re.findall(r"id=(\d+)&(?:amp;)?fam=(\d+)", html):
             pairs.add((b, a))
         time.sleep(0.04)
+    for fam, pid in EXTRA_REMOTE_PAIRS:
+        pairs.add((fam, pid))
 
     out: List[RemoteProduct] = []
     for fam, pid in sorted(pairs, key=lambda x: (int(x[0]), int(x[1]))):
@@ -169,6 +207,42 @@ def build_merged_cabo_galvanizado() -> RemoteProduct:
     return RemoteProduct("183", "186+185+184", "CABO DE AÇO GALVANIZADO", opts, None)
 
 
+def build_merged_olhal_suspensao() -> RemoteProduct:
+    """Local product joins Macho + Fêmea variants in one table."""
+    opts: List[Tuple[str, str]] = []
+    for pid in ("112", "113"):
+        url = f"{BASE}?zona=catalogos&fam=95&id={pid}"
+        html = fetch(url)
+        _, o, _ = parse_product_page(html)
+        opts.extend(o)
+        time.sleep(0.04)
+    return RemoteProduct("95", "112+113", "OLHAL SUSPENSÃO MACHO/FÊMEA", opts, None)
+
+
+def build_merged_gulpilhas_e_gancho_s() -> RemoteProduct:
+    """Local table includes Gancho S + Gulpilha c/ Argola + Gulpilha Beta."""
+    opts: List[Tuple[str, str]] = []
+    for pid in ("105", "103", "102"):
+        url = f"{BASE}?zona=catalogos&fam=95&id={pid}"
+        html = fetch(url)
+        _, o, _ = parse_product_page(html)
+        opts.extend(o)
+        time.sleep(0.04)
+    return RemoteProduct("95", "105+103+102", "GANCHO S / GULPILHAS ZN", opts, None)
+
+
+def build_merged_pa_e_abre_buracos_dkv() -> RemoteProduct:
+    """Local table joins several DKV shovel variants and hole digger."""
+    opts: List[Tuple[str, str]] = []
+    for pid in ("226", "227", "228", "229", "230", "231"):
+        url = f"{BASE}?zona=catalogos&fam=214&id={pid}"
+        html = fetch(url)
+        _, o, _ = parse_product_page(html)
+        opts.extend(o)
+        time.sleep(0.04)
+    return RemoteProduct("214", "226+227+228+229+230+231", "PÁ / ABRE BURACOS DKV", opts, None)
+
+
 def assign_remotes(
     local_rows: List[Tuple[str, str]], remote: List[RemoteProduct]
 ) -> Dict[str, RemoteProduct]:
@@ -179,6 +253,12 @@ def assign_remotes(
     slugs = {s for s, _ in local_rows}
     if "cabo-de-aco-galvanizado" in slugs:
         out["cabo-de-aco-galvanizado"] = build_merged_cabo_galvanizado()
+    if "olhal-de-suspensao-macho-e-femea-zincado" in slugs:
+        out["olhal-de-suspensao-macho-e-femea-zincado"] = build_merged_olhal_suspensao()
+    if "gulpilha-com-argola-zincada" in slugs:
+        out["gulpilha-com-argola-zincada"] = build_merged_gulpilhas_e_gancho_s()
+    if "pa-e-abre-buracos-dkv" in slugs:
+        out["pa-e-abre-buracos-dkv"] = build_merged_pa_e_abre_buracos_dkv()
 
     for slug, _name in local_rows:
         if slug in out:
@@ -384,6 +464,79 @@ def match_prego_round_rows(row_labels: List[str], options: List[Tuple[str, str]]
     return out
 
 
+def match_aviary_rows(row_labels: List[str], options: List[Tuple[str, str]]) -> Dict[int, str]:
+    """TENAX AVIARY page has one mini-rolo option; apply it to BRICO rows."""
+    out = match_rows_to_options(row_labels, options)
+    mini_prices = [price for lab, price in options if "MINI" in norm(lab)]
+    if mini_prices:
+        mini_cell = euro_cell_from_dot(mini_prices[0])
+        for i, lab in enumerate(row_labels):
+            if i in out:
+                continue
+            if "BRICO" in norm(lab):
+                out[i] = mini_cell
+    return out
+
+
+def match_gulpilha_rows(row_labels: List[str], options: List[Tuple[str, str]]) -> Dict[int, str]:
+    """Handle mixed table (Gancho S + Gulpilha Argola + Gulpilha Beta) with minor size typos."""
+    out = match_rows_to_options(row_labels, options)
+    # Fallback by leading diameter token when a local size text has OCR/typing mismatch.
+    for i, lab in enumerate(row_labels):
+        if i in out:
+            continue
+        m = re.search(r"([0-9]+(?:[.,][0-9]+)?)", lab)
+        if not m:
+            continue
+        d = float(m.group(1).replace(",", "."))
+        candidates: List[Tuple[float, float]] = []  # (price, abs diameter diff)
+        for olab, price in options:
+            mo = re.search(r"([0-9]+(?:[.,][0-9]+)?)", olab)
+            if not mo:
+                continue
+            od = float(mo.group(1).replace(",", "."))
+            if abs(od - d) <= 0.05:
+                try:
+                    candidates.append((float(price), abs(od - d)))
+                except ValueError:
+                    pass
+        if candidates:
+            best = min(candidates, key=lambda x: (x[1], x[0]))[0]
+            out[i] = euro_cell_from_dot(str(best))
+    return out
+
+
+def match_soleado_mini_rows(row_labels: List[str], options: List[Tuple[str, str]]) -> Dict[int, str]:
+    """Map mini-rolo Soleado/Jamaica by color; reuse color price across heights."""
+    out = match_rows_to_options(row_labels, options)
+    color_price: Dict[str, str] = {}
+    for olab, price in options:
+        no = norm(olab)
+        key = ""
+        if "CORTEN" in no:
+            key = "CORTEN"
+        elif "BRANCA" in no or "BRANCO" in no:
+            key = "BRANCA"
+        elif "JAMAICA" in no:
+            key = "JAMAICA"
+        if key:
+            color_price[key] = euro_cell_from_dot(price)
+    for i, lab in enumerate(row_labels):
+        if i in out:
+            continue
+        nl = norm(lab)
+        key = ""
+        if "CORTEN" in nl:
+            key = "CORTEN"
+        elif "BRANCA" in nl or "BRANCO" in nl:
+            key = "BRANCA"
+        elif "JAMAICA" in nl:
+            key = "JAMAICA"
+        if key and key in color_price:
+            out[i] = color_price[key]
+    return out
+
+
 def ensure_price_column(spec: Dict[str, Any]) -> None:
     cols: List[str] = list(spec.get("columns") or [])
     rows: List[List[str]] = [list(r) for r in (spec.get("rows") or [])]
@@ -475,6 +628,15 @@ def main() -> None:
 
         if opts_list:
             price_map = match_rows_to_options(row_labels, opts_list)
+        if str(slug) == "aviary-aviary-brico" and opts_list:
+            price_map = match_aviary_rows(row_labels, opts_list)
+        if str(slug) == "gulpilha-com-argola-zincada" and opts_list:
+            price_map = match_gulpilha_rows(row_labels, opts_list)
+        if (
+            str(slug) == "soleado-corten-brico-soleado-branco-brico-jamaica-brico"
+            and opts_list
+        ):
+            price_map = match_soleado_mini_rows(row_labels, opts_list)
         if not price_map and str(slug) == "prego-redondo" and opts_list:
             price_map = match_prego_round_rows(row_labels, opts_list)
         if not price_map and str(slug) == "painel-eletrosoldado" and opts_list:

@@ -37,7 +37,7 @@ teia-metalica-galvanizada	OK	163/233	Teia Metálica Galvanizada	prices:3
 teia-metalica-inox	OK	162/234	TEIA METÁLICA INOX	prices:3
 rede-metal-distendido	OK	242/243	Rede Metal Distendido	prices:3
 rede-mosquiteira	OK	244/245	Rede Mosquiteira	prices:4
-rede-ondulada-tremida	OK	146/147	Rede Ondulada	prices:3
+rede-ondulada-tremida	NO_PRICES_PARSED	Rede Ondulada
 poste-t	OK	140/142	Poste T	prices:8
 poste-redondo-galvanizado-lacado-verde	OK	140/144	Poste Redondo	prices:6
 poste-tubograf	OK	140/143	Poste Tubograf	prices:6
@@ -58,27 +58,27 @@ quadra-brico	OK	65/66	Arame Brico Inox	prices:2
 exagon-exagon-brico	OK	51/256	TENAX EXAGON	prices:3
 ranch	OK	51/257	TENAX RANCH	prices:2
 mosquito	OK	51/258	TENAX MOSQUITO	prices:1
-aviary-aviary-brico	NO_REMOTE_MATCH	AVIARY / AVIARY BRICO
+aviary-aviary-brico	OK	51/54	TENAX AVIARY	prices:5
 flora-ortoflex	OK	51/52	TENAX ORTOFLEX	prices:3
 rede-tutoragem-anti-passaro	OK	51/302	Rede Anti-pássaro	prices:3
-saccoclima-tuboclima-plus	NO_REMOTE_MATCH	SACCOCLIMA / TUBOCLIMA PLUS
+saccoclima-tuboclima-plus	OK	51/264	TENAX SACCOCLIMA	prices:3
 ortoclima	OK	51/264	TENAX SACCOCLIMA	prices:3
 stick-up-stand-up	OK	51/304	STICK UP / STAND UP	prices:5
 rede-protecao-de-plantas	OK	46/49	Rede Malha Solta Plastificada	prices:2
 cover-pro-green	NO_REMOTE_MATCH	COVER PRO GREEN
 rede-sombra-90	NO_REMOTE_MATCH	REDE SOMBRA 90%
-rede-sombra-80	OK	51/301	Rede Tutoragem	prices:4
-tela-de-solos	OK	2/277	FITA DE OCULTAÇÃO	prices:5
-fita-sinalizacao	OK	2/277	FITA DE OCULTAÇÃO	prices:2
-manto-geotextil	NO_REMOTE_MATCH	MANTO GEOTÊXTIL
+rede-sombra-80	NO_PRICES_PARSED	Rede Desporto
+tela-de-solos	NO_PRICES_PARSED	FITA DE OCULTAÇÃO
+fita-sinalizacao	NO_PRICES_PARSED	FITA DE OCULTAÇÃO
+manto-geotextil	OK	51/274	MANTO GEOTÊXTIL	prices:6
 lamina-drenante	OK	2/4	Painel Defender	prices:1
-rede-de-sinalizacao-subterranea	NO_REMOTE_MATCH	REDE DE SINALIZAÇÃO SUBTERRÂNEA
-redes-para-desporto-e-para-bolas	NO_REMOTE_MATCH	REDES PARA DESPORTO E PÁRA-BOLAS
-labor	NO_REMOTE_MATCH	LABOR
+rede-de-sinalizacao-subterranea	OK	51/271	RESDE SINALIZAÇÃO SUBTERRÂNEA	prices:4
+redes-para-desporto-e-para-bolas	NO_PRICES_PARSED	Rede Desporto
+labor	OK	51/270	REDE SINALIZAÇÃO	prices:1
 aloha-90-brico-mini-rolo	OK	51/255	TENAX QUADRA Mini Rolo	prices:3
-soleado-corten-brico-soleado-branco-brico-jamaica-brico	NO_REMOTE_MATCH	SOLEADO CORTEN BRICO / SOLEADO BRANCO BRICO / JAMAICA BRICO (MINI ROLO)
+soleado-corten-brico-soleado-branco-brico-jamaica-brico	OK	51/307	Rede Sombra Mini Rolo	prices:6
 vidy-optima	NO_REMOTE_MATCH	DIVY OPTIMA
-armatek	NO_REMOTE_MATCH	ARMATEK
+armatek	OK	51/57	Armatek	prices:4
 redes-para-desporto-e-para-bolas-2-linha	NO_REMOTE_MATCH	REDES PARA DESPORTO E PÁRA-BOLAS (2ª LINHA)
 corrente-genovesa-italiana	OK	90/91	CORRENTE ITALIANA GENOVESA ZINCADA	prices:5
 corrente-comercial-din-5685-a	OK	87/88	Corrente Comercial L. A. em Saco	prices:3
@@ -93,11 +93,11 @@ mosquetao-de-bombeiro-galvanizado-com-e-sem-seguranca	OK	95/111	Mosquetão ZN Bo
 mosquetao-niquelado-automatico	OK	95/108	Mosquetão niquelado automático com destorcedor	prices:2
 destorcedores	OK	95/98	Destorcedor Niquelado	prices:3
 sapatilho-galvanizado	OK	95/104	Sapatilhos Galvanizados	prices:7
-gancho-s-galvanizado	OK	189/193	Agrafes Galvanizados	prices:16
-gulpilha-com-argola-zincada	NO_REMOTE_MATCH	GULPILHA COM ARGOLA ZINCADA
-gulpilha-beta-zincada	OK	131/136	Manilha Direita INOX	prices:5
-malha-de-uniao-zincada	OK	90/91	CORRENTE ITALIANA GENOVESA ZINCADA	prices:7
-olhal-de-suspensao-macho-e-femea-zincado	NO_REMOTE_MATCH	OLHAL DE SUSPENSÃO MACHO E FÊMEA ZINCADO
+gancho-s-galvanizado	NO_PRICES_PARSED	Agrafes Galvanizados
+gulpilha-com-argola-zincada	OK	95/105+103+102	GANCHO S / GULPILHAS ZN	prices:16
+gulpilha-beta-zincada	OK	95/102	Gulpilha Beta Zincada	prices:5
+malha-de-uniao-zincada	OK	95/112	Olhal de Suspensão Macho	prices:7
+olhal-de-suspensao-macho-e-femea-zincado	OK	95/112+113	OLHAL SUSPENSÃO MACHO/FÊMEA	prices:18
 gancho-de-olhal	OK	114/122	Gancho De Olhal Com Segurança Pintado	prices:4
 cerra-cabo-inox	OK	131/132	Cerra Cabos Inox	prices:6
 esticador-olhal-e-gancho-inox	OK	131/135	Esticador Olhal/Gancho INOX	prices:5
@@ -132,7 +132,7 @@ turquesa-armador-knipex	OK	214/221	Turquesa armador KNIPEX	prices:2
 turquesa-russa-knipex	OK	214/224	Turquesa Russa KNIPEX	prices:4
 knipex-corta-arame-cobolt	OK	214/218	Corta Arame Cobolt 200mm / 250mm	prices:2
 knipex-corta-cabo-de-aco	OK	214/215	Alicates corte cabo aço	prices:2
-pa-e-abre-buracos-dkv	NO_REMOTE_MATCH	PÁ E ABRE BURACOS DKV
+pa-e-abre-buracos-dkv	OK	214/226+227+228+229+230+231	PÁ / ABRE BURACOS DKV	prices:6
 cabo-de-aco-galvanizado	OK	183/186+185+184	CABO DE AÇO GALVANIZADO	prices:14
 cabo-de-aco-anti-giratorio	OK	183/187	CABO AÇO ANTI-GIRATÓRIO 19x7	prices:5
 cabo-de-aco-galvanizado-plastificado	OK	181/182	CABO AÇO 6x7 PLASTIFICADO	prices:4
