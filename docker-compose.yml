@@ -12,6 +12,8 @@ services:
     depends_on:
       - backend
     restart: unless-stopped
+    networks:
+      - proxy
 
   backend:
     build:
@@ -34,3 +36,9 @@ services:
       # Allow local frontend (yarn dev) when set in .env: ALLOW_ORIGIN=http://localhost:5173
       # Leave unset when frontend is also in Docker (same-origin).
     restart: unless-stopped
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    external: true

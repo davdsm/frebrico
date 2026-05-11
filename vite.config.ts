@@ -31,6 +31,7 @@ export default defineConfig({
     },
   },
   preview: {
+    allowedHosts: ['frebrico.salazarconcept.com'],
     proxy: {
       '/api': { target: apiProxyTarget, changeOrigin: true },
       '/uploads': { target: apiProxyTarget, changeOrigin: true },
