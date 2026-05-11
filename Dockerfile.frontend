@@ -1,14 +1,22 @@
-# Stage 1: Build
-FROM node:20-alpine AS build
+FROM node:20-alpine
 WORKDIR /app
+
 COPY package.json yarn.lock ./
 RUN corepack enable && yarn install --frozen-lockfile
+
+ARG VITE_API_BASE=
+ARG VITE_BASE_URL=
+ARG VITE_OG_IMAGE=
+ENV VITE_API_BASE=${VITE_API_BASE}
+ENV VITE_BASE_URL=${VITE_BASE_URL}
+ENV VITE_OG_IMAGE=${VITE_OG_IMAGE}
+
 COPY . .
 RUN yarn build
 
-# Stage 2: Serve
-FROM nginx:alpine
-COPY --from=build /app/dist /usr/share/nginx/html
-COPY nginx/nginx.conf /etc/nginx/conf.d/default.conf
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+ENV FRONTEND_PORT=4173
+ENV VITE_PROXY_TARGET=http://backend:3001
+
+EXPOSE 4173
+
+CMD ["sh", "-c", "exec yarn vite preview --host 0.0.0.0 --port \"${FRONTEND_PORT}\""]

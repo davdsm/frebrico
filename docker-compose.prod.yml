@@ -1,0 +1,24 @@
+# Production overrides — use with docker-compose.yml:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+# Or: yarn prod:deploy
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+      args:
+        VITE_API_BASE: ${VITE_API_BASE:-}
+        VITE_BASE_URL: ${VITE_BASE_URL:-https://www.frebrico.com}
+        VITE_OG_IMAGE: ${VITE_OG_IMAGE:-}
+    ports:
+      # Traefik on the same host: route the domain to 127.0.0.1:FRONTEND_PORT (default 4173).
+      - "127.0.0.1:${FRONTEND_PORT:-4173}:${FRONTEND_PORT:-4173}"
+    environment:
+      FRONTEND_PORT: ${FRONTEND_PORT:-4173}
+      VITE_PROXY_TARGET: http://backend:3001
+
+  backend:
+    ports:
+      - "127.0.0.1:3002:3001"
+    environment:
+      NODE_ENV: production

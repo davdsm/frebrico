@@ -5,9 +5,10 @@ services:
       dockerfile: Dockerfile.frontend
     container_name: frebrico-frontend
     ports:
-      - "80:80"
-    volumes:
-      - ./data/uploads:/usr/share/nginx/html/uploads:ro
+      - "${FRONTEND_PORT:-4173}:${FRONTEND_PORT:-4173}"
+    environment:
+      FRONTEND_PORT: ${FRONTEND_PORT:-4173}
+      VITE_PROXY_TARGET: http://backend:3001
     depends_on:
       - backend
     restart: unless-stopped
