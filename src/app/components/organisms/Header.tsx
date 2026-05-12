@@ -250,7 +250,7 @@ export function Header({ isCompact = false }: HeaderProps) {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 2, ease: [0.22, 1, 0.36, 1], delay: 2.3 }}
-            className="flex shrink-0"
+            className="hidden sm:flex shrink-0"
           >
             <Link to="/contact" className="flex">
               <Button

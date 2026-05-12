@@ -197,7 +197,7 @@ function TabButton({ label, isActive, onClick }: { label: string; isActive: bool
   return (
     <button
       onClick={onClick}
-      className={`px-12 flex items-center gap-[10px] py-[38px] rounded-[100px] transition-all ${
+      className={`shrink-0 px-4 md:px-12 flex items-center gap-[10px] py-3 md:py-[38px] rounded-[100px] transition-all ${
         isActive ? 'bg-[#313b2e]' : 'bg-transparent'
       }`}
     >
@@ -251,8 +251,8 @@ ContentSection({ contentPage = 'about' }: { contentPage?: string }) {
         <div className="flex flex-col gap-10 items-center">
           
           {/* Tab Navigation */}
-          <div className="bg-white rounded-[100px] overflow-hidden w-full max-w-fit">
-            <div className="flex flex-col md:flex-row items-stretch px-8">
+          <div className="bg-white rounded-[100px] overflow-hidden w-full">
+            <div className="flex flex-row items-stretch px-2 md:px-8 overflow-x-auto scrollbar-hide">
               {tabs.map((tab, index) => (
                 <React.Fragment key={index}>
                   <TabButton

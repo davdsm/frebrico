@@ -238,6 +238,7 @@ function ContentImagesListEditor({
   onChange,
   onItemChange,
   onRemoveSlot,
+  hint,
 }: {
   value: string;
   pageSlug: string;
@@ -245,6 +246,7 @@ function ContentImagesListEditor({
   onChange: (value: string) => void;
   onItemChange: (index: number, path: string) => void;
   onRemoveSlot: (index: number) => void;
+  hint?: string;
 }) {
   const parseItems = (raw: string): { path: string }[] => {
     try {
@@ -265,7 +267,7 @@ function ContentImagesListEditor({
 
   return (
     <div>
-      <p className="text-[12px] text-[#5a5a59] mb-3">Carregue múltiplas imagens para esta secção. As imagens vão aparecer no slider desta área.</p>
+      <p className="text-[12px] text-[#5a5a59] mb-3">{hint ?? "Carregue múltiplas imagens para esta secção. As imagens vão aparecer no slider desta área."}</p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {displayItems.map((item, i) => (
           <div key={i} className="relative border border-[#e5e5e3] rounded-xl p-4 bg-[#fafaf9]">
@@ -318,6 +320,9 @@ const ABOUT_PAGE = "about";
 const SOLUTIONS_SECTION = "solutions";
 const SOLUTIONS_ITEMS_FIELD = "items";
 const ABOUT_HERO_IMAGE_FIELD = "image";
+const BRAND_LOGOS_FIELD = "brand_logos";
+const WEATHER_MODE_FIELD = "weather_mode";
+const PRODUCTS_PAGE = "products";
 const CONTACT_PAGE = "contact";
 const CONTACT_MAP_SECTION = "map";
 const CONTACT_MAP_IMAGE_FIELD = "image";
@@ -464,6 +469,14 @@ function FieldRow({
     pageSlug === ABOUT_PAGE && sectionKey === HERO_SECTION && fieldKey === ABOUT_HERO_IMAGE_FIELD;
   const isContactMapImageField =
     pageSlug === CONTACT_PAGE && sectionKey === CONTACT_MAP_SECTION && fieldKey === CONTACT_MAP_IMAGE_FIELD;
+  const isBrandLogosField =
+    fieldKey === BRAND_LOGOS_FIELD &&
+    sectionKey === HERO_SECTION &&
+    (pageSlug === ABOUT_PAGE || pageSlug === PRODUCTS_PAGE);
+  const isWeatherModeField =
+    fieldKey === WEATHER_MODE_FIELD &&
+    pageSlug === HOME_PAGE &&
+    sectionKey === HERO_SECTION;
 
   const parseItems = (raw: string): { path: string }[] => {
     try {
@@ -524,6 +537,38 @@ function FieldRow({
           page={pageSlug}
           section={sectionKey}
           hint="Imagem de fundo da secção de mapa na página Contactos."
+        />
+      ) : isWeatherModeField ? (
+        <div className="flex items-center gap-3 py-1">
+          <button
+            type="button"
+            role="switch"
+            aria-checked={value === 'true'}
+            onClick={() => onChange(value === 'true' ? 'false' : 'true')}
+            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none ${value === 'true' ? 'bg-[#313b2e]' : 'bg-gray-200'}`}
+          >
+            <span
+              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${value === 'true' ? 'translate-x-5' : 'translate-x-0'}`}
+            />
+          </button>
+          <div>
+            <p className="text-[13px] font-medium text-[#131313]">
+              {value === 'true' ? 'Modo weather ativado' : 'Modo weather desativado'}
+            </p>
+            <p className="text-[11px] text-[#5a5a59]">
+              {value === 'true' ? 'Os icons de meteorologia estão a passar em loop na pill do hero.' : 'A pill do hero mostra o carácter de texto configurado.'}
+            </p>
+          </div>
+        </div>
+      ) : isBrandLogosField ? (
+        <ContentImagesListEditor
+          value={value}
+          pageSlug={pageSlug}
+          sectionKey={sectionKey}
+          onChange={onChange}
+          onItemChange={updateItemPath}
+          onRemoveSlot={removeSlot}
+          hint="Logótipos de marcas parceiras. Carregue imagens SVG ou PNG. Aparecem no topo da página (em baixo dos botões)."
         />
       ) : isAboutSolutionsItemsField ? (
         <AboutSolutionsItemsEditor value={value} pageSlug={pageSlug} onChange={onChange} />

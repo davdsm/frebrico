@@ -1,5 +1,4 @@
 import React from "react";
-import svgPaths from "../../../imports/svg-wf7psdblus";
 import { ContentLink } from "../../components/common/ContentLink";
 import { useContent } from "../../content/useContent";
 import { getApiBase } from "../../content/api";
@@ -14,7 +13,14 @@ export function AboutHero() {
   const ctaSecondary = useContent("about", "hero", "cta_secondary");
   const ctaSecondaryUrl = useContent("about", "hero", "cta_secondary_url");
   const image = useContent("about", "hero", "image");
+  const brandLogosRaw = useContent("about", "hero", "brand_logos");
   const apiBase = getApiBase();
+  const brandLogos = (() => {
+    try {
+      const arr = JSON.parse(brandLogosRaw || "[]");
+      return Array.isArray(arr) ? arr.filter((x: { path?: string }) => typeof x?.path === "string" && x.path) : [];
+    } catch { return []; }
+  })();
 
   return (
       <section className="w-full bg-white py-12 md:py-16 lg:py-20">
@@ -44,25 +50,18 @@ export function AboutHero() {
               </ContentLink>
             </div>
 
-            <div className="flex gap-5 items-center h-[50px]">
-              {[1, 2, 3, 4].map((_, i) => (
-                <div key={i} className="h-[43px] w-[37px] opacity-40">
-                  <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 37 43">
-                    <g clipPath="url(#clip0_5_45202)">
-                      <path clipRule="evenodd" d={svgPaths.p2a5cad80} fill="black" fillOpacity="0.4" fillRule="evenodd" />
-                      <path clipRule="evenodd" d={svgPaths.p1f0c11f0} fill="black" fillRule="evenodd" />
-                      <path clipRule="evenodd" d={svgPaths.p3d7ee1b0} fill="black" fillOpacity="0.4" fillRule="evenodd" />
-                      <path clipRule="evenodd" d={svgPaths.p136e1ac0} fill="black" fillOpacity="0.4" fillRule="evenodd" />
-                    </g>
-                    <defs>
-                      <clipPath id="clip0_5_45202">
-                        <rect fill="white" height="43" width="37" />
-                      </clipPath>
-                    </defs>
-                  </svg>
-                </div>
-              ))}
-            </div>
+            {brandLogos.length > 0 && (
+              <div className="flex flex-wrap gap-x-6 gap-y-4 items-center">
+                {brandLogos.map((logo: { path: string }, i: number) => (
+                  <img
+                    key={i}
+                    src={`${apiBase}${logo.path}`}
+                    alt=""
+                    className="max-h-[36px] w-auto object-contain"
+                  />
+                ))}
+              </div>
+            )}
           </div>
           </FadeInUpInView>
 

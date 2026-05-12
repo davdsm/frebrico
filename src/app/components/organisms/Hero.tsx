@@ -1,22 +1,72 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Icon } from '../atoms/Icon';
 import { ContentLink } from '../common/ContentLink';
 import { useContent } from '../../content/useContent';
 import { getApiBase } from '../../content/api';
+
+type WeatherType = 'sun' | 'partly-cloudy' | 'cloud' | 'rain' | 'storm';
+const WEATHER_SEQUENCE: WeatherType[] = ['sun', 'partly-cloudy', 'cloud', 'rain', 'storm'];
+
+function WeatherIcon({ type }: { type: WeatherType }) {
+  const p = { fill: 'none', stroke: 'white', strokeWidth: 1.5, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, viewBox: '0 0 24 24', className: 'w-7 h-7 md:w-9 md:h-9 lg:w-14 lg:h-14' };
+  if (type === 'sun') return (
+    <svg {...p}>
+      <circle cx="12" cy="12" r="4"/>
+      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+    </svg>
+  );
+  if (type === 'partly-cloudy') return (
+    <svg {...p}>
+      <circle cx="9.5" cy="9" r="3"/>
+      <path d="M9.5 6V4.5M5.44 6.44 4.38 5.38M4 9H2.5M5.44 11.56 4.38 12.62"/>
+      <path d="M17.5 14h-.8a5.5 5.5 0 1 0-9.2 4H17.5a3.5 3.5 0 0 0 0-7z"/>
+    </svg>
+  );
+  if (type === 'cloud') return (
+    <svg {...p}>
+      <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/>
+    </svg>
+  );
+  if (type === 'rain') return (
+    <svg {...p}>
+      <path d="M20 17.58A5 5 0 0 0 18 8h-1.26A8 8 0 1 0 4 16.25"/>
+      <line x1="8" y1="19" x2="8" y2="21"/><line x1="8" y1="23" x2="8" y2="23.01"/>
+      <line x1="12" y1="18" x2="12" y2="20"/><line x1="12" y1="22" x2="12" y2="22.01"/>
+      <line x1="16" y1="19" x2="16" y2="21"/><line x1="16" y1="23" x2="16" y2="23.01"/>
+    </svg>
+  );
+  if (type === 'storm') return (
+    <svg {...p}>
+      <path d="M19 16.9A5 5 0 0 0 18 7h-1.26a8 8 0 1 0-11.62 9"/>
+      <polyline points="13 11 9 17 15 17 11 23"/>
+    </svg>
+  );
+  return null;
+}
 
 export function Hero() {
   const title = useContent('home', 'hero', 'title');
   const title2 = useContent('home', 'hero', 'title2');
   const subtitle = useContent('home', 'hero', 'subtitle');
   const description = useContent('home', 'hero', 'description');
+  const accentChar = useContent('home', 'hero', 'accent_char');
+  const weatherModeRaw = useContent('home', 'hero', 'weather_mode');
+  const isWeatherMode = weatherModeRaw === 'true';
   const linkText = useContent('home', 'hero', 'link_text');
   const linkUrl = useContent('home', 'hero', 'link_url');
   const imagesJson = useContent('home', 'hero', 'images');
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const carouselSectionRef = useRef<HTMLDivElement>(null);
   const [isPaused, setIsPaused] = useState(false);
+  const [weatherIdx, setWeatherIdx] = useState(0);
   const apiBase = getApiBase();
+
+  useEffect(() => {
+    if (!isWeatherMode) return;
+    const t = setInterval(() => setWeatherIdx(i => (i + 1) % WEATHER_SEQUENCE.length), 2000);
+    return () => clearInterval(t);
+  }, [isWeatherMode]);
 
   const heroImages = (() => {
     try {
@@ -108,9 +158,23 @@ export function Hero() {
               initial={{ opacity: 0, y: 28 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 2, ease: [0.22, 1, 0.36, 1], delay: 0.4 }}
-              className="bg-[#313b2e] rounded-full w-[100px] h-[72px] md:w-[164px] md:h-[110px] flex items-center justify-center"
+              className="bg-[#313b2e] rounded-full w-[72px] h-[52px] md:w-[100px] md:h-[72px] lg:w-[164px] lg:h-[110px] flex items-center justify-center overflow-hidden"
             >
-              <span className="text-4xl md:text-[72px] text-white">à</span>
+              {isWeatherMode ? (
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={weatherIdx}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                  >
+                    <WeatherIcon type={WEATHER_SEQUENCE[weatherIdx]} />
+                  </motion.div>
+                </AnimatePresence>
+              ) : (
+                <span className="text-2xl md:text-4xl lg:text-[72px] text-white">{accentChar || 'à'}</span>
+              )}
             </motion.div>
           </div>
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -196,7 +260,7 @@ export function Hero() {
             ref={scrollContainerRef}
             onMouseEnter={() => setIsPaused(true)}
             onMouseLeave={() => setIsPaused(false)}
-            className="flex gap-6 md:gap-10 overflow-x-auto scrollbar-hide scroll-smooth"
+            className="flex gap-6 md:gap-10 overflow-x-auto scrollbar-hide scroll-smooth pl-4 md:pl-8 lg:pl-0"
           >
             {(heroImages.length ? sliderImages : fallbackCardHeights).map((item, index) => (
               <motion.div

@@ -86,11 +86,13 @@ export function ProductCard({ product, linkable = true, className }: ProductCard
         ) : null}
       </div>
 
-      <div className="flex items-center justify-between">
-        <p className="text-lg font-medium text-black leading-normal">{product.name}</p>
-        <p className="text-base font-normal text-black leading-normal whitespace-nowrap">
-          {product.price.toFixed(2)} <span className="text-[#7c818f]">€</span>
-        </p>
+      <div className="flex items-start justify-between gap-2">
+        <p className="text-sm md:text-base font-medium text-black leading-snug line-clamp-2 min-w-0 flex-1">{product.name}</p>
+        {product.price > 0 && (
+          <p className="text-sm md:text-base font-normal text-black leading-normal whitespace-nowrap shrink-0">
+            {product.price.toFixed(2)} <span className="text-[#7c818f]">€</span>
+          </p>
+        )}
       </div>
     </div>
   );
