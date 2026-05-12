@@ -5,10 +5,10 @@ import { ContentLink } from "../common/ContentLink";
 import { PrimaryButton } from "../common/PrimaryButton";
 import { SecondaryButton } from "../common/SecondaryButton";
 import svgPaths from "../../../imports/svg-1kqjfus9mr";
-import imgImage1 from "figma:asset/a1506335f9c1a5795534434dee96810d0a8b30ff.png";
 import { useContent, useContentJson } from "../../content/useContent";
 import { FadeInUpInView } from "../atoms/FadeInUpInView";
 import { resolveImageUrl } from "../../api/shop";
+import { getApiBase } from "../../content/api";
 
 export type CategoryItem = { name: string; slug: string; image?: string; icon_svg?: string };
 
@@ -29,6 +29,14 @@ export function ProductsHero({ categoriesFromApi }: ProductsHeroProps) {
   const categoryList = Array.isArray(categoriesFromApi) && categoriesFromApi.length > 0
     ? categoriesFromApi
     : (Array.isArray(categoriesCms) ? categoriesCms : []);
+  const brandLogosRaw = useContent("products", "hero", "brand_logos");
+  const brandLogos = (() => {
+    try {
+      const arr = JSON.parse(brandLogosRaw || "[]");
+      return Array.isArray(arr) ? arr.filter((x: { path?: string }) => typeof x?.path === "string" && x.path) : [];
+    } catch { return []; }
+  })();
+  const apiBase = getApiBase();
 
   return (
       <section className="w-full bg-white py-12 px-4 md:px-8 lg:px-[160px] md:py-16 lg:py-[136px]">
@@ -80,22 +88,20 @@ export function ProductsHero({ categoriesFromApi }: ProductsHeroProps) {
           </FadeInUpInView>
 
           {/* Right 50% - Brand Logos (aligned bottom) */}
-          <FadeInUpInView delay={0.1} className="self-end">
-          <div className="flex gap-5 items-center justify-center md:justify-end flex-wrap opacity-20 min-h-[50px]">
-            {[1, 2, 3, 4].map((_, i) => (
-              <div
-                key={i}
-                className="h-[22px] w-[88px] relative overflow-hidden shrink-0"
-              >
+          {brandLogos.length > 0 && (
+            <FadeInUpInView delay={0.1} className="self-end">
+            <div className="flex gap-5 items-center justify-center md:justify-end overflow-x-auto scrollbar-hide min-h-[50px]">
+              {brandLogos.map((logo: { path: string }, i: number) => (
                 <img
+                  key={i}
+                  src={`${apiBase}${logo.path}`}
                   alt=""
-                  className="absolute h-[400%] left-0 max-w-none top-[-150%] w-full"
-                  src={imgImage1}
+                  className="h-[20px] md:h-[28px] w-auto shrink-0 object-contain"
                 />
-              </div>
-            ))}
-          </div>
-          </FadeInUpInView>
+              ))}
+            </div>
+            </FadeInUpInView>
+          )}
         </div>
 
         {/* Bottom Section - Category Cards (no in-view opacity-0 wrappers — always visible) */}

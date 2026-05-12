@@ -6,7 +6,9 @@ const MOBILE_BREAKPOINT = 768;
  * Returns true when viewport width is <= MOBILE_BREAKPOINT.
  */
 export function useIsMobile(breakpoint = MOBILE_BREAKPOINT): boolean {
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth <= breakpoint : false
+  );
 
   useEffect(() => {
     const update = () => {

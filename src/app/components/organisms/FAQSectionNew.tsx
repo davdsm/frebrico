@@ -16,42 +16,25 @@ interface FAQItemProps {
 
 function FAQAccordionItem({ question, answer, isOpen, onToggle }: FAQItemProps) {
   return (
-    <div 
-      className={`bg-white overflow-hidden relative rounded-[20px] shrink-0 w-full transition-all duration-300 ${
-        isOpen ? 'h-auto' : 'h-[88px]'
-      }`}
-    >
-      <p className="absolute font-semibold leading-normal left-[24px] text-[#131313] text-[20px] md:text-[24px] top-[28px] pr-[80px]">
-        {question}
-      </p>
+    <div className="bg-white overflow-hidden rounded-[20px] shrink-0 w-full">
       <button
         onClick={onToggle}
-        className="absolute content-stretch flex items-center justify-center right-[16px] md:right-[24px] p-[12px] rounded-[24px] size-[40px] top-[24px] hover:bg-black/5 transition-colors"
+        className="w-full flex items-center justify-between gap-4 px-6 py-7 text-left hover:bg-black/[0.02] transition-colors"
       >
-        <div className="absolute border border-[rgba(19,19,19,0.1)] border-solid inset-0 pointer-events-none rounded-[24px]" />
-        <div className="relative shrink-0 size-[24px]">
-          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 24 24">
-            <path 
-              d="M6 12H18" 
-              stroke="#131313" 
-              strokeLinecap="round" 
-              strokeLinejoin="round" 
-              strokeWidth="1.5" 
-            />
+        <p className="font-semibold leading-normal text-[#131313] text-[20px] md:text-[24px]">
+          {question}
+        </p>
+        <div className="shrink-0 flex items-center justify-center size-[40px] rounded-[24px] border border-[rgba(19,19,19,0.1)] hover:bg-black/5 transition-colors">
+          <svg className="block size-[24px]" fill="none" viewBox="0 0 24 24">
+            <path d="M6 12H18" stroke="#131313" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
             {!isOpen && (
-              <path 
-                d="M12 18V6" 
-                stroke="#131313" 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth="1.5" 
-              />
+              <path d="M12 18V6" stroke="#131313" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
             )}
           </svg>
         </div>
       </button>
       {isOpen && (
-        <p className="font-normal leading-normal left-[24px] text-[#5a5a59] text-[16px] md:text-[18px] mt-[71px] pb-[24px] px-[24px] pr-[24px] md:pr-[64px]">
+        <p className="font-normal leading-normal text-[#5a5a59] text-[16px] md:text-[18px] px-6 pb-7 md:pr-16">
           {answer}
         </p>
       )}

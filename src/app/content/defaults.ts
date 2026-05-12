@@ -82,6 +82,8 @@ const defaults: DefaultsMap = {
       title2: "BRICOLAGE",
       subtitle: "vedações, bricolage e construção",
       description: "Produtos de confiança. Apoio técnico. Resultados duradouros.",
+      accent_char: "à",
+      weather_mode: "false",
       link_text: "Explorar produtos",
       link_url: "/products",
       images: JSON.stringify([
@@ -145,6 +147,7 @@ const defaults: DefaultsMap = {
       cta_secondary: "Apoio Técnico",
       cta_secondary_url: "/contact",
       categories: JSON.stringify([{ name: "Arames", slug: "arames" }, { name: "Vedações", slug: "vedacoes" }, { name: "Correntes", slug: "correntes" }]),
+      brand_logos: JSON.stringify([{ path: "" }, { path: "" }, { path: "" }, { path: "" }]),
     },
     services: {
       badge: "Serviços",
@@ -251,6 +254,7 @@ const defaults: DefaultsMap = {
       cta_secondary: "Contactos",
       cta_secondary_url: "/contact",
       image: "",
+      brand_logos: JSON.stringify([{ path: "" }, { path: "" }, { path: "" }, { path: "" }]),
     },
     content_tab1: {
       label: "Experiência e Conhecimento Técnico",

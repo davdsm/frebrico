@@ -109,7 +109,7 @@ export function ProductCarousel() {
             ref={scrollContainerRef}
             onMouseEnter={() => setIsPaused(true)}
             onMouseLeave={() => setIsPaused(false)}
-            className="flex gap-4 md:gap-8 overflow-x-auto pb-4 scrollbar-hide scroll-smooth"
+            className="flex gap-4 md:gap-8 overflow-x-auto pb-4 scrollbar-hide scroll-smooth pl-4 md:pl-8 lg:pl-0"
             stagger={0.1}
           >
             {productList.map((raw, index) => (
