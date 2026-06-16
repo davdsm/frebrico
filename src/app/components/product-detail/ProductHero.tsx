@@ -6,7 +6,7 @@ import { FadeInUpInView } from '../atoms/FadeInUpInView';
 import { resolveImageUrl, type Product } from '../../api/shop';
 import { isColorAttributeName, pastelSwatchDataUrlForColorLabel } from '../../utils/pastelColorSwatch';
 
-type AttributeValueItem = { name: string; image_url?: string };
+type AttributeValueItem = { name: string; image_url?: string; gallery_image?: string };
 type AttributeGroup = { attribute_id: number; attribute_name: string; values: AttributeValueItem[] };
 type DownloadItem = { label?: string; url?: string };
 
@@ -20,7 +20,7 @@ function parseAttributeGroups(raw: string): AttributeGroup[] {
         attribute_id: Number(x.attribute_id) || 0,
         attribute_name: String(x.attribute_name ?? ''),
         values: Array.isArray(x.values)
-          ? (x.values as AttributeValueItem[]).map((v) => ({ name: String(v?.name ?? ''), image_url: v?.image_url != null ? resolveImageUrl(String(v.image_url)) : undefined }))
+          ? (x.values as AttributeValueItem[]).map((v) => ({ name: String(v?.name ?? ''), image_url: v?.image_url != null ? resolveImageUrl(String(v.image_url)) : undefined, gallery_image: v?.gallery_image != null ? String(v.gallery_image) : undefined }))
           : [],
       }));
     }
@@ -132,13 +132,17 @@ export function ProductHero({ product, categoryName, categorySlug }: ProductHero
       return next;
     });
     const val = attributeGroups[groupIndex]?.values[valueIndex];
-    if (val?.image_url) {
-      const idx = galleryImages.indexOf(val.image_url);
+    // gallery_image: per-product link to a gallery photo (takes priority)
+    // image_url: global attribute swatch icon (fallback for image switching)
+    const targetImage = val?.gallery_image ?? val?.image_url ?? null;
+    if (targetImage) {
+      const resolved = resolveImageUrl(targetImage);
+      const idx = galleryImages.findIndex((img) => img === resolved || img === targetImage);
       if (idx >= 0) {
         setActiveImageIndex(idx);
         setSwatchImageOverride(null);
       } else {
-        setSwatchImageOverride(val.image_url);
+        setSwatchImageOverride(resolved || targetImage);
       }
     } else {
       setSwatchImageOverride(null);

@@ -316,6 +316,7 @@ export default function ProductEditor() {
                 value={attributeGroups}
                 onChange={setAttributeGroups}
                 attributeList={attributeList}
+                productImages={[...(image ? [image] : []), ...images]}
                 label="Atributos"
               />
             </div>

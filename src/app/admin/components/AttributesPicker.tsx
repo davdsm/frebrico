@@ -12,6 +12,7 @@ interface AttributesPickerProps {
   value: ProductAttributeGroup[];
   onChange: (value: ProductAttributeGroup[]) => void;
   attributeList: Attribute[];
+  productImages?: string[];
   label?: string;
 }
 
@@ -28,6 +29,7 @@ export function AttributesPicker({
   value,
   onChange,
   attributeList,
+  productImages = [],
   label = "Atributos",
 }: AttributesPickerProps) {
   const [expandedId, setExpandedId] = useState<number | null>(null);
@@ -64,6 +66,21 @@ export function AttributesPicker({
     const attr = attributeList.find((a) => a.id === attributeId);
     if (!attr) return [];
     return parseAttributeValues(attr.values);
+  };
+
+  const setGalleryImage = (groupIndex: number, valueName: string, galleryImage: string | undefined) => {
+    onChange(
+      value.map((g, i) =>
+        i !== groupIndex
+          ? g
+          : {
+              ...g,
+              values: g.values.map((v) =>
+                v.name === valueName ? { ...v, gallery_image: galleryImage } : v
+              ),
+            }
+      )
+    );
   };
 
   return (
@@ -198,6 +215,55 @@ export function AttributesPicker({
                           );
                         })}
                       </div>
+
+                      {/* Gallery image linker — only shown when product has gallery images and there are selected values */}
+                      {productImages.length > 0 && group.values.length > 0 && (
+                        <div className="mt-4 space-y-3">
+                          <p className="text-[11px] font-medium text-[#5a5a59] uppercase tracking-wide">
+                            Ligar variante à foto do produto
+                          </p>
+                          {group.values.map((selectedVal) => {
+                            const linkedImage = selectedVal.gallery_image ?? "";
+                            return (
+                              <div key={selectedVal.name} className="flex items-center gap-3">
+                                <span className="text-[12px] text-[#131313] w-24 shrink-0 truncate font-medium">
+                                  {selectedVal.name}
+                                </span>
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  {/* "Nenhuma" option */}
+                                  <button
+                                    type="button"
+                                    onClick={() => setGalleryImage(index, selectedVal.name, undefined)}
+                                    className={`w-10 h-10 rounded-lg border-2 flex items-center justify-center text-[10px] text-[#5a5a59] transition-colors ${
+                                      !linkedImage ? "border-[#313b2e] bg-[#f5f5f5]" : "border-[#e5e5e3] hover:border-[#ccc]"
+                                    }`}
+                                    title="Sem imagem ligada"
+                                  >
+                                    —
+                                  </button>
+                                  {productImages.map((imgUrl, imgIdx) => {
+                                    const resolved = imgUrl.startsWith("http") ? imgUrl : `${apiBase}${imgUrl}`;
+                                    const isLinked = linkedImage === imgUrl || linkedImage === resolved;
+                                    return (
+                                      <button
+                                        key={imgIdx}
+                                        type="button"
+                                        onClick={() => setGalleryImage(index, selectedVal.name, imgUrl)}
+                                        className={`w-10 h-10 rounded-lg border-2 overflow-hidden transition-colors shrink-0 ${
+                                          isLinked ? "border-[#313b2e]" : "border-[#e5e5e3] hover:border-[#ccc]"
+                                        }`}
+                                        title={`Foto ${imgIdx + 1}`}
+                                      >
+                                        <img src={resolved} alt={`Foto ${imgIdx + 1}`} className="w-full h-full object-cover" />
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
                     </>
                   )}
                 </div>

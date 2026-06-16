@@ -61,7 +61,7 @@ export type Product = {
   updated_at: string;
 };
 
-export type AttributeValue = { name: string; image_url?: string };
+export type AttributeValue = { name: string; image_url?: string; gallery_image?: string };
 
 export type Attribute = {
   id: number;
