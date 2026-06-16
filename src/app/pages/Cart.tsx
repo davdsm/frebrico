@@ -1,17 +1,21 @@
-import React from "react";
+import React, { useState } from "react";
 import { CartHeader } from "../components/cart/CartHeader";
 import { CartCheckoutForm } from "../components/cart/CartCheckoutForm";
 import { CartSummary } from "../components/cart/CartSummary";
 import { useCart } from "../cart/CartContext";
+import { calculateShipping, computeTotal } from "../cart/shippingUtils";
 import { SEO } from "../components/common/SEO";
 import { useContent } from "../content/useContent";
 import { DominoFadeInDown } from "../components/atoms/DominoFadeInDown";
 
 export default function Cart() {
   const { items, updateQuantity, removeItem, subtotal } = useCart();
-  const total = subtotal;
+  const [shippingCountry, setShippingCountry] = useState("PT");
   const seoTitle = useContent("cart", "seo", "title");
   const seoDescription = useContent("cart", "seo", "description");
+
+  const shipping = calculateShipping(shippingCountry, subtotal);
+  const total = computeTotal(subtotal, shipping);
 
   return (
     <>
@@ -21,12 +25,16 @@ export default function Cart() {
           <div className="max-w-[1440px] mx-auto px-4 md:px-8 lg:px-20">
             <CartHeader />
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_480px] gap-8 lg:gap-16">
-              <CartCheckoutForm />
+              <CartCheckoutForm
+                shipping={shipping}
+                onCountryChange={setShippingCountry}
+              />
               <CartSummary
                 cartItems={items}
                 updateQuantity={updateQuantity}
                 removeItem={removeItem}
                 subtotal={subtotal}
+                shipping={shipping}
                 total={total}
               />
             </div>

@@ -2,6 +2,7 @@ import React from "react";
 import { Link } from "react-router";
 import { listAdminOrders, type AdminOrder } from "../../auth/authApi";
 import { useAuth } from "../../auth/AuthContext";
+import { getApiBase } from "../../content/api";
 
 const PAGE_SIZE = 12;
 
@@ -26,6 +27,14 @@ function normalize(value: string): string {
   return value.trim().toLowerCase();
 }
 
+function todayIso() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function firstOfYearIso() {
+  return `${new Date().getFullYear()}-01-01`;
+}
+
 export default function OrdersList() {
   const { token } = useAuth();
   const [orders, setOrders] = React.useState<AdminOrder[]>([]);
@@ -34,6 +43,10 @@ export default function OrdersList() {
   const [query, setQuery] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState("all");
   const [page, setPage] = React.useState(1);
+
+  const [exportFrom, setExportFrom] = React.useState(firstOfYearIso());
+  const [exportTo, setExportTo] = React.useState(todayIso());
+  const [exportLoading, setExportLoading] = React.useState(false);
 
   React.useEffect(() => {
     if (!token) return;
@@ -80,6 +93,27 @@ export default function OrdersList() {
     if (page > totalPages) setPage(totalPages);
   }, [page, totalPages]);
 
+  const handleExport = async () => {
+    if (!token) return;
+    setExportLoading(true);
+    try {
+      const url = `${getApiBase()}/api/orders/export?from=${encodeURIComponent(exportFrom)}&to=${encodeURIComponent(exportTo)}`;
+      const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+      if (!res.ok) throw new Error("Erro ao exportar encomendas.");
+      const blob = await res.blob();
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `encomendas_${exportFrom}_${exportTo}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    } catch (err) {
+      console.error(err);
+      alert(err instanceof Error ? err.message : "Erro ao exportar.");
+    } finally {
+      setExportLoading(false);
+    }
+  };
+
   const paged = React.useMemo(() => {
     const start = (currentPage - 1) * PAGE_SIZE;
     return filtered.slice(start, start + PAGE_SIZE);
@@ -112,6 +146,47 @@ export default function OrdersList() {
               </option>
             ))}
           </select>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-2xl border border-[#e5e5e3] p-4 sm:p-5">
+        <p className="text-sm font-medium text-[#131313] mb-3">Exportar para Excel</p>
+        <div className="flex flex-wrap items-end gap-3">
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-[#5a5a59]">De</label>
+            <input
+              type="date"
+              value={exportFrom}
+              onChange={(e) => setExportFrom(e.target.value)}
+              className="h-11 px-3 rounded-xl border border-[#dcdcdc] text-sm"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-[#5a5a59]">Até</label>
+            <input
+              type="date"
+              value={exportTo}
+              onChange={(e) => setExportTo(e.target.value)}
+              className="h-11 px-3 rounded-xl border border-[#dcdcdc] text-sm"
+            />
+          </div>
+          <button
+            type="button"
+            onClick={handleExport}
+            disabled={exportLoading}
+            className="h-11 px-5 rounded-xl bg-[#313b2e] text-white text-sm font-semibold hover:bg-[#3d4937] transition-colors disabled:opacity-70 flex items-center gap-2"
+          >
+            {exportLoading ? (
+              "A exportar..."
+            ) : (
+              <>
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4" />
+                </svg>
+                Exportar .xlsx
+              </>
+            )}
+          </button>
         </div>
       </div>
 

@@ -10,6 +10,9 @@ import {
   updateOrderStatus,
 } from "../db.js";
 import { attachOptionalAuth, requireAdmin, requireAuth } from "../middleware/auth.js";
+import { sendOrderConfirmationToCustomer, sendOrderNotificationToAdmin } from "../services/mail.js";
+import { listOrdersByDateRange } from "../db.js";
+import * as XLSX from "xlsx";
 
 export const ordersRouter = Router();
 
@@ -89,6 +92,68 @@ ordersRouter.post("/", attachOptionalAuth, (req, res) => {
   });
 
   res.status(201).json({ id: orderId, orderNumber });
+
+  // Send emails asynchronously (do not block response)
+  const orderEmailData = {
+    orderNumber,
+    customerName: name,
+    email,
+    address,
+    locality,
+    postalCode,
+    phone,
+    nif,
+    items: items as Array<{ name: string; variant?: string; quantity: number; price: number }>,
+    subtotal: Number.isFinite(subtotal) ? subtotal : 0,
+    total: Number.isFinite(total) ? total : 0,
+  };
+  Promise.all([
+    sendOrderConfirmationToCustomer(orderEmailData),
+    sendOrderNotificationToAdmin(orderEmailData),
+  ]).catch((err) => console.error("Order email error:", err));
+});
+
+ordersRouter.get("/export", requireAdmin, (req, res) => {
+  const { from, to } = req.query as { from?: string; to?: string };
+  const fromDate = from && /^\d{4}-\d{2}-\d{2}$/.test(from) ? from : "2000-01-01";
+  const toDate = to && /^\d{4}-\d{2}-\d{2}$/.test(to) ? to : new Date().toISOString().slice(0, 10);
+
+  const rows = listOrdersByDateRange(fromDate, toDate);
+
+  const sheetData = rows.map((o) => {
+    let items = "";
+    try {
+      const parsed = JSON.parse(o.items_json || "[]") as Array<{ name?: string; variant?: string; quantity?: number; price?: number }>;
+      items = parsed.map((i) => `${i.name ?? ""}${i.variant ? ` (${i.variant})` : ""} x${i.quantity ?? 1} @ €${Number(i.price ?? 0).toFixed(2)}`).join(" | ");
+    } catch { /* empty */ }
+    return {
+      "Nº Encomenda": o.order_number,
+      "Data": o.created_at,
+      "Estado": o.status,
+      "Nome": o.customer_name,
+      "Email": o.email,
+      "Telefone": o.phone,
+      "NIF": o.nif,
+      "Morada": o.address,
+      "CP": o.postal_code,
+      "Localidade": o.locality,
+      "Região": o.region,
+      "Subtotal (€)": o.subtotal,
+      "Total (€)": o.total,
+      "Artigos": items,
+    };
+  });
+
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.json_to_sheet(sheetData);
+  XLSX.utils.book_append_sheet(wb, ws, "Encomendas");
+
+  const buffer = XLSX.write(wb, { type: "buffer", bookType: "xlsx" }) as Buffer;
+  const filename = `encomendas_${fromDate}_${toDate}.xlsx`;
+
+  res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+  res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+  res.send(buffer);
 });
 
 ordersRouter.get("/admin", requireAdmin, (_req, res) => {

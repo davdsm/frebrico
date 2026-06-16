@@ -32,10 +32,10 @@ export default function Privacy() {
                   a <strong>Frebrico, Lda.</strong> (doravante designada "Frebrico"), com sede em Portugal.
                 </p>
                 <ul className="list-disc pl-6 mt-3 space-y-1">
-                  <li>Denominação social: Frebrico, Lda.</li>
-                  <li>NIPC: [a preencher]</li>
-                  <li>Sede: [a preencher]</li>
-                  <li>Email para proteção de dados: [a preencher]</li>
+                  <li>Denominação social: Frebrico - Comércio de Bricolage, Lda.</li>
+                  <li>NIPC: 507027825</li>
+                  <li>Sede: Urbanização Industrial do Soeiro, Lote 21, 4745-458 São Mamede do Coronado, Trofa</li>
+                  <li>Email para proteção de dados: info@frebrico.pt</li>
                 </ul>
                 <p className="mt-3">
                   A Frebrico compromete-se a proteger a privacidade e os dados pessoais dos utilizadores

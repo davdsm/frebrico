@@ -468,6 +468,15 @@ export function listOrders(limit = 50): OrderRow[] {
   return stmt.all(limit) as OrderRow[];
 }
 
+export function listOrdersByDateRange(from: string, to: string): OrderRow[] {
+  const database = getDb();
+  const stmt = database.prepare(
+    "SELECT * FROM orders WHERE created_at >= ? AND created_at <= ? ORDER BY created_at DESC"
+  );
+  // to is a date like "2024-12-31" — append end-of-day time
+  return stmt.all(from, to.length === 10 ? `${to} 23:59:59` : to) as OrderRow[];
+}
+
 export function getOrderById(id: number): OrderRow | undefined {
   const database = getDb();
   const stmt = database.prepare("SELECT * FROM orders WHERE id = ?");

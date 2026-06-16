@@ -16,6 +16,7 @@ import { productsRouter } from "./routes/products.js";
 import { attributesRouter } from "./routes/attributes.js";
 import { createRateLimiter, setSecurityHeaders } from "./middleware/security.js";
 import { ordersRouter } from "./routes/orders.js";
+import { contactRouter } from "./routes/contact.js";
 
 const PORT = Number(process.env.PORT) || 3001;
 const isProduction = process.env.NODE_ENV === "production";
@@ -70,6 +71,7 @@ app.use("/api/categories", categoriesRouter);
 app.use("/api/products", productsRouter);
 app.use("/api/attributes", attributesRouter);
 app.use("/api/orders", ordersRouter);
+app.use("/api/contact", contactRouter);
 
 app.get("/api/health", (_req, res) => {
   res.json({ ok: true, env: process.env.NODE_ENV ?? "development" });

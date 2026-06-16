@@ -2,16 +2,18 @@ import React from "react";
 import type { CartItem } from "../../cart/cartTypes";
 import { useContent } from "../../content/useContent";
 import { resolveImageUrl } from "../../api/shop";
+import type { ShippingResult } from "../../cart/shippingUtils";
 
 interface CartSummaryProps {
   cartItems: CartItem[];
   updateQuantity: (id: string, newQuantity: number) => void;
   removeItem: (id: string) => void;
   subtotal: number;
+  shipping: ShippingResult;
   total: number;
 }
 
-export function CartSummary({ cartItems, updateQuantity, removeItem, subtotal, total }: CartSummaryProps) {
+export function CartSummary({ cartItems, updateQuantity, removeItem, subtotal, shipping, total }: CartSummaryProps) {
   const summaryTitle = useContent("cart", "summary", "title");
   const discountPlaceholder = useContent("cart", "summary", "discount_placeholder");
   const applyButton = useContent("cart", "summary", "apply_button");
@@ -83,6 +85,17 @@ export function CartSummary({ cartItems, updateQuantity, removeItem, subtotal, t
             <span className="text-base text-[#5a5a59]">{subtotalLabel}</span>
             <span className="text-base font-medium text-black">€{subtotal.toFixed(2)}</span>
           </div>
+          <div className="flex items-center justify-between">
+            <span className="text-base text-[#5a5a59]">Portes</span>
+            <span className={`text-base font-medium ${shipping.type === "free" ? "text-emerald-600" : "text-black"}`}>
+              {shipping.label}
+            </span>
+          </div>
+          {shipping.type === "on_request" && (
+            <p className="text-xs text-[#5a5a59] leading-snug">
+              O custo de envio será calculado e comunicado após a encomenda.
+            </p>
+          )}
         </div>
 
         <div className="flex items-center justify-between pt-4 border-t border-[#313b2e]">

@@ -2,6 +2,7 @@ import React from 'react';
 import { useLocation, useOutlet } from 'react-router';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Header } from './components/organisms/Header';
+import { AnnouncementBar } from './components/organisms/AnnouncementBar';
 import { NewFooter } from './components/organisms/NewFooter';
 import { PageTemplate } from './components/templates/PageTemplate';
 import { useContentState } from './content/ContentContext';
@@ -114,8 +115,9 @@ export default function Layout() {
 
       {loaderDone && (
         <PageTemplate>
+          <AnnouncementBar />
           <div
-            className={`fixed inset-x-0 top-0 z-50 py-3 text-black transition-all duration-300 ${
+            className={`fixed inset-x-0 top-10 z-50 py-3 text-black transition-all duration-300 ${
               showHeader ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'
             } ${
               isScrolled
@@ -134,7 +136,7 @@ export default function Layout() {
               animate={variants.animate}
               exit={variants.exit}
               transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-              className="pt-24"
+              className="pt-32"
             >
               {outlet}
               <NewFooter />

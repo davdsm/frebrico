@@ -31,11 +31,11 @@ export default function Terms() {
                   portões, arames, estruturas metálicas e materiais de bricolage e construção.
                 </p>
                 <ul className="list-disc pl-6 mt-3 space-y-1">
-                  <li>Denominação social: Frebrico, Lda.</li>
-                  <li>NIPC: [a preencher]</li>
-                  <li>Sede: [a preencher]</li>
-                  <li>Email: [a preencher]</li>
-                  <li>Telefone: [a preencher]</li>
+                  <li>Denominação social: Frebrico - Comércio de Bricolage, Lda.</li>
+                  <li>NIPC: 507027825</li>
+                  <li>Sede: Urbanização Industrial do Soeiro, Lote 21, 4745-458 São Mamede do Coronado, Trofa</li>
+                  <li>Email: info@frebrico.pt</li>
+                  <li>Telefone: +351 252 048 360</li>
                 </ul>
               </div>
 

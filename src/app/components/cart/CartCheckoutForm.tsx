@@ -5,8 +5,15 @@ import { useContent } from "../../content/useContent";
 import { useCustomerAuth } from "../../auth/CustomerAuthContext";
 import { useCart } from "../../cart/CartContext";
 import { createCheckoutOrder } from "../../auth/customerAuthApi";
+import { computeTotal } from "../../cart/shippingUtils";
+import type { ShippingResult } from "../../cart/shippingUtils";
 
-export function CartCheckoutForm() {
+interface CartCheckoutFormProps {
+  shipping: ShippingResult;
+  onCountryChange: (country: string) => void;
+}
+
+export function CartCheckoutForm({ shipping, onCountryChange }: CartCheckoutFormProps) {
   const navigate = useNavigate();
   const contactTitle = useContent("cart", "checkout", "contact_title");
   const loginLink = useContent("cart", "checkout", "login_link");
@@ -16,6 +23,7 @@ export function CartCheckoutForm() {
   const submitButton = useContent("cart", "checkout", "submit_button");
   const { user, login, logout, token } = useCustomerAuth();
   const { items, subtotal, clearCart } = useCart();
+  const total = computeTotal(subtotal, shipping);
   const [form, setForm] = useState({
     email: "",
     firstName: "",
@@ -88,7 +96,7 @@ export function CartCheckoutForm() {
             image: item.image,
           })),
           subtotal,
-          total: subtotal,
+          total,
         },
         token ?? undefined
       );
@@ -197,11 +205,20 @@ export function CartCheckoutForm() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <input type="text" placeholder="Código Postal" value={form.postalCode} onChange={(e) => onChange("postalCode", e.target.value)} className="w-full px-4 py-3 border border-[#dcdcdc] rounded-lg text-base text-black placeholder:text-[#5a5a59] focus:border-[#313b2e] focus:outline-none transition-colors" />
           <input type="text" placeholder="Cidade" value={form.city} onChange={(e) => onChange("city", e.target.value)} className="w-full px-4 py-3 border border-[#dcdcdc] rounded-lg text-base text-black placeholder:text-[#5a5a59] focus:border-[#313b2e] focus:outline-none transition-colors" />
-          <select className="w-full px-4 py-3 border border-[#dcdcdc] rounded-lg text-base text-[#5a5a59] focus:border-[#313b2e] focus:outline-none transition-colors appearance-none bg-white" value={form.country} onChange={(e) => onChange("country", e.target.value)}>
+          <select
+            className="w-full px-4 py-3 border border-[#dcdcdc] rounded-lg text-base text-[#5a5a59] focus:border-[#313b2e] focus:outline-none transition-colors appearance-none bg-white"
+            value={form.country}
+            onChange={(e) => {
+              onChange("country", e.target.value);
+              onCountryChange(e.target.value);
+            }}
+          >
             <option value="" disabled>País/Região</option>
-            <option value="PT">Portugal</option>
+            <option value="PT">Portugal Continental</option>
+            <option value="PT_ISLANDS">Portugal — Ilhas (Açores / Madeira)</option>
             <option value="ES">Espanha</option>
             <option value="FR">França</option>
+            <option value="OTHER">Outro país</option>
           </select>
         </div>
         <input type="tel" placeholder="Telemóvel" value={form.phone} onChange={(e) => onChange("phone", e.target.value)} className="w-full px-4 py-3 border border-[#dcdcdc] rounded-lg text-base text-black placeholder:text-[#5a5a59] focus:border-[#313b2e] focus:outline-none transition-colors" />

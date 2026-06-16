@@ -47,14 +47,10 @@ function parsePriceValue(raw: string, fallback: number): number {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
 }
 
-/** Grid cells need min-w-0 so truncate/ellipsis works; title shows full text on hover. */
 function CellText({ text, className = "" }: { text: string; className?: string }) {
   const display = text.trim() ? text : "—";
   return (
-    <span
-      className={`block min-w-0 max-w-full truncate ${className}`.trim()}
-      title={display}
-    >
+    <span className={`block break-words whitespace-normal ${className}`.trim()}>
       {display}
     </span>
   );
@@ -80,80 +76,78 @@ export function ProductSpecs({ product }: ProductSpecsProps) {
     <FadeInUpInView>
       <section id="product-specs-table" className="w-full bg-white py-12 md:py-16 lg:py-20 scroll-mt-28">
         <div className="max-w-[1440px] mx-auto px-4 md:px-8 lg:px-20">
-          <p className="text-sm text-[#5a5a59] mb-4">Selecione a variante na tabela e clique em Adicionar.</p>
+          <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+            <p className="text-sm text-[#5a5a59]">Selecione a variante na tabela e clique em Adicionar.</p>
+            <p className="text-xs text-[#5a5a59]">
+              Ref. artigo: <span className="font-semibold text-[#36474f]">{product.id}</span>
+            </p>
+          </div>
           <div className="w-full overflow-x-auto">
-            <div className="w-full min-w-[500px]">
-              <div
-                className="grid gap-4 pb-4 border-b-[3px] border-[#36474f]"
-                style={{ gridTemplateColumns: `repeat(${columns.length + 1}, minmax(0, 1fr))` }}
-              >
-                {columns.map((col, i) => (
-                  <div key={i} className="min-w-0 text-xs text-[#36474f] font-normal">
-                    <CellText text={col} />
-                  </div>
-                ))}
-                <div className="min-w-0 text-xs text-[#36474f] font-normal text-right">
-                  <CellText text="Carrinho" className="text-right" />
-                </div>
-              </div>
-              <div className="divide-y divide-[#d6d6d6]">
-                {rows.map((row, rowIndex) => (
-                  <div
-                    key={rowIndex}
-                    className="grid gap-4 py-6 items-center"
-                    style={{ gridTemplateColumns: `repeat(${columns.length + 1}, minmax(0, 1fr))` }}
-                  >
-                    {columns.map((_, colIndex) => {
-                      const cell = row[colIndex] ?? "";
-                      const priceText =
-                        colIndex === priceColIndex && hasPriceColumn
-                          ? cell.trim()
-                            ? `€${parsePriceValue(cell, Number(product.price) || 0).toFixed(2)}`
-                            : ""
-                          : null;
-                      return (
-                        <div key={colIndex} className="min-w-0 text-base text-[#3f3f3f]">
-                          <CellText text={priceText != null ? priceText : cell} />
-                        </div>
-                      );
-                    })}
-                    <div className="flex justify-end">
-                      {(() => {
-                        const rowId = `${product.id}-spec-${rowIndex}`;
-                        const variantLabel = row.filter((_, i) => i !== priceColIndex).join(' / ') || '—';
-                        const alreadyInCart = items.some((item) => item.id === rowId && item.variant === variantLabel);
-                        const isAddedState = alreadyInCart || lastAddedRow === rowIndex;
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="border-b-[3px] border-[#36474f]">
+                  {columns.map((col, i) => (
+                    <th key={i} className="pb-4 pr-4 text-xs text-[#36474f] font-normal text-left whitespace-nowrap">
+                      {col}
+                    </th>
+                  ))}
+                  <th className="pb-4 text-xs text-[#36474f] font-normal text-right whitespace-nowrap">
+                    Carrinho
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#d6d6d6]">
+                {rows.map((row, rowIndex) => {
+                  const rowId = `${product.id}-spec-${rowIndex}`;
+                  const variantLabel = row.filter((_, i) => i !== priceColIndex).join(' / ') || '—';
+                  const alreadyInCart = items.some((item) => item.id === rowId && item.variant === variantLabel);
+                  const isAddedState = alreadyInCart || lastAddedRow === rowIndex;
+                  return (
+                    <tr key={rowIndex}>
+                      {columns.map((_, colIndex) => {
+                        const cell = row[colIndex] ?? "";
+                        const priceText =
+                          colIndex === priceColIndex && hasPriceColumn
+                            ? cell.trim()
+                              ? `€${parsePriceValue(cell, Number(product.price) || 0).toFixed(2)}`
+                              : ""
+                            : null;
                         return (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const priceCell = hasPriceColumn ? (row[priceColIndex] ?? "") : "";
-                          const price = parsePriceValue(priceCell, Number(product.price) || 0);
-                          addItem({
-                            id: rowId,
-                            name: product.name,
-                            variant: variantLabel,
-                            price,
-                            image: mainImage,
-                          });
-                          setLastAddedRow(rowIndex);
-                          window.setTimeout(() => setLastAddedRow(null), 900);
-                        }}
-                        className={`px-4 py-2 rounded-full text-xs font-semibold transition-colors shrink-0 ${
-                          isAddedState
-                            ? 'bg-emerald-600 text-white hover:bg-emerald-700'
-                            : 'bg-white text-[#313b2e] border border-black/10 hover:bg-[#313b2e] hover:text-white'
-                        }`}
-                      >
-                        {isAddedState ? 'Adicionado' : 'Adicionar'}
-                      </button>
+                          <td key={colIndex} className="py-6 pr-4 text-base text-[#3f3f3f] align-middle">
+                            <CellText text={priceText != null ? priceText : cell} />
+                          </td>
                         );
-                      })()}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+                      })}
+                      <td className="py-6 text-right align-middle">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const priceCell = hasPriceColumn ? (row[priceColIndex] ?? "") : "";
+                            const price = parsePriceValue(priceCell, Number(product.price) || 0);
+                            addItem({
+                              id: rowId,
+                              name: product.name,
+                              variant: variantLabel,
+                              price,
+                              image: mainImage,
+                            });
+                            setLastAddedRow(rowIndex);
+                            window.setTimeout(() => setLastAddedRow(null), 900);
+                          }}
+                          className={`px-4 py-2 rounded-full text-xs font-semibold transition-colors shrink-0 ${
+                            isAddedState
+                              ? 'bg-emerald-600 text-white hover:bg-emerald-700'
+                              : 'bg-white text-[#313b2e] border border-black/10 hover:bg-[#313b2e] hover:text-white'
+                          }`}
+                        >
+                          {isAddedState ? 'Adicionado' : 'Adicionar'}
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         </div>
       </section>
