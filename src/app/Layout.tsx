@@ -115,7 +115,7 @@ export default function Layout() {
 
       {loaderDone && (
         <PageTemplate>
-          <AnnouncementBar />
+          <AnnouncementBar show={showHeader} />
           <div
             className={`fixed inset-x-0 top-10 z-50 py-3 text-black transition-all duration-300 ${
               showHeader ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'
