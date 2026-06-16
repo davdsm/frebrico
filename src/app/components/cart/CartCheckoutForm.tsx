@@ -35,6 +35,7 @@ export function CartCheckoutForm({ shipping, onCountryChange }: CartCheckoutForm
     country: "PT",
     phone: "",
     nif: "",
+    observations: "",
   });
   const [checkoutError, setCheckoutError] = useState("");
   const [checkoutLoading, setCheckoutLoading] = useState(false);
@@ -97,6 +98,7 @@ export function CartCheckoutForm({ shipping, onCountryChange }: CartCheckoutForm
           })),
           subtotal,
           total,
+          observations: form.observations,
         },
         token ?? undefined
       );
@@ -221,8 +223,15 @@ export function CartCheckoutForm({ shipping, onCountryChange }: CartCheckoutForm
             <option value="OTHER">Outro país</option>
           </select>
         </div>
-        <input type="tel" placeholder="Telemóvel" value={form.phone} onChange={(e) => onChange("phone", e.target.value)} className="w-full px-4 py-3 border border-[#dcdcdc] rounded-lg text-base text-black placeholder:text-[#5a5a59] focus:border-[#313b2e] focus:outline-none transition-colors" />
+        <input type="tel" placeholder="Contacto" value={form.phone} onChange={(e) => onChange("phone", e.target.value)} className="w-full px-4 py-3 border border-[#dcdcdc] rounded-lg text-base text-black placeholder:text-[#5a5a59] focus:border-[#313b2e] focus:outline-none transition-colors" />
         <input type="text" placeholder="NIF" value={form.nif} onChange={(e) => onChange("nif", e.target.value)} className="w-full px-4 py-3 border border-[#dcdcdc] rounded-lg text-base text-black placeholder:text-[#5a5a59] focus:border-[#313b2e] focus:outline-none transition-colors" />
+        <textarea
+          placeholder="Observações (opcional)"
+          value={form.observations}
+          onChange={(e) => onChange("observations", e.target.value)}
+          rows={3}
+          className="w-full px-4 py-3 border border-[#dcdcdc] rounded-lg text-base text-black placeholder:text-[#5a5a59] focus:border-[#313b2e] focus:outline-none transition-colors resize-none"
+        />
       </div>
       <div className="flex flex-col gap-4 pt-4 border-t border-[#dcdcdc]">
         {checkoutError && <p className="text-sm text-red-700">{checkoutError}</p>}

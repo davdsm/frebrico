@@ -34,6 +34,7 @@ export type AdminOrderDetail = AdminOrder & {
   locality: string;
   postalCode: string;
   subtotal: number;
+  observations: string;
   items: Array<{ id: string; name: string; variant: string; quantity: number; price: number; image: string }>;
 };
 

@@ -86,6 +86,7 @@ function initSchema(database: Database.Database): void {
       items_json TEXT DEFAULT '[]',
       subtotal REAL NOT NULL DEFAULT 0,
       total REAL NOT NULL DEFAULT 0,
+      observations TEXT DEFAULT '',
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
@@ -163,6 +164,7 @@ function initSchema(database: Database.Database): void {
   try { database.exec("ALTER TABLE orders ADD COLUMN nif TEXT DEFAULT ''"); } catch {}
   try { database.exec("ALTER TABLE orders ADD COLUMN items_json TEXT DEFAULT '[]'"); } catch {}
   try { database.exec("ALTER TABLE orders ADD COLUMN subtotal REAL NOT NULL DEFAULT 0"); } catch {}
+  try { database.exec("ALTER TABLE orders ADD COLUMN observations TEXT DEFAULT ''"); } catch {}
 }
 
 export type ContentRow = {
@@ -329,6 +331,7 @@ export type OrderRow = {
   items_json: string;
   subtotal: number;
   total: number;
+  observations: string;
   created_at: string;
 };
 
@@ -436,11 +439,12 @@ export function createOrder(order: {
   itemsJson: string;
   subtotal: number;
   total: number;
+  observations?: string;
 }): number {
   const database = getDb();
   const stmt = database.prepare(`
-    INSERT INTO orders (user_id, order_number, status, email, customer_name, address, region, district, locality, postal_code, phone, nif, items_json, subtotal, total)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO orders (user_id, order_number, status, email, customer_name, address, region, district, locality, postal_code, phone, nif, items_json, subtotal, total, observations)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
   const result = stmt.run(
     order.userId,
@@ -457,7 +461,8 @@ export function createOrder(order: {
     order.nif,
     order.itemsJson,
     order.subtotal,
-    order.total
+    order.total,
+    order.observations ?? ''
   );
   return result.lastInsertRowid as number;
 }

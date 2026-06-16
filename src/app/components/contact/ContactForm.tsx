@@ -9,7 +9,6 @@ interface FormState {
   email: string;
   phone: string;
   message: string;
-  observations: string;
   acceptTerms: boolean;
 }
 
@@ -22,7 +21,6 @@ export function ContactForm() {
     email: "",
     phone: "",
     message: "",
-    observations: "",
     acceptTerms: false,
   });
   const [status, setStatus] = useState<Status>("idle");
@@ -49,7 +47,6 @@ export function ContactForm() {
           email: form.email,
           phone: form.phone,
           message: form.message,
-          observations: form.observations,
         }),
       });
       if (!res.ok) {
@@ -57,7 +54,7 @@ export function ContactForm() {
         throw new Error(data.error ?? "Erro ao enviar mensagem.");
       }
       setStatus("success");
-      setForm({ firstName: "", lastName: "", email: "", phone: "", message: "", observations: "", acceptTerms: false });
+      setForm({ firstName: "", lastName: "", email: "", phone: "", message: "", acceptTerms: false });
     } catch (err) {
       setStatus("error");
       setErrorMsg(err instanceof Error ? err.message : "Erro ao enviar mensagem.");
@@ -141,16 +138,6 @@ export function ContactForm() {
           placeholder="Mensagem"
           value={form.message}
           onChange={(e) => onChange("message", e.target.value)}
-          className="h-[120px] w-full px-4 py-3 rounded-xl border border-[#dcdcdc] text-lg leading-normal text-black outline-none focus:border-[#313b2e] transition-colors resize-none"
-        />
-      </div>
-
-      <div className="flex flex-col gap-4 w-full">
-        <label className="text-base font-medium leading-normal text-black/40">Observações</label>
-        <textarea
-          placeholder="Observações adicionais (opcional)"
-          value={form.observations}
-          onChange={(e) => onChange("observations", e.target.value)}
           className="h-[120px] w-full px-4 py-3 rounded-xl border border-[#dcdcdc] text-lg leading-normal text-black outline-none focus:border-[#313b2e] transition-colors resize-none"
         />
       </div>

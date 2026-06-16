@@ -51,6 +51,7 @@ interface OrderEmailData {
   postalCode: string;
   phone: string;
   nif: string;
+  observations?: string;
   items: Array<{ name: string; variant?: string; quantity: number; price: number }>;
   subtotal: number;
   total: number;
@@ -122,6 +123,7 @@ export async function sendOrderNotificationToAdmin(order: OrderEmailData) {
         <pre style="background:#f5f5f4;padding:16px;border-radius:8px;font-size:13px;">${itemsText}</pre>
         <p><strong>Subtotal:</strong> €${order.subtotal.toFixed(2)}<br>
         <strong>Total:</strong> €${order.total.toFixed(2)}</p>
+        ${order.observations ? `<h2 style="font-size:16px;margin-top:24px;">Observações</h2><p style="background:#f5f5f4;padding:16px;border-radius:8px;">${order.observations.replace(/\n/g, "<br>")}</p>` : ""}
       </div>
     </div>`;
 

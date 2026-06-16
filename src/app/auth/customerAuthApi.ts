@@ -164,6 +164,7 @@ export async function createCheckoutOrder(payload: {
   items: CheckoutOrderItem[];
   subtotal: number;
   total: number;
+  observations?: string;
 }, authToken?: string): Promise<{ id: number; orderNumber: string }> {
   const res = await fetch(`${API_BASE}/api/orders`, {
     method: "POST",

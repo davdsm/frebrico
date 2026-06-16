@@ -107,6 +107,12 @@ export default function OrderDetail() {
             <p className="text-sm text-[#5a5a59]">{order.customerName} • {order.email}</p>
             <p className="text-sm text-[#5a5a59]">NIF {order.nif} • {order.phone}</p>
             <p className="text-sm text-[#5a5a59]">{order.address}, {order.postalCode} {order.locality}</p>
+            {order.observations && (
+              <div className="mt-2 rounded-lg bg-[#f5f5f4] px-3 py-2">
+                <p className="text-xs font-medium text-[#5a5a59] mb-1">Observações</p>
+                <p className="text-sm text-[#131313] whitespace-pre-wrap">{order.observations}</p>
+              </div>
+            )}
           </div>
           <div className="space-y-2">
             {order.items.map((item, idx) => (

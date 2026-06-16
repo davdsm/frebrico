@@ -37,6 +37,7 @@ ordersRouter.post("/", attachOptionalAuth, (req, res) => {
     items?: unknown;
     subtotal?: unknown;
     total?: unknown;
+    observations?: unknown;
   };
 
   const email = clean(body.email, 254).toLowerCase();
@@ -50,6 +51,7 @@ ordersRouter.post("/", attachOptionalAuth, (req, res) => {
   const nif = clean(body.nif, 20);
   const subtotal = Number(body.subtotal ?? 0);
   const total = Number(body.total ?? 0);
+  const observations = clean(body.observations, 1000);
   const items = Array.isArray(body.items) ? body.items : [];
 
   if (!email || !name || !address || !postalCode || !phone || !nif || items.length === 0) {
@@ -89,6 +91,7 @@ ordersRouter.post("/", attachOptionalAuth, (req, res) => {
     itemsJson: JSON.stringify(items),
     subtotal: Number.isFinite(subtotal) ? subtotal : 0,
     total: Number.isFinite(total) ? total : 0,
+    observations,
   });
 
   res.status(201).json({ id: orderId, orderNumber });
@@ -103,6 +106,7 @@ ordersRouter.post("/", attachOptionalAuth, (req, res) => {
     postalCode,
     phone,
     nif,
+    observations,
     items: items as Array<{ name: string; variant?: string; quantity: number; price: number }>,
     subtotal: Number.isFinite(subtotal) ? subtotal : 0,
     total: Number.isFinite(total) ? total : 0,
@@ -238,6 +242,7 @@ ordersRouter.get("/:id", requireAuth, (req, res) => {
     nif: order.nif,
     subtotal: order.subtotal,
     total: order.total,
+    observations: order.observations ?? '',
     createdAt: order.created_at,
     items,
   });
