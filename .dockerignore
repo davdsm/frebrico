@@ -4,6 +4,7 @@ dist
 .cursor
 *.md
 data
+public/uploads
 server/node_modules
 server/data
 server/dist
