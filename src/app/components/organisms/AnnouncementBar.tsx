@@ -28,13 +28,13 @@ export function AnnouncementBar({ show }: AnnouncementBarProps) {
 
   return (
     <div
-      className="fixed inset-x-0 top-0 z-[60] bg-[#f5f5f5] text-[#131313] text-xs sm:text-sm text-center py-2 px-4 leading-tight"
+      className="w-full bg-[#f5f5f5] text-[#131313] text-xs sm:text-sm text-center py-2 px-4 leading-tight overflow-hidden"
       style={{
+        maxHeight: visible ? '3rem' : '0',
         opacity: visible ? 1 : 0,
-        transform: visible ? 'translateY(0)' : 'translateY(-100%)',
         transition: introduced
-          ? 'opacity 300ms ease, transform 300ms ease'
-          : 'opacity 700ms ease, transform 700ms ease',
+          ? 'max-height 300ms ease, opacity 300ms ease'
+          : 'max-height 700ms ease, opacity 700ms ease',
       }}
     >
       {message}

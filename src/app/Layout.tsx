@@ -115,18 +115,22 @@ export default function Layout() {
 
       {loaderDone && (
         <PageTemplate>
-          <AnnouncementBar show={showHeader} />
           <div
-            className={`fixed inset-x-0 top-10 z-50 py-3 text-black transition-all duration-300 ${
+            className={`fixed inset-x-0 top-0 z-[60] transition-all duration-300 ${
               showHeader ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'
-            } ${
-              isScrolled
-                ? 'bg-white shadow-[0_8px_24px_rgba(149,157,165,0.2)]'
-                : 'bg-transparent'
             }`}
           >
-            <div className="px-4">
-              <Header isCompact={isScrolled} />
+            <AnnouncementBar show={showHeader} />
+            <div
+              className={`py-3 text-black ${
+                isScrolled
+                  ? 'bg-white shadow-[0_8px_24px_rgba(149,157,165,0.2)]'
+                  : 'bg-transparent'
+              }`}
+            >
+              <div className="px-4">
+                <Header isCompact={isScrolled} />
+              </div>
             </div>
           </div>
           <AnimatePresence mode="wait">
