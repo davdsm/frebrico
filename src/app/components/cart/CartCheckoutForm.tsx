@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, Link } from "react-router";
 import { ContentLink } from "../common/ContentLink";
 import { useContent } from "../../content/useContent";
 import { useCustomerAuth } from "../../auth/CustomerAuthContext";
@@ -36,6 +36,7 @@ export function CartCheckoutForm({ shipping, onCountryChange }: CartCheckoutForm
     phone: "",
     nif: "",
     observations: "",
+    acceptTerms: false,
   });
   const [checkoutError, setCheckoutError] = useState("");
   const [checkoutLoading, setCheckoutLoading] = useState(false);
@@ -57,13 +58,16 @@ export function CartCheckoutForm({ shipping, onCountryChange }: CartCheckoutForm
     }));
   }, [user]);
 
-  const onChange = (key: keyof typeof form, value: string) =>
+  const onChange = (key: keyof typeof form, value: string | boolean) =>
     setForm((prev) => ({ ...prev, [key]: value }));
 
   const validateCheckout = (): string | null => {
     if (items.length === 0) return "O carrinho esta vazio.";
     if (!form.email || !form.firstName || !form.address || !form.postalCode || !form.city || !form.phone || !form.nif) {
       return "Preencha todos os campos obrigatorios, incluindo NIF.";
+    }
+    if (!form.acceptTerms) {
+      return "Deve aceitar os Termos e Condições para continuar.";
     }
     return null;
   };
@@ -233,6 +237,26 @@ export function CartCheckoutForm({ shipping, onCountryChange }: CartCheckoutForm
           className="w-full px-4 py-3 border border-[#dcdcdc] rounded-lg text-base text-black placeholder:text-[#5a5a59] focus:border-[#313b2e] focus:outline-none transition-colors resize-none"
         />
       </div>
+      <label className="flex items-start gap-3 cursor-pointer">
+        <input
+          type="checkbox"
+          checked={form.acceptTerms as boolean}
+          onChange={(e) => onChange("acceptTerms", e.target.checked)}
+          className="mt-0.5 w-5 h-5 shrink-0 border-2 border-[#dcdcdc] rounded accent-[#313b2e]"
+        />
+        <span className="text-sm text-[#5a5a59] leading-snug">
+          Li e aceito os{" "}
+          <Link to="/terms" className="text-[#313b2e] underline hover:text-[#313b2e]/70">
+            Termos e Condições
+          </Link>{" "}
+          e a{" "}
+          <Link to="/privacy" className="text-[#313b2e] underline hover:text-[#313b2e]/70">
+            Política de Privacidade
+          </Link>
+          .
+        </span>
+      </label>
+
       <div className="flex flex-col gap-4 pt-4 border-t border-[#dcdcdc]">
         {checkoutError && <p className="text-sm text-red-700">{checkoutError}</p>}
         <button type="button" onClick={handlePlaceOrder} disabled={checkoutLoading} className="w-full bg-[#313b2e] hover:bg-[#3d4937] transition-colors text-white px-8 py-4 rounded-lg font-semibold text-base disabled:opacity-70">
