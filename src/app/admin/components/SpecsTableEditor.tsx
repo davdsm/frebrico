@@ -52,6 +52,19 @@ export function SpecsTableEditor({ value, onChange, label = "Especificações" }
     setColumns(columns.map((c, i) => (i === colIndex ? name : c)));
   };
 
+  const moveColumn = (colIndex: number, direction: "left" | "right") => {
+    const targetIndex = direction === "left" ? colIndex - 1 : colIndex + 1;
+    if (targetIndex < 0 || targetIndex >= columns.length) return;
+    const nextColumns = [...columns];
+    [nextColumns[colIndex], nextColumns[targetIndex]] = [nextColumns[targetIndex], nextColumns[colIndex]];
+    const nextRows = safeRows.map((row) => {
+      const arr = [...row];
+      [arr[colIndex], arr[targetIndex]] = [arr[targetIndex], arr[colIndex]];
+      return arr;
+    });
+    onChange({ columns: nextColumns, rows: nextRows });
+  };
+
   const addRow = () => setRows([...safeRows, columns.map(() => "")]);
   const removeRow = (rowIndex: number) => setRows(safeRows.filter((_, i) => i !== rowIndex));
   const updateCell = (rowIndex: number, colIndex: number, cellValue: string) => {
@@ -87,6 +100,15 @@ export function SpecsTableEditor({ value, onChange, label = "Especificações" }
               {columns.map((col, colIndex) => (
                 <th key={colIndex} className="text-left px-2 py-2 font-medium text-[#5a5a59] whitespace-nowrap align-top">
                   <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => moveColumn(colIndex, "left")}
+                      disabled={colIndex === 0}
+                      className="p-1 text-[#5a5a59] hover:text-[#313b2e] disabled:opacity-20 rounded hover:bg-[#e5e5e3] transition-colors"
+                      aria-label="Mover coluna para a esquerda"
+                    >
+                      ◀
+                    </button>
                     <input
                       type="text"
                       value={col}
@@ -94,6 +116,15 @@ export function SpecsTableEditor({ value, onChange, label = "Especificações" }
                       placeholder="Nome da coluna"
                       className={inputClass + " min-w-[100px]"}
                     />
+                    <button
+                      type="button"
+                      onClick={() => moveColumn(colIndex, "right")}
+                      disabled={colIndex === columns.length - 1}
+                      className="p-1 text-[#5a5a59] hover:text-[#313b2e] disabled:opacity-20 rounded hover:bg-[#e5e5e3] transition-colors"
+                      aria-label="Mover coluna para a direita"
+                    >
+                      ▶
+                    </button>
                     <button
                       type="button"
                       onClick={() => removeColumn(colIndex)}
