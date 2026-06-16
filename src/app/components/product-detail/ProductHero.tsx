@@ -115,12 +115,14 @@ export function ProductHero({ product, categoryName, categorySlug }: ProductHero
     });
   }, [product.image, product.images]);
   const [activeImageIndex, setActiveImageIndex] = React.useState(0);
+  const [swatchImageOverride, setSwatchImageOverride] = React.useState<string | null>(null);
   const thumbsViewportRef = React.useRef<HTMLDivElement | null>(null);
   const [showThumbNav, setShowThumbNav] = React.useState(false);
   React.useEffect(() => {
     setActiveImageIndex(0);
+    setSwatchImageOverride(null);
   }, [galleryImages.length, product.id]);
-  const mainImage = galleryImages[activeImageIndex] ?? '';
+  const mainImage = swatchImageOverride ?? (galleryImages[activeImageIndex] ?? '');
   const hasAttributes = attributeGroups.length > 0;
 
   const selectGroupValue = (groupIndex: number, valueIndex: number) => {
@@ -129,6 +131,18 @@ export function ProductHero({ product, categoryName, categorySlug }: ProductHero
       next[groupIndex] = valueIndex;
       return next;
     });
+    const val = attributeGroups[groupIndex]?.values[valueIndex];
+    if (val?.image_url) {
+      const idx = galleryImages.indexOf(val.image_url);
+      if (idx >= 0) {
+        setActiveImageIndex(idx);
+        setSwatchImageOverride(null);
+      } else {
+        setSwatchImageOverride(val.image_url);
+      }
+    } else {
+      setSwatchImageOverride(null);
+    }
   };
 
   React.useEffect(() => {
@@ -202,7 +216,7 @@ export function ProductHero({ product, categoryName, categorySlug }: ProductHero
                       <button
                         key={`${img}-${idx}`}
                         type="button"
-                        onClick={() => setActiveImageIndex(idx)}
+                        onClick={() => { setActiveImageIndex(idx); setSwatchImageOverride(null); }}
                         className={`w-16 h-16 rounded-xl overflow-hidden border-2 transition-colors shrink-0 ${
                           activeImageIndex === idx ? 'border-[#313b2e]' : 'border-[#e5e5e3] hover:border-[#c9c9c5]'
                         }`}
