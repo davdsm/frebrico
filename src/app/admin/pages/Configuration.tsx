@@ -18,7 +18,7 @@ export default function Configuration() {
   const { toast } = useToast();
   const [saving, setSaving] = useState<string | null>(null);
   const [savedKey, setSavedKey] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"maintenance" | "notifications" | "layout" | "header" | "footer">("maintenance");
+  const [activeTab, setActiveTab] = useState<"maintenance" | "notifications" | "layout" | "banner" | "header" | "footer">("maintenance");
 
   const save = async (section: string, field: string, value: string) => {
     const key = `${section}.${field}`;
@@ -54,6 +54,11 @@ export default function Configuration() {
     { id: "layout" as const, label: "Layout", icon: (
       <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M9.53 16.122a3 3 0 00-5.78 1.128 2.25 2.25 0 01-2.4 2.245 4.5 4.5 0 008.4-2.245c0-.399-.078-.78-.22-1.128zm0 0a15.998 15.998 0 003.388-1.62m-5.043-.025a15.994 15.994 0 011.622-3.395m3.42 3.42a15.995 15.995 0 004.764-4.648l3.876-5.814a1.151 1.151 0 00-1.597-1.597L14.146 6.32a15.996 15.996 0 00-4.649 4.763m3.42 3.42a6.776 6.776 0 00-3.42-3.42" />
+      </svg>
+    )},
+    { id: "banner" as const, label: "Banner", icon: (
+      <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
       </svg>
     )},
     { id: "header" as const, label: "Header", icon: (
@@ -113,6 +118,9 @@ export default function Configuration() {
       )}
       {activeTab === "layout" && (
         <LayoutPanel getVal={getVal} save={save} saving={saving} savedKey={savedKey} refetch={refetch} />
+      )}
+      {activeTab === "banner" && (
+        <BannerPanel getVal={getVal} save={save} saving={saving} savedKey={savedKey} />
       )}
       {activeTab === "header" && <HeaderEditor embedded />}
       {activeTab === "footer" && <FooterEditor embedded />}
@@ -604,6 +612,58 @@ function ColorField({ label, value, onSave, saving, justSaved }: {
           </span>
         ) : "Guardar"}
       </button>
+    </div>
+  );
+}
+
+/* ─── Banner Panel ─── */
+
+function BannerPanel({ getVal, save, saving, savedKey }: {
+  getVal: (s: string, f: string, fb?: string) => string;
+  save: (s: string, f: string, v: string) => Promise<void>;
+  saving: string | null;
+  savedKey: string | null;
+}) {
+  const isEnabled = getVal("announcement", "enabled", "true") === "true";
+  const message = getVal("announcement", "message", "Mercadorias com mais de 2 metros — os portes são sob consulta");
+
+  return (
+    <div className="max-w-2xl space-y-5">
+      <div className="bg-white rounded-2xl border border-[#e5e5e3] p-5 md:p-6 space-y-5">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-[15px] font-semibold text-[#131313]">Barra de anúncio</p>
+            <p className="text-[13px] text-[#5a5a59] mt-0.5">Faixa informativa no topo do site.</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => void save("announcement", "enabled", isEnabled ? "false" : "true")}
+            disabled={saving === "announcement.enabled"}
+            className={`relative w-12 h-7 rounded-full transition-colors duration-200 ${isEnabled ? "bg-[#313b2e]" : "bg-[#dcdcdc]"}`}
+          >
+            <span className={`absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full shadow-sm transition-transform duration-200 ${isEnabled ? "translate-x-5" : "translate-x-0"}`} />
+          </button>
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-[13px] font-medium text-[#131313]">Texto da mensagem</label>
+          <textarea
+            key={message}
+            defaultValue={message}
+            rows={2}
+            onBlur={(e) => {
+              const v = e.target.value.trim();
+              if (v !== message) void save("announcement", "message", v);
+            }}
+            className="w-full px-3 py-2.5 border border-[#dcdcdc] rounded-xl text-sm text-[#131313] focus:border-[#313b2e] focus:outline-none resize-none"
+          />
+          <p className="text-[12px] text-[#5a5a59]">O texto é guardado automaticamente ao sair do campo.</p>
+        </div>
+
+        <div className="rounded-xl bg-[#f5f5f5] px-4 py-2.5 text-sm text-[#131313] text-center">
+          <span className="font-normal">{message || "Pré-visualização da mensagem"}</span>
+        </div>
+      </div>
     </div>
   );
 }
