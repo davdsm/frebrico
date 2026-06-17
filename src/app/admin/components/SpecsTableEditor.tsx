@@ -19,9 +19,19 @@ export type SpecRow = Record<string, unknown>;
 
 const defaultData: SpecsTableData = { columns: [], rows: [] };
 
+function generateId() {
+  return Math.random().toString(36).slice(2, 10);
+}
+
 export function SpecsTableEditor({ value, onChange, label = "Especificações" }: SpecsTableEditorProps) {
-  const { columns, rows } = value?.columns?.length !== undefined ? value : defaultData;
-  const safeRows = Array.isArray(rows) ? rows : [];
+  const data = value?.columns != null ? value : defaultData;
+  const columns = Array.isArray(data.columns) ? data.columns : [];
+  const safeRows = Array.isArray(data.rows) ? data.rows : [];
+
+  // Stable IDs so React can track column DOM elements across swaps
+  const colIds = React.useRef<string[]>([]);
+  while (colIds.current.length < columns.length) colIds.current.push(generateId());
+  if (colIds.current.length > columns.length) colIds.current = colIds.current.slice(0, columns.length);
 
   const setColumns = (next: string[]) => {
     const newRows = safeRows.map((row) => {
@@ -41,32 +51,66 @@ export function SpecsTableEditor({ value, onChange, label = "Especificações" }
     onChange({ columns, rows: padded });
   };
 
-  const removeColumn = (colIndex: number) => {
+  const removeColumn = (e: React.MouseEvent, colIndex: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    colIds.current.splice(colIndex, 1);
     const nextColumns = columns.filter((_, i) => i !== colIndex);
     const nextRows = safeRows.map((row) => row.filter((_, i) => i !== colIndex));
     onChange({ columns: nextColumns, rows: nextRows });
   };
 
-  const addColumn = () => setColumns([...columns, `Coluna ${columns.length + 1}`]);
+  const addColumn = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    colIds.current.push(generateId());
+    setColumns([...columns, `Coluna ${columns.length + 1}`]);
+  };
+
+  const addRow = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setRows([...safeRows, columns.map(() => "")]);
+  };
+
   const renameColumn = (colIndex: number, name: string) => {
     setColumns(columns.map((c, i) => (i === colIndex ? name : c)));
   };
 
-  const moveColumn = (colIndex: number, direction: "left" | "right") => {
+  const moveColumn = (e: React.MouseEvent, colIndex: number, direction: "left" | "right") => {
+    e.preventDefault();
+    e.stopPropagation();
     const targetIndex = direction === "left" ? colIndex - 1 : colIndex + 1;
     if (targetIndex < 0 || targetIndex >= columns.length) return;
+
+    // Swap stable IDs so React moves DOM elements rather than updating in-place
+    const nextIds = [...colIds.current];
+    const tmpId = nextIds[colIndex];
+    nextIds[colIndex] = nextIds[targetIndex];
+    nextIds[targetIndex] = tmpId;
+    colIds.current = nextIds;
+
     const nextColumns = [...columns];
-    [nextColumns[colIndex], nextColumns[targetIndex]] = [nextColumns[targetIndex], nextColumns[colIndex]];
+    const tmpCol = nextColumns[colIndex];
+    nextColumns[colIndex] = nextColumns[targetIndex];
+    nextColumns[targetIndex] = tmpCol;
+
     const nextRows = safeRows.map((row) => {
       const arr = [...row];
-      [arr[colIndex], arr[targetIndex]] = [arr[targetIndex], arr[colIndex]];
+      const tmpCell = arr[colIndex];
+      arr[colIndex] = arr[targetIndex];
+      arr[targetIndex] = tmpCell;
       return arr;
     });
     onChange({ columns: nextColumns, rows: nextRows });
   };
 
-  const addRow = () => setRows([...safeRows, columns.map(() => "")]);
-  const removeRow = (rowIndex: number) => setRows(safeRows.filter((_, i) => i !== rowIndex));
+  const removeRow = (e: React.MouseEvent, rowIndex: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setRows(safeRows.filter((_, i) => i !== rowIndex));
+  };
+
   const updateCell = (rowIndex: number, colIndex: number, cellValue: string) => {
     setRows(
       safeRows.map((row, i) =>
@@ -98,14 +142,14 @@ export function SpecsTableEditor({ value, onChange, label = "Especificações" }
           <thead>
             <tr className="border-b border-[#e5e5e3] bg-[#f5f5f4]">
               {columns.map((col, colIndex) => (
-                <th key={colIndex} className="text-left px-2 py-2 font-medium text-[#5a5a59] whitespace-nowrap align-top">
+                <th key={colIds.current[colIndex]} className="text-left px-2 py-2 font-medium text-[#5a5a59] whitespace-nowrap align-top">
                   <div className="flex items-center gap-1">
                     <button
                       type="button"
-                      onClick={() => moveColumn(colIndex, "left")}
+                      onClick={(e) => moveColumn(e, colIndex, "left")}
                       disabled={colIndex === 0}
                       className="p-1 text-[#5a5a59] hover:text-[#313b2e] disabled:opacity-20 rounded hover:bg-[#e5e5e3] transition-colors"
-                      aria-label="Mover coluna para a esquerda"
+                      title="Mover coluna para a esquerda"
                     >
                       ◀
                     </button>
@@ -118,18 +162,18 @@ export function SpecsTableEditor({ value, onChange, label = "Especificações" }
                     />
                     <button
                       type="button"
-                      onClick={() => moveColumn(colIndex, "right")}
+                      onClick={(e) => moveColumn(e, colIndex, "right")}
                       disabled={colIndex === columns.length - 1}
                       className="p-1 text-[#5a5a59] hover:text-[#313b2e] disabled:opacity-20 rounded hover:bg-[#e5e5e3] transition-colors"
-                      aria-label="Mover coluna para a direita"
+                      title="Mover coluna para a direita"
                     >
                       ▶
                     </button>
                     <button
                       type="button"
-                      onClick={() => removeColumn(colIndex)}
+                      onClick={(e) => removeColumn(e, colIndex)}
                       className="p-1 text-red-600 hover:bg-red-50 rounded text-[11px]"
-                      aria-label="Remover coluna"
+                      title="Remover coluna"
                     >
                       ✕
                     </button>
@@ -143,7 +187,7 @@ export function SpecsTableEditor({ value, onChange, label = "Especificações" }
             {safeRows.map((row, rowIndex) => (
               <tr key={rowIndex} className="border-b border-[#e5e5e3] last:border-0">
                 {columns.map((_, colIndex) => (
-                  <td key={colIndex} className="px-2 py-1.5">
+                  <td key={colIds.current[colIndex]} className="px-2 py-1.5">
                     <input
                       type="text"
                       value={row[colIndex] ?? ""}
@@ -156,9 +200,8 @@ export function SpecsTableEditor({ value, onChange, label = "Especificações" }
                 <td className="px-2 py-1.5">
                   <button
                     type="button"
-                    onClick={() => removeRow(rowIndex)}
+                    onClick={(e) => removeRow(e, rowIndex)}
                     className="p-1.5 text-red-600 hover:bg-red-50 rounded text-[12px]"
-                    aria-label="Remover linha"
                   >
                     Remover
                   </button>
