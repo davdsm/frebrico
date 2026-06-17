@@ -238,7 +238,7 @@ export default function ProductEditor() {
         <div className="mb-4 p-4 rounded-xl bg-red-50 text-red-700 text-sm">{error}</div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-8">
+      <form onSubmit={handleSubmit} className="space-y-8 min-w-0">
         <section className="bg-white rounded-2xl border border-[#e5e5e3] p-6 max-w-xl">
           <h2 className="text-lg font-semibold text-[#131313] mb-4">Básico</h2>
           <div className="space-y-4">
@@ -329,7 +329,7 @@ export default function ProductEditor() {
           </div>
         </section>
 
-        <section className="bg-white rounded-2xl border border-[#e5e5e3] p-6">
+        <section className="bg-white rounded-2xl border border-[#e5e5e3] p-6 min-w-0">
           <SpecsTableEditor value={specifications} onChange={setSpecifications} label="Especificações" />
         </section>
 

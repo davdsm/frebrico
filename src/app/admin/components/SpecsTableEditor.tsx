@@ -1,7 +1,7 @@
 import React from "react";
 
 const inputClass =
-  "w-full px-3 py-2 border border-[#e5e5e3] rounded-lg text-[13px] bg-[#fafaf9] focus:bg-white focus:border-[#313b2e] focus:ring-2 focus:ring-[#313b2e]/8 outline-none";
+  "w-full min-w-0 px-2 py-1.5 border border-[#e5e5e3] rounded-lg text-[13px] bg-[#fafaf9] focus:bg-white focus:border-[#313b2e] focus:ring-2 focus:ring-[#313b2e]/8 outline-none break-words";
 
 function AutoResizeTextarea({
   value,
@@ -155,7 +155,7 @@ export function SpecsTableEditor({ value, onChange, label = "Especificações" }
   };
 
   return (
-    <div>
+    <div className="min-w-0 w-full">
       <div className="flex items-center justify-between mb-2">
         <label className="block text-[13px] font-medium text-[#131313]">{label}</label>
         <div className="flex gap-2">
@@ -170,70 +170,78 @@ export function SpecsTableEditor({ value, onChange, label = "Especificações" }
       <p className="text-[12px] text-[#5a5a59] mb-3">
         Defina as colunas (cabeçalhos) e preencha as linhas. Pode incluir uma coluna &quot;Preço (€)&quot; para mostrar o botão Adicionar ao carrinho.
       </p>
-      <div className="overflow-x-auto rounded-xl border border-[#e5e5e3] bg-[#fafaf9]">
-        <table className="w-full border-collapse text-[13px]">
+      <div className="w-full rounded-xl border border-[#e5e5e3] bg-[#fafaf9] overflow-hidden">
+        <table className="w-full table-fixed border-collapse text-[13px]">
+          <colgroup>
+            {columns.map((_, colIndex) => (
+              <col key={colIds.current[colIndex]} />
+            ))}
+            <col className="w-[76px]" />
+          </colgroup>
           <thead>
             <tr className="border-b border-[#e5e5e3] bg-[#f5f5f4]">
               {columns.map((col, colIndex) => (
-                <th key={colIds.current[colIndex]} className="text-left px-2 py-2 font-medium text-[#5a5a59] whitespace-nowrap align-top">
-                  <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={(e) => moveColumn(e, colIndex, "left")}
-                      disabled={colIndex === 0}
-                      className="p-1 text-[#5a5a59] hover:text-[#313b2e] disabled:opacity-20 rounded hover:bg-[#e5e5e3] transition-colors"
-                      title="Mover coluna para a esquerda"
-                    >
-                      ◀
-                    </button>
+                <th key={colIds.current[colIndex]} className="text-left px-1.5 py-2 font-medium text-[#5a5a59] align-top min-w-0">
+                  <div className="flex flex-col gap-1 min-w-0">
+                    <div className="flex items-center gap-0.5 shrink-0">
+                      <button
+                        type="button"
+                        onClick={(e) => moveColumn(e, colIndex, "left")}
+                        disabled={colIndex === 0}
+                        className="p-0.5 text-[11px] text-[#5a5a59] hover:text-[#313b2e] disabled:opacity-20 rounded hover:bg-[#e5e5e3] transition-colors"
+                        title="Mover coluna para a esquerda"
+                      >
+                        ◀
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => moveColumn(e, colIndex, "right")}
+                        disabled={colIndex === columns.length - 1}
+                        className="p-0.5 text-[11px] text-[#5a5a59] hover:text-[#313b2e] disabled:opacity-20 rounded hover:bg-[#e5e5e3] transition-colors"
+                        title="Mover coluna para a direita"
+                      >
+                        ▶
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => removeColumn(e, colIndex)}
+                        className="p-0.5 text-red-600 hover:bg-red-50 rounded text-[10px]"
+                        title="Remover coluna"
+                      >
+                        ✕
+                      </button>
+                    </div>
                     <input
                       type="text"
                       value={col}
                       onChange={(e) => renameColumn(colIndex, e.target.value)}
-                      placeholder="Nome da coluna"
-                      className={inputClass + " min-w-[100px]"}
+                      placeholder="Coluna"
+                      className={inputClass}
                     />
-                    <button
-                      type="button"
-                      onClick={(e) => moveColumn(e, colIndex, "right")}
-                      disabled={colIndex === columns.length - 1}
-                      className="p-1 text-[#5a5a59] hover:text-[#313b2e] disabled:opacity-20 rounded hover:bg-[#e5e5e3] transition-colors"
-                      title="Mover coluna para a direita"
-                    >
-                      ▶
-                    </button>
-                    <button
-                      type="button"
-                      onClick={(e) => removeColumn(e, colIndex)}
-                      className="p-1 text-red-600 hover:bg-red-50 rounded text-[11px]"
-                      title="Remover coluna"
-                    >
-                      ✕
-                    </button>
                   </div>
                 </th>
               ))}
-              <th className="w-20 px-2 py-2" />
+              <th className="px-1.5 py-2 align-top" />
             </tr>
           </thead>
           <tbody>
             {safeRows.map((row, rowIndex) => (
               <tr key={rowIndex} className="border-b border-[#e5e5e3] last:border-0">
                 {columns.map((_, colIndex) => (
-                  <td key={colIds.current[colIndex]} className="px-2 py-1.5 align-top">
+                  <td key={colIds.current[colIndex]} className="px-1.5 py-1.5 align-top min-w-0">
                     <AutoResizeTextarea
                       value={row[colIndex] ?? ""}
                       onChange={(v) => updateCell(rowIndex, colIndex, v)}
                       placeholder="—"
-                      className={inputClass + " min-w-[70px]"}
+                      className={inputClass}
                     />
                   </td>
                 ))}
-                <td className="px-2 py-1.5">
+                <td className="px-1.5 py-1.5 align-top">
                   <button
                     type="button"
                     onClick={(e) => removeRow(e, rowIndex)}
-                    className="p-1.5 text-red-600 hover:bg-red-50 rounded text-[12px]"
+                    className="p-1 text-red-600 hover:bg-red-50 rounded text-[11px] whitespace-nowrap"
                   >
                     Remover
                   </button>
