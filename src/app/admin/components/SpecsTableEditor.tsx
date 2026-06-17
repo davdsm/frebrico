@@ -3,6 +3,39 @@ import React from "react";
 const inputClass =
   "w-full px-3 py-2 border border-[#e5e5e3] rounded-lg text-[13px] bg-[#fafaf9] focus:bg-white focus:border-[#313b2e] focus:ring-2 focus:ring-[#313b2e]/8 outline-none";
 
+function AutoResizeTextarea({
+  value,
+  onChange,
+  placeholder,
+  className,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  className?: string;
+}) {
+  const ref = React.useRef<HTMLTextAreaElement>(null);
+
+  React.useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = el.scrollHeight + "px";
+  }, [value]);
+
+  return (
+    <textarea
+      ref={ref}
+      value={value}
+      rows={1}
+      placeholder={placeholder}
+      className={className}
+      style={{ resize: "none", overflow: "hidden" }}
+      onChange={(e) => onChange(e.target.value)}
+    />
+  );
+}
+
 export type SpecsTableData = {
   columns: string[];
   rows: string[][];
@@ -187,11 +220,10 @@ export function SpecsTableEditor({ value, onChange, label = "Especificações" }
             {safeRows.map((row, rowIndex) => (
               <tr key={rowIndex} className="border-b border-[#e5e5e3] last:border-0">
                 {columns.map((_, colIndex) => (
-                  <td key={colIds.current[colIndex]} className="px-2 py-1.5">
-                    <input
-                      type="text"
+                  <td key={colIds.current[colIndex]} className="px-2 py-1.5 align-top">
+                    <AutoResizeTextarea
                       value={row[colIndex] ?? ""}
-                      onChange={(e) => updateCell(rowIndex, colIndex, e.target.value)}
+                      onChange={(v) => updateCell(rowIndex, colIndex, v)}
                       placeholder="—"
                       className={inputClass + " min-w-[70px]"}
                     />
