@@ -324,12 +324,13 @@ export default function ProductEditor() {
               <DownloadsEditor value={downloads} onChange={setDownloads} label="Downloads" />
             </div>
             <div>
-              <SpecsTableEditor value={specifications} onChange={setSpecifications} label="Especificações" />
-            </div>
-            <div>
               <FaqsEditor value={faqs} onChange={setFaqs} label="FAQs" />
             </div>
           </div>
+        </section>
+
+        <section className="bg-white rounded-2xl border border-[#e5e5e3] p-6">
+          <SpecsTableEditor value={specifications} onChange={setSpecifications} label="Especificações" />
         </section>
 
         <div className="flex gap-3">
