@@ -66,6 +66,10 @@ export function SpecsTableEditor({ value, onChange, label = "Especificações" }
   while (colIds.current.length < columns.length) colIds.current.push(generateId());
   if (colIds.current.length > columns.length) colIds.current = colIds.current.slice(0, columns.length);
 
+  const rowIds = React.useRef<string[]>([]);
+  while (rowIds.current.length < safeRows.length) rowIds.current.push(generateId());
+  if (rowIds.current.length > safeRows.length) rowIds.current = rowIds.current.slice(0, safeRows.length);
+
   const setColumns = (next: string[]) => {
     const newRows = safeRows.map((row) => {
       const arr = [...(row || [])];
@@ -103,6 +107,7 @@ export function SpecsTableEditor({ value, onChange, label = "Especificações" }
   const addRow = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    rowIds.current.push(generateId());
     setRows([...safeRows, columns.map(() => "")]);
   };
 
@@ -141,7 +146,27 @@ export function SpecsTableEditor({ value, onChange, label = "Especificações" }
   const removeRow = (e: React.MouseEvent, rowIndex: number) => {
     e.preventDefault();
     e.stopPropagation();
+    rowIds.current.splice(rowIndex, 1);
     setRows(safeRows.filter((_, i) => i !== rowIndex));
+  };
+
+  const moveRow = (e: React.MouseEvent, rowIndex: number, direction: "up" | "down") => {
+    e.preventDefault();
+    e.stopPropagation();
+    const targetIndex = direction === "up" ? rowIndex - 1 : rowIndex + 1;
+    if (targetIndex < 0 || targetIndex >= safeRows.length) return;
+
+    const nextIds = [...rowIds.current];
+    const tmpId = nextIds[rowIndex];
+    nextIds[rowIndex] = nextIds[targetIndex];
+    nextIds[targetIndex] = tmpId;
+    rowIds.current = nextIds;
+
+    const nextRows = [...safeRows];
+    const tmpRow = nextRows[rowIndex];
+    nextRows[rowIndex] = nextRows[targetIndex];
+    nextRows[targetIndex] = tmpRow;
+    setRows(nextRows);
   };
 
   const updateCell = (rowIndex: number, colIndex: number, cellValue: string) => {
@@ -176,7 +201,7 @@ export function SpecsTableEditor({ value, onChange, label = "Especificações" }
             {columns.map((_, colIndex) => (
               <col key={colIds.current[colIndex]} />
             ))}
-            <col className="w-[76px]" />
+            <col className="w-[92px]" />
           </colgroup>
           <thead>
             <tr className="border-b border-[#e5e5e3] bg-[#f5f5f4]">
@@ -226,7 +251,7 @@ export function SpecsTableEditor({ value, onChange, label = "Especificações" }
           </thead>
           <tbody>
             {safeRows.map((row, rowIndex) => (
-              <tr key={rowIndex} className="border-b border-[#e5e5e3] last:border-0">
+              <tr key={rowIds.current[rowIndex]} className="border-b border-[#e5e5e3] last:border-0">
                 {columns.map((_, colIndex) => (
                   <td key={colIds.current[colIndex]} className="px-1.5 py-1.5 align-top min-w-0">
                     <AutoResizeTextarea
@@ -238,13 +263,35 @@ export function SpecsTableEditor({ value, onChange, label = "Especificações" }
                   </td>
                 ))}
                 <td className="px-1.5 py-1.5 align-top">
-                  <button
-                    type="button"
-                    onClick={(e) => removeRow(e, rowIndex)}
-                    className="p-1 text-red-600 hover:bg-red-50 rounded text-[11px] whitespace-nowrap"
-                  >
-                    Remover
-                  </button>
+                  <div className="flex flex-col items-start gap-0.5">
+                    <div className="flex items-center gap-0.5">
+                      <button
+                        type="button"
+                        onClick={(e) => moveRow(e, rowIndex, "up")}
+                        disabled={rowIndex === 0}
+                        className="p-0.5 text-[11px] text-[#5a5a59] hover:text-[#313b2e] disabled:opacity-20 rounded hover:bg-[#e5e5e3] transition-colors"
+                        title="Mover linha para cima"
+                      >
+                        ▲
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => moveRow(e, rowIndex, "down")}
+                        disabled={rowIndex === safeRows.length - 1}
+                        className="p-0.5 text-[11px] text-[#5a5a59] hover:text-[#313b2e] disabled:opacity-20 rounded hover:bg-[#e5e5e3] transition-colors"
+                        title="Mover linha para baixo"
+                      >
+                        ▼
+                      </button>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={(e) => removeRow(e, rowIndex)}
+                      className="p-1 text-red-600 hover:bg-red-50 rounded text-[11px] whitespace-nowrap"
+                    >
+                      Remover
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
