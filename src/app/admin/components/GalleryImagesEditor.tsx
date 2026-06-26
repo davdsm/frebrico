@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { uploadImage, listUploads, getApiBase, type UploadRecord } from "../../content/api";
-import { normalizeUploadPathForMatch } from "./ImageUploadField";
+import { normalizeUploadPathForMatch, mergePickerImages } from "./ImageUploadField";
 
 interface GalleryImagesEditorProps {
   value: string[];
@@ -27,6 +27,11 @@ export function GalleryImagesEditor({
   const apiBase = getApiBase();
 
   const normalizedGallery = value.map(normalizeUploadPathForMatch).filter(Boolean);
+
+  const pickerImages = React.useMemo(
+    () => mergePickerImages(existingList, value),
+    [existingList, value]
+  );
 
   const loadExisting = useCallback(async () => {
     setLoadingList(true);
@@ -135,17 +140,17 @@ export function GalleryImagesEditor({
 
       <div className="mb-4">
         <p className="text-[12px] font-medium text-[#131313] mb-2">Adicionar das já carregadas</p>
-        {loadingList ? (
+        {loadingList && pickerImages.length === 0 ? (
           <p className="text-[12px] text-[#5a5a59]">A carregar lista...</p>
-        ) : existingList.length === 0 ? (
+        ) : pickerImages.length === 0 ? (
           <p className="text-[12px] text-[#5a5a59]">Ainda não há imagens nesta secção. Carregue uma abaixo.</p>
         ) : (
           <div className="flex flex-wrap gap-2">
-            {existingList.map((item) => {
+            {pickerImages.map((item) => {
               const selected = isInGallery(item.path);
               return (
                 <button
-                  key={item.id}
+                  key={item.key}
                   type="button"
                   onClick={() => (selected ? undefined : addImage(item.path))}
                   disabled={selected}

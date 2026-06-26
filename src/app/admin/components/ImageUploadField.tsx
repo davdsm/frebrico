@@ -32,6 +32,39 @@ export interface ImageUploadFieldProps {
    * Use for category icons saved under different sections (icons, cat-5, etc.) so the current file stays selectable.
    */
   listUploadsForWholePage?: boolean;
+  /** Extra image paths (e.g. product gallery) merged into the picker even if not in uploads table */
+  extraPaths?: string[];
+}
+
+export type PickerImage = {
+  key: string;
+  path: string;
+  original_name: string;
+};
+
+/** Merge API upload records with extra paths (gallery, legacy imports, etc.). */
+export function mergePickerImages(
+  records: UploadRecord[],
+  extraPaths: string[] = []
+): PickerImage[] {
+  const seen = new Set<string>();
+  const result: PickerImage[] = [];
+
+  const addPath = (path: string, preferOriginalName?: string) => {
+    const norm = normalizeUploadPathForMatch(path);
+    if (!norm || seen.has(norm)) return;
+    seen.add(norm);
+    result.push({
+      key: norm,
+      path: path.trim() || norm,
+      original_name: preferOriginalName ?? norm.split("/").pop() ?? norm,
+    });
+  };
+
+  for (const p of extraPaths) addPath(p);
+  for (const r of records) addPath(r.path, r.original_name);
+
+  return result;
 }
 
 export function ImageUploadField({
@@ -42,6 +75,7 @@ export function ImageUploadField({
   section = "general",
   hint,
   listUploadsForWholePage = false,
+  extraPaths = [],
 }: ImageUploadFieldProps) {
   const [uploading, setUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
@@ -50,6 +84,10 @@ export function ImageUploadField({
   const [loadingList, setLoadingList] = useState(true);
   const apiBase = getApiBase();
   const normalizedValue = normalizeUploadPathForMatch(value);
+  const pickerImages = React.useMemo(
+    () => mergePickerImages(existingList, extraPaths),
+    [existingList, extraPaths]
+  );
 
   const loadExisting = useCallback(async () => {
     setLoadingList(true);
@@ -125,17 +163,17 @@ export function ImageUploadField({
       {/* Choose from existing images in this section */}
       <div className="mb-4">
         <p className="text-[12px] font-medium text-[#131313] mb-2">Escolher das já carregadas</p>
-        {loadingList ? (
+        {loadingList && pickerImages.length === 0 ? (
           <p className="text-[12px] text-[#5a5a59]">A carregar lista...</p>
-        ) : existingList.length === 0 ? (
+        ) : pickerImages.length === 0 ? (
           <p className="text-[12px] text-[#5a5a59]">Ainda não há imagens nesta secção. Carregue uma abaixo.</p>
         ) : (
           <div className="flex flex-wrap gap-2">
-            {existingList.map((item) => {
+            {pickerImages.map((item) => {
               const isSelected = normalizedValue !== "" && normalizedValue === normalizeUploadPathForMatch(item.path);
               return (
                 <button
-                  key={item.id}
+                  key={item.key}
                   type="button"
                   onClick={() => onChange(item.path)}
                   className={`rounded-lg border-2 overflow-hidden w-16 h-16 flex-shrink-0 transition-all focus:outline-none focus:ring-2 focus:ring-[#313b2e] focus:ring-offset-1 ${

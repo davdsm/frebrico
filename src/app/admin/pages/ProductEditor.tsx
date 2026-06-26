@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Link, useParams, useNavigate } from "react-router";
 import {
   fetchCategories,
@@ -122,6 +122,11 @@ export default function ProductEditor() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(!isNew);
+
+  const productImagePaths = useMemo(
+    () => [...new Set([...(image ? [image] : []), ...images])],
+    [image, images]
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -271,6 +276,7 @@ export default function ProductEditor() {
                 page="products"
                 section="general"
                 hint="Imagem principal do produto (a primeira que o cliente vê)."
+                extraPaths={productImagePaths}
               />
             </div>
             <div>
