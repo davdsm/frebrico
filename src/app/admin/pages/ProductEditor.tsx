@@ -12,6 +12,7 @@ import {
   type Product,
 } from "../../api/shop";
 import { ImageUploadField } from "../components/ImageUploadField";
+import { GalleryImagesEditor } from "../components/GalleryImagesEditor";
 import { AttributesPicker, type ProductAttributeGroup } from "../components/AttributesPicker";
 import { DownloadsEditor, type DownloadItem } from "../components/DownloadsEditor";
 import { SpecsTableEditor, type SpecsTableData } from "../components/SpecsTableEditor";
@@ -264,12 +265,20 @@ export default function ProductEditor() {
             </div>
             <div>
               <ImageUploadField
-                label="Imagem"
+                label="Imagem principal"
                 value={image}
                 onChange={setImage}
                 page="products"
                 section="general"
-                hint="A imagem é guardada em public/uploads/products/general/."
+                hint="Imagem principal do produto (a primeira que o cliente vê)."
+              />
+            </div>
+            <div>
+              <GalleryImagesEditor
+                value={images}
+                onChange={setImages}
+                page="products"
+                section="general"
               />
             </div>
             <div>
