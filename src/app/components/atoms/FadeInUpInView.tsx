@@ -11,8 +11,12 @@ interface FadeInUpInViewProps {
   duration?: number;
   /** Delay before animation starts (seconds). */
   delay?: number;
-  /** Viewport amount (0-1) that must be visible to trigger. */
-  amount?: number;
+  /**
+   * Viewport amount that must be visible to trigger.
+   * Prefer "some" for tall sections (tables) — a numeric fraction can never
+   * be reached when element height × amount > viewport height.
+   */
+  amount?: number | "some" | "all";
 }
 
 /**
@@ -24,7 +28,7 @@ export function FadeInUpInView({
   y = 40,
   duration = 1,
   delay = 0,
-  amount = 0.15,
+  amount = "some",
 }: FadeInUpInViewProps) {
   return (
     <motion.div
