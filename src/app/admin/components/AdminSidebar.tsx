@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router";
 import { useAuth } from "../../auth/AuthContext";
+import { pricingApi } from "../api/pricingApi";
 import { ADMIN_PAGES } from "../pagesList";
 
 const LOJA_ITEMS = [
@@ -10,7 +11,6 @@ const LOJA_ITEMS = [
   { to: "/admin/orders", label: "Encomendas" },
   { to: "/admin/pricing", label: "Preços" },
   { to: "/admin/groups", label: "Grupos" },
-  { to: "/admin/customers", label: "Clientes" },
 ];
 
 const navItems = [
@@ -67,31 +67,52 @@ const iconSvg: Record<string, React.ReactNode> = {
       <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
     </svg>
   ),
+  users: (
+    <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+    </svg>
+  ),
 };
 
 export function AdminSidebar() {
   const [open, setOpen] = useState(false);
   const [pagesExpanded, setPagesExpanded] = useState(false);
   const [lojaExpanded, setLojaExpanded] = useState(false);
+  const [pendingCustomers, setPendingCustomers] = useState(0);
   const location = useLocation();
-  const { user, logout } = useAuth();
+  const { user, logout, token } = useAuth();
   const navigate = useNavigate();
 
   const isPagesActive = location.pathname.startsWith("/admin/pages");
+  const isCustomersActive = location.pathname.startsWith("/admin/customers");
   const isLojaActive =
     location.pathname.startsWith("/admin/products") ||
     location.pathname.startsWith("/admin/categories") ||
     location.pathname.startsWith("/admin/attributes") ||
     location.pathname.startsWith("/admin/orders") ||
     location.pathname.startsWith("/admin/pricing") ||
-    location.pathname.startsWith("/admin/groups") ||
-    location.pathname.startsWith("/admin/customers");
+    location.pathname.startsWith("/admin/groups");
   useEffect(() => {
     if (isPagesActive) setPagesExpanded(true);
   }, [isPagesActive]);
   useEffect(() => {
     if (isLojaActive) setLojaExpanded(true);
   }, [isLojaActive]);
+  useEffect(() => {
+    if (!token) return;
+    let cancelled = false;
+    pricingApi
+      .dashboard()
+      .then((s) => {
+        if (!cancelled) setPendingCustomers(s.pending || 0);
+      })
+      .catch(() => {
+        if (!cancelled) setPendingCustomers(0);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [token, location.pathname]);
 
   const isActive = (to: string) => {
     if (to === "/admin") return location.pathname === "/admin";
@@ -128,6 +149,29 @@ export function AdminSidebar() {
             {iconSvg.layout}
           </span>
           Dashboard
+        </NavLink>
+        <NavLink
+          to="/admin/customers?status=pending"
+          onClick={() => setOpen(false)}
+          className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all ${
+            isCustomersActive
+              ? "bg-[#313b2e] text-white shadow-[0_2px_8px_rgba(49,59,46,0.18)]"
+              : "text-[#5a5a59] hover:bg-[#f5f5f4] hover:text-[#131313]"
+          }`}
+        >
+          <span className={isCustomersActive ? "text-white" : "text-[#5a5a59] group-hover:text-[#131313]"}>
+            {iconSvg.users}
+          </span>
+          <span className="flex-1">Clientes</span>
+          {pendingCustomers > 0 && (
+            <span
+              className={`min-w-[1.25rem] h-5 px-1.5 rounded-full text-[10px] font-semibold flex items-center justify-center ${
+                isCustomersActive ? "bg-white/20 text-white" : "bg-amber-500 text-white"
+              }`}
+            >
+              {pendingCustomers}
+            </span>
+          )}
         </NavLink>
         {/* Páginas expandable submenu */}
         <div className="py-0.5">

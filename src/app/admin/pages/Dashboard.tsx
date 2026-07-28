@@ -2,6 +2,7 @@ import React from "react";
 import { Link } from "react-router";
 import { useAuth } from "../../auth/AuthContext";
 import { listAdminOrders, type AdminOrder } from "../../auth/authApi";
+import { pricingApi } from "../api/pricingApi";
 
 function getStatusLabel(status: string): string {
   const normalized = status.trim().toLowerCase();
@@ -67,10 +68,15 @@ export default function Dashboard() {
   const { user, token } = useAuth();
   const firstName = user?.email?.split("@")[0] ?? "Admin";
   const [orders, setOrders] = React.useState<AdminOrder[]>([]);
+  const [pendingCustomers, setPendingCustomers] = React.useState(0);
 
   React.useEffect(() => {
     if (!token) return;
     void listAdminOrders(token).then((data) => setOrders(data.slice(0, 8))).catch(() => setOrders([]));
+    void pricingApi
+      .dashboard()
+      .then((s) => setPendingCustomers(s.pending || 0))
+      .catch(() => setPendingCustomers(0));
   }, [token]);
 
   return (
@@ -84,6 +90,23 @@ export default function Dashboard() {
           Gerir conteúdo, media e configurações do website.
         </p>
       </div>
+
+      {pendingCustomers > 0 && (
+        <Link
+          to="/admin/customers?status=pending"
+          className="mb-6 flex items-center justify-between gap-4 p-4 rounded-2xl border border-amber-200 bg-amber-50 hover:bg-amber-100/80 transition-colors"
+        >
+          <div>
+            <p className="text-[14px] font-semibold text-amber-900">
+              {pendingCustomers} conta{pendingCustomers === 1 ? "" : "s"} à espera de aprovação
+            </p>
+            <p className="text-[13px] text-amber-800/80 mt-0.5">
+              Abrir Clientes → Pendentes para aprovar ou rejeitar.
+            </p>
+          </div>
+          <span className="text-[13px] font-medium text-amber-900 whitespace-nowrap">Ver agora →</span>
+        </Link>
+      )}
 
       {/* Quick links */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

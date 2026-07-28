@@ -104,7 +104,11 @@ export default function CustomersList() {
                             : "bg-red-50 text-red-700"
                       }`}
                     >
-                      {c.approval_status}
+                      {c.approval_status === "approved"
+                        ? "Aprovado"
+                        : c.approval_status === "pending"
+                          ? "Pendente"
+                          : "Rejeitado"}
                     </span>
                   </td>
                   <td className="px-4 py-3">{c.group_name || "—"}</td>
