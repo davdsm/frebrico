@@ -219,8 +219,6 @@ function initSchema(database: Database.Database): void {
     CREATE INDEX IF NOT EXISTS idx_group_prices_lookup ON group_prices(group_id, product_id, variant_key);
     CREATE INDEX IF NOT EXISTS idx_customer_prices_lookup ON customer_prices(user_id, product_id, variant_key);
     CREATE INDEX IF NOT EXISTS idx_price_audit_created ON price_audit_log(created_at DESC);
-    CREATE INDEX IF NOT EXISTS idx_users_approval ON users(approval_status);
-    CREATE INDEX IF NOT EXISTS idx_users_group ON users(group_id);
   `);
 
   try { database.exec("ALTER TABLE users ADD COLUMN approval_status TEXT NOT NULL DEFAULT 'approved'"); } catch {}
@@ -228,6 +226,9 @@ function initSchema(database: Database.Database): void {
   try { database.exec("ALTER TABLE users ADD COLUMN approved_at TEXT DEFAULT ''"); } catch {}
   try { database.exec("ALTER TABLE users ADD COLUMN approved_by INTEGER REFERENCES users(id) ON DELETE SET NULL"); } catch {}
   try { database.exec("ALTER TABLE users ADD COLUMN rejection_reason TEXT DEFAULT ''"); } catch {}
+
+  try { database.exec("CREATE INDEX IF NOT EXISTS idx_users_approval ON users(approval_status)"); } catch {}
+  try { database.exec("CREATE INDEX IF NOT EXISTS idx_users_group ON users(group_id)"); } catch {}
 
   // Existing users keep access; new self-registrations will be pending
   try {
