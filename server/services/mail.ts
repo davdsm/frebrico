@@ -188,3 +188,50 @@ export async function sendContactEmail(data: ContactEmailData) {
     html: replyHtml,
   });
 }
+
+export async function sendCustomerApprovalEmail(data: { email: string; name: string }) {
+  const html = `
+    <div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#131313;">
+      <h1 style="background:#313b2e;color:#fff;padding:24px 32px;margin:0;font-size:22px;">Conta aprovada</h1>
+      <div style="padding:32px;">
+        <p>Olá <strong>${data.name}</strong>,</p>
+        <p>A sua conta Frebrico foi aprovada. Já pode iniciar sessão e ver os preços aplicáveis ao seu perfil.</p>
+        <p style="margin-top:32px;color:#5a5a59;font-size:13px;">Frebrico — info@frebrico.pt</p>
+      </div>
+    </div>`;
+  await sendMail({ to: data.email, subject: "Conta aprovada — Frebrico", html });
+}
+
+export async function sendCustomerRejectionEmail(data: { email: string; name: string; reason?: string }) {
+  const reasonHtml = data.reason
+    ? `<p><strong>Motivo:</strong> ${data.reason}</p>`
+    : "";
+  const html = `
+    <div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#131313;">
+      <h1 style="background:#313b2e;color:#fff;padding:24px 32px;margin:0;font-size:22px;">Registo não aprovado</h1>
+      <div style="padding:32px;">
+        <p>Olá <strong>${data.name}</strong>,</p>
+        <p>O seu registo não foi aprovado neste momento.</p>
+        ${reasonHtml}
+        <p>Para mais informações contacte-nos em info@frebrico.pt.</p>
+      </div>
+    </div>`;
+  await sendMail({ to: data.email, subject: "Registo Frebrico", html });
+}
+
+export async function sendAdminNewCustomerPendingEmail(data: { email: string; name: string }) {
+  const html = `
+    <div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#131313;">
+      <h1 style="background:#313b2e;color:#fff;padding:24px 32px;margin:0;font-size:22px;">Novo cliente pendente</h1>
+      <div style="padding:32px;">
+        <p>Um novo cliente registou-se e aguarda aprovação:</p>
+        <p><strong>${data.name}</strong><br/>${data.email}</p>
+        <p>Aceda ao backoffice → Clientes para aprovar ou rejeitar.</p>
+      </div>
+    </div>`;
+  await sendMail({
+    to: ADMIN_EMAIL,
+    subject: `Novo cliente pendente: ${data.email}`,
+    html,
+  });
+}

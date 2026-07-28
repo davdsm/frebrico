@@ -12,6 +12,7 @@ import {
   listOrdersByUserId,
 } from "../db.js";
 import { requireAdmin, requireAuth, signToken } from "../middleware/auth.js";
+import { sendAdminNewCustomerPendingEmail } from "../services/mail.js";
 
 export const authRouter = Router();
 
@@ -131,7 +132,7 @@ const handleCustomerRegister = (req: Request, res: Response) => {
   }
 
   const hash = bcrypt.hashSync(passwordStr, 12);
-  const userId = createUser(emailStr, hash, false);
+  const userId = createUser(emailStr, hash, false, "pending");
 
   upsertUserProfile(userId, {
     name: nameStr,
@@ -145,6 +146,8 @@ const handleCustomerRegister = (req: Request, res: Response) => {
     nif: nifStr,
   });
 
+  void sendAdminNewCustomerPendingEmail({ email: emailStr, name: nameStr }).catch(() => undefined);
+
   const token = signToken({
     userId,
     email: emailStr,
@@ -153,7 +156,13 @@ const handleCustomerRegister = (req: Request, res: Response) => {
 
   res.status(201).json({
     token,
-    user: { id: userId, email: emailStr, isAdmin: false },
+    user: {
+      id: userId,
+      email: emailStr,
+      isAdmin: false,
+      approvalStatus: "pending",
+      groupId: null,
+    },
   });
 };
 
@@ -184,6 +193,13 @@ const handleCustomerLogin = (req: Request, res: Response) => {
     res.status(401).json({ error: "Credenciais inválidas." });
     return;
   }
+  if (user.approval_status === "rejected") {
+    res.status(403).json({
+      error: "A sua conta não foi aprovada. Contacte a Frebrico para mais informações.",
+      approvalStatus: "rejected",
+    });
+    return;
+  }
   const token = signToken({
     userId: user.id,
     email: user.email,
@@ -191,7 +207,13 @@ const handleCustomerLogin = (req: Request, res: Response) => {
   });
   res.json({
     token,
-    user: { id: user.id, email: user.email, isAdmin: false },
+    user: {
+      id: user.id,
+      email: user.email,
+      isAdmin: false,
+      approvalStatus: user.approval_status || "pending",
+      groupId: user.group_id,
+    },
   });
 };
 
@@ -199,8 +221,13 @@ authRouter.post("/customer/login", handleCustomerLogin);
 authRouter.post("/signin", handleCustomerLogin);
 
 authRouter.get("/customer/me", requireAuth, (req, res) => {
-  const user = (req as unknown as { user?: { id: number; email: string; isAdmin: boolean } }).user;
-  if (!user || user.isAdmin) {
+  const authUser = (req as unknown as { user?: { id: number; email: string; isAdmin: boolean } }).user;
+  if (!authUser || authUser.isAdmin) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+  const user = getUserById(authUser.id);
+  if (!user) {
     res.status(401).json({ error: "Unauthorized" });
     return;
   }
@@ -209,6 +236,8 @@ authRouter.get("/customer/me", requireAuth, (req, res) => {
     id: user.id,
     email: user.email,
     isAdmin: false,
+    approvalStatus: user.approval_status || "pending",
+    groupId: user.group_id,
     profile: {
       name: profile?.name ?? "",
       address: profile?.address ?? "",

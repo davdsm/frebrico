@@ -109,6 +109,11 @@ export default function ProductDetail() {
         description={product.description ? product.description.slice(0, 160) : `Detalhes do produto ${product.name} na Frebrico.`}
         path={`/product/${product.slug || product.id}`}
       />
+      {product.customer_approval_status === "pending" && (
+        <div className="bg-amber-50 border-b border-amber-200 text-amber-900 text-sm text-center py-2.5 px-4">
+          A sua conta está pendente de aprovação — está a ver os preços de catálogo. Após aprovação, verá os preços do seu grupo.
+        </div>
+      )}
       <DominoFadeInDown initialDelay={0.15} stagger={0.05}>
         <ProductHero product={product} categoryName={categoryName} categorySlug={categorySlug} />
         <ProductSpecs product={product} />

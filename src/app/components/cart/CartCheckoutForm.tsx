@@ -99,6 +99,8 @@ export function CartCheckoutForm({ shipping, onCountryChange }: CartCheckoutForm
             quantity: item.quantity,
             price: item.price,
             image: item.image,
+            productId: item.productId,
+            variantKey: item.variantKey,
           })),
           subtotal,
           total,

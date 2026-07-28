@@ -8,20 +8,49 @@ import {
   deleteProduct,
   searchProducts,
   searchCategories,
+  getUserById,
 } from "../db.js";
-import { requireAdmin } from "../middleware/auth.js";
+import { requireAdmin, attachOptionalAuth } from "../middleware/auth.js";
+import { applyPricingToProduct, contextFromUser } from "../services/pricing.js";
 
 export const productsRouter = Router();
 
-productsRouter.get("/", (req, res) => {
+function withPricing(product: ReturnType<typeof getProductById>, req: { user?: { id: number; isAdmin: boolean } }) {
+  if (!product) return product;
+  const fullUser = req.user && !req.user.isAdmin ? getUserById(req.user.id) : null;
+  const priced = applyPricingToProduct(product, contextFromUser(fullUser ?? undefined));
+  return {
+    ...product,
+    price: priced.price,
+    price_source: priced.price_source,
+    specifications: priced.specifications,
+    variant_prices: priced.variant_prices,
+    customer_approval_status: fullUser?.approval_status ?? null,
+  };
+}
+
+productsRouter.get("/", attachOptionalAuth, (req, res) => {
   const category = req.query.category as string | undefined;
   const featured = req.query.featured === "1" || req.query.featured === "true";
   const list = listProducts(category, featured);
-  res.json(list);
+  const reqUser = (req as { user?: { id: number; isAdmin: boolean } }).user;
+  const fullUser = reqUser && !reqUser.isAdmin ? getUserById(reqUser.id) : null;
+  const ctx = contextFromUser(fullUser ?? undefined);
+  res.json(
+    list.map((p) => {
+      const priced = applyPricingToProduct(p, ctx);
+      return {
+        ...p,
+        price: priced.price,
+        price_source: priced.price_source,
+        customer_approval_status: fullUser?.approval_status ?? null,
+      };
+    })
+  );
 });
 
 /** Must be registered before /:idOrSlug so "search" is not captured as a slug. */
-productsRouter.get("/search", (req, res) => {
+productsRouter.get("/search", attachOptionalAuth, (req, res) => {
   const q = String(req.query.q ?? "").trim();
   const lim = Number(req.query.limit);
   const limit = Number.isFinite(lim) ? lim : 40;
@@ -29,21 +58,28 @@ productsRouter.get("/search", (req, res) => {
     res.json({ products: [], categories: [] });
     return;
   }
+  const reqUser = (req as { user?: { id: number; isAdmin: boolean } }).user;
+  const fullUser = reqUser && !reqUser.isAdmin ? getUserById(reqUser.id) : null;
+  const ctx = contextFromUser(fullUser ?? undefined);
   res.json({
-    products: searchProducts(q, limit),
+    products: searchProducts(q, limit).map((p) => {
+      const priced = applyPricingToProduct(p, ctx);
+      return { ...p, price: priced.price, price_source: priced.price_source };
+    }),
     categories: searchCategories(q, Math.min(20, Math.max(5, Math.floor(limit / 2)))),
   });
 });
 
-productsRouter.get("/:idOrSlug", (req, res) => {
+productsRouter.get("/:idOrSlug", attachOptionalAuth, (req, res) => {
   const idOrSlug = req.params.idOrSlug;
   const byId = Number(idOrSlug);
+  const reqTyped = req as { user?: { id: number; isAdmin: boolean } };
   if (Number.isFinite(byId)) {
     const p = getProductById(byId);
-    if (p) return res.json(p);
+    if (p) return res.json(withPricing(p, reqTyped));
   }
   const p = getProductBySlug(idOrSlug);
-  if (p) return res.json(p);
+  if (p) return res.json(withPricing(p, reqTyped));
   res.status(404).json({ error: "Not found" });
 });
 

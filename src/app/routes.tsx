@@ -36,6 +36,11 @@ const importAdminAttributesList = () => import("./admin/pages/AttributesList");
 const importAdminAttributeEditor = () => import("./admin/pages/AttributeEditor");
 const importAdminOrdersList = () => import("./admin/pages/OrdersList");
 const importAdminOrderDetail = () => import("./admin/pages/OrderDetail");
+const importAdminPricingDashboard = () => import("./admin/pages/PricingDashboard");
+const importAdminGroupsList = () => import("./admin/pages/GroupsList");
+const importAdminGroupPrices = () => import("./admin/pages/GroupPrices");
+const importAdminCustomersList = () => import("./admin/pages/CustomersList");
+const importAdminCustomerDetail = () => import("./admin/pages/CustomerDetail");
 
 const Home = React.lazy(importHome);
 const About = React.lazy(importAbout);
@@ -68,6 +73,11 @@ const AdminAttributesList = React.lazy(importAdminAttributesList);
 const AdminAttributeEditor = React.lazy(importAdminAttributeEditor);
 const AdminOrdersList = React.lazy(importAdminOrdersList);
 const AdminOrderDetail = React.lazy(importAdminOrderDetail);
+const AdminPricingDashboard = React.lazy(importAdminPricingDashboard);
+const AdminGroupsList = React.lazy(importAdminGroupsList);
+const AdminGroupPrices = React.lazy(importAdminGroupPrices);
+const AdminCustomersList = React.lazy(importAdminCustomersList);
+const AdminCustomerDetail = React.lazy(importAdminCustomerDetail);
 
 export async function preloadRouteChunks(): Promise<void> {
   await Promise.allSettled([
@@ -101,6 +111,11 @@ export async function preloadRouteChunks(): Promise<void> {
     importAdminAttributeEditor(),
     importAdminOrdersList(),
     importAdminOrderDetail(),
+    importAdminPricingDashboard(),
+    importAdminGroupsList(),
+    importAdminGroupPrices(),
+    importAdminCustomersList(),
+    importAdminCustomerDetail(),
   ]);
 }
 
@@ -148,6 +163,11 @@ export const router = createBrowserRouter([
       { path: "attributes/:id", element: <SuspenseWrap><AdminAttributeEditor /></SuspenseWrap> },
       { path: "orders", element: <SuspenseWrap><AdminOrdersList /></SuspenseWrap> },
       { path: "orders/:id", element: <SuspenseWrap><AdminOrderDetail /></SuspenseWrap> },
+      { path: "pricing", element: <SuspenseWrap><AdminPricingDashboard /></SuspenseWrap> },
+      { path: "groups", element: <SuspenseWrap><AdminGroupsList /></SuspenseWrap> },
+      { path: "groups/:id", element: <SuspenseWrap><AdminGroupPrices /></SuspenseWrap> },
+      { path: "customers", element: <SuspenseWrap><AdminCustomersList /></SuspenseWrap> },
+      { path: "customers/:id", element: <SuspenseWrap><AdminCustomerDetail /></SuspenseWrap> },
       { path: "register", element: <SuspenseWrap><AdminCreateAdminPage /></SuspenseWrap> },
     ],
   },

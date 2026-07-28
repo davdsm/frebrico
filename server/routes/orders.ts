@@ -11,8 +11,9 @@ import {
 } from "../db.js";
 import { attachOptionalAuth, requireAdmin, requireAuth } from "../middleware/auth.js";
 import { sendOrderConfirmationToCustomer, sendOrderNotificationToAdmin } from "../services/mail.js";
-import { listOrdersByDateRange } from "../db.js";
+import { listOrdersByDateRange, getUserById } from "../db.js";
 import * as XLSX from "xlsx";
+import { contextFromUser, resolveCartLinePrice } from "../services/pricing.js";
 
 export const ordersRouter = Router();
 
@@ -70,9 +71,54 @@ ordersRouter.post("/", attachOptionalAuth, (req, res) => {
     } else {
       const randomPassword = Math.random().toString(36).slice(2) + Date.now().toString(36);
       const hash = bcrypt.hashSync(randomPassword, 12);
-      userId = createUser(email, hash, false);
+      userId = createUser(email, hash, false, "approved");
     }
   }
+
+  const fullUser = userId ? getUserById(userId) : null;
+  const priceCtx = contextFromUser(fullUser ?? undefined);
+
+  const pricedItems = items.map((raw) => {
+    const item = raw as {
+      id?: string;
+      name?: string;
+      variant?: string;
+      quantity?: number;
+      price?: number;
+      image?: string;
+      productId?: number;
+      variantKey?: string;
+    };
+    const qty = Math.max(1, Number(item.quantity) || 1);
+    const clientPrice = Number(item.price) || 0;
+    let unitPrice = clientPrice;
+    const productId = Number(item.productId);
+    if (Number.isFinite(productId) && productId > 0) {
+      unitPrice = resolveCartLinePrice(
+        productId,
+        String(item.variantKey ?? ""),
+        clientPrice,
+        priceCtx
+      );
+    }
+    return {
+      id: String(item.id ?? ""),
+      name: String(item.name ?? ""),
+      variant: String(item.variant ?? ""),
+      quantity: qty,
+      price: unitPrice,
+      image: String(item.image ?? ""),
+      productId: Number.isFinite(productId) ? productId : undefined,
+      variantKey: item.variantKey ? String(item.variantKey) : undefined,
+    };
+  });
+
+  const computedSubtotal = pricedItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
+  // Keep shipping delta from client total when present
+  const shippingDelta =
+    Number.isFinite(total) && Number.isFinite(subtotal) ? Math.max(0, total - subtotal) : 0;
+  const finalSubtotal = computedSubtotal;
+  const finalTotal = computedSubtotal + shippingDelta;
 
   const orderNumber = `FRB-${Date.now()}-${Math.floor(100 + Math.random() * 900)}`;
   const orderId = createOrder({
@@ -88,9 +134,9 @@ ordersRouter.post("/", attachOptionalAuth, (req, res) => {
     postalCode,
     phone,
     nif,
-    itemsJson: JSON.stringify(items),
-    subtotal: Number.isFinite(subtotal) ? subtotal : 0,
-    total: Number.isFinite(total) ? total : 0,
+    itemsJson: JSON.stringify(pricedItems),
+    subtotal: finalSubtotal,
+    total: finalTotal,
     observations,
   });
 
@@ -107,9 +153,9 @@ ordersRouter.post("/", attachOptionalAuth, (req, res) => {
     phone,
     nif,
     observations,
-    items: items as Array<{ name: string; variant?: string; quantity: number; price: number }>,
-    subtotal: Number.isFinite(subtotal) ? subtotal : 0,
-    total: Number.isFinite(total) ? total : 0,
+    items: pricedItems,
+    subtotal: finalSubtotal,
+    total: finalTotal,
   };
   Promise.all([
     sendOrderConfirmationToCustomer(orderEmailData),

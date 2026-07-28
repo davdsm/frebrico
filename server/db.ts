@@ -165,6 +165,75 @@ function initSchema(database: Database.Database): void {
   try { database.exec("ALTER TABLE orders ADD COLUMN items_json TEXT DEFAULT '[]'"); } catch {}
   try { database.exec("ALTER TABLE orders ADD COLUMN subtotal REAL NOT NULL DEFAULT 0"); } catch {}
   try { database.exec("ALTER TABLE orders ADD COLUMN observations TEXT DEFAULT ''"); } catch {}
+
+  // Customer pricing system
+  database.exec(`
+    CREATE TABLE IF NOT EXISTS customer_groups (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL UNIQUE,
+      description TEXT DEFAULT '',
+      active INTEGER NOT NULL DEFAULT 1,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS group_prices (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      group_id INTEGER NOT NULL REFERENCES customer_groups(id) ON DELETE CASCADE,
+      product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+      variant_key TEXT NOT NULL DEFAULT '',
+      price REAL NOT NULL,
+      valid_from TEXT DEFAULT '',
+      valid_to TEXT DEFAULT '',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(group_id, product_id, variant_key)
+    );
+
+    CREATE TABLE IF NOT EXISTS customer_prices (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+      variant_key TEXT NOT NULL DEFAULT '',
+      price REAL NOT NULL,
+      valid_from TEXT DEFAULT '',
+      valid_to TEXT DEFAULT '',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(user_id, product_id, variant_key)
+    );
+
+    CREATE TABLE IF NOT EXISTS price_audit_log (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      entity_type TEXT NOT NULL,
+      entity_id INTEGER NOT NULL,
+      product_id INTEGER,
+      variant_key TEXT DEFAULT '',
+      old_price REAL,
+      new_price REAL,
+      changed_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+      note TEXT DEFAULT '',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_group_prices_lookup ON group_prices(group_id, product_id, variant_key);
+    CREATE INDEX IF NOT EXISTS idx_customer_prices_lookup ON customer_prices(user_id, product_id, variant_key);
+    CREATE INDEX IF NOT EXISTS idx_price_audit_created ON price_audit_log(created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_users_approval ON users(approval_status);
+    CREATE INDEX IF NOT EXISTS idx_users_group ON users(group_id);
+  `);
+
+  try { database.exec("ALTER TABLE users ADD COLUMN approval_status TEXT NOT NULL DEFAULT 'approved'"); } catch {}
+  try { database.exec("ALTER TABLE users ADD COLUMN group_id INTEGER REFERENCES customer_groups(id) ON DELETE SET NULL"); } catch {}
+  try { database.exec("ALTER TABLE users ADD COLUMN approved_at TEXT DEFAULT ''"); } catch {}
+  try { database.exec("ALTER TABLE users ADD COLUMN approved_by INTEGER REFERENCES users(id) ON DELETE SET NULL"); } catch {}
+  try { database.exec("ALTER TABLE users ADD COLUMN rejection_reason TEXT DEFAULT ''"); } catch {}
+
+  // Existing users keep access; new self-registrations will be pending
+  try {
+    database.exec("UPDATE users SET approval_status = 'approved' WHERE approval_status IS NULL OR approval_status = ''");
+    database.exec("UPDATE users SET approval_status = 'approved' WHERE is_admin = 1");
+  } catch {}
 }
 
 export type ContentRow = {
@@ -291,11 +360,18 @@ export function deleteUpload(id: number): boolean {
   return result.changes > 0;
 }
 
+export type ApprovalStatus = "pending" | "approved" | "rejected";
+
 export type UserRow = {
   id: number;
   email: string;
   password_hash: string;
   is_admin: number;
+  approval_status: ApprovalStatus;
+  group_id: number | null;
+  approved_at: string;
+  approved_by: number | null;
+  rejection_reason: string;
   created_at: string;
 };
 
@@ -347,19 +423,97 @@ export function getUserById(id: number): UserRow | undefined {
   return stmt.get(id) as UserRow | undefined;
 }
 
-export function createUser(email: string, passwordHash: string, isAdmin: boolean): number {
+export function createUser(
+  email: string,
+  passwordHash: string,
+  isAdmin: boolean,
+  approvalStatus: ApprovalStatus = isAdmin ? "approved" : "pending"
+): number {
   const database = getDb();
   const stmt = database.prepare(
-    "INSERT INTO users (email, password_hash, is_admin) VALUES (?, ?, ?)"
+    "INSERT INTO users (email, password_hash, is_admin, approval_status, approved_at) VALUES (?, ?, ?, ?, ?)"
   );
-  const result = stmt.run(email.toLowerCase().trim(), passwordHash, isAdmin ? 1 : 0);
+  const approvedAt = approvalStatus === "approved" ? new Date().toISOString() : "";
+  const result = stmt.run(
+    email.toLowerCase().trim(),
+    passwordHash,
+    isAdmin ? 1 : 0,
+    approvalStatus,
+    approvedAt
+  );
   return result.lastInsertRowid as number;
 }
 
-export function listUsers(): Pick<UserRow, "id" | "email" | "is_admin" | "created_at">[] {
+export function listUsers(): Pick<
+  UserRow,
+  "id" | "email" | "is_admin" | "approval_status" | "group_id" | "created_at"
+>[] {
   const database = getDb();
-  const stmt = database.prepare("SELECT id, email, is_admin, created_at FROM users ORDER BY created_at DESC");
-  return stmt.all() as Pick<UserRow, "id" | "email" | "is_admin" | "created_at">[];
+  const stmt = database.prepare(
+    "SELECT id, email, is_admin, approval_status, group_id, created_at FROM users ORDER BY created_at DESC"
+  );
+  return stmt.all() as Pick<
+    UserRow,
+    "id" | "email" | "is_admin" | "approval_status" | "group_id" | "created_at"
+  >[];
+}
+
+export function listCustomerUsers(status?: ApprovalStatus) {
+  const database = getDb();
+  if (status) {
+    return database
+      .prepare(
+        `SELECT u.id, u.email, u.is_admin, u.approval_status, u.group_id, u.approved_at, u.rejection_reason, u.created_at,
+                p.name, p.phone, p.nif, p.locality, g.name as group_name
+         FROM users u
+         LEFT JOIN user_profiles p ON p.user_id = u.id
+         LEFT JOIN customer_groups g ON g.id = u.group_id
+         WHERE u.is_admin = 0 AND u.approval_status = ?
+         ORDER BY u.created_at DESC`
+      )
+      .all(status);
+  }
+  return database
+    .prepare(
+      `SELECT u.id, u.email, u.is_admin, u.approval_status, u.group_id, u.approved_at, u.rejection_reason, u.created_at,
+              p.name, p.phone, p.nif, p.locality, g.name as group_name
+       FROM users u
+       LEFT JOIN user_profiles p ON p.user_id = u.id
+       LEFT JOIN customer_groups g ON g.id = u.group_id
+       WHERE u.is_admin = 0
+       ORDER BY CASE u.approval_status WHEN 'pending' THEN 0 WHEN 'approved' THEN 1 ELSE 2 END, u.created_at DESC`
+    )
+    .all();
+}
+
+export function setUserApproval(
+  userId: number,
+  status: ApprovalStatus,
+  approvedBy: number | null,
+  rejectionReason = ""
+): boolean {
+  const database = getDb();
+  const result = database
+    .prepare(
+      `UPDATE users SET approval_status = ?, approved_at = ?, approved_by = ?, rejection_reason = ?
+       WHERE id = ? AND is_admin = 0`
+    )
+    .run(
+      status,
+      status === "approved" ? new Date().toISOString() : "",
+      approvedBy,
+      rejectionReason,
+      userId
+    );
+  return result.changes > 0;
+}
+
+export function setUserGroup(userId: number, groupId: number | null): boolean {
+  const database = getDb();
+  const result = database
+    .prepare("UPDATE users SET group_id = ? WHERE id = ? AND is_admin = 0")
+    .run(groupId, userId);
+  return result.changes > 0;
 }
 
 export function updateUserAdminFlag(id: number, isAdmin: boolean): void {

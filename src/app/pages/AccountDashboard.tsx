@@ -83,6 +83,12 @@ export default function AccountDashboard() {
         </aside>
 
         <main className="space-y-6">
+          {user?.approvalStatus === "pending" && (
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+              A sua conta está <strong>pendente de aprovação</strong>. Pode navegar e encomendar com preços de catálogo.
+              Após aprovação pela Frebrico, passará a ver os preços do seu grupo (se aplicável).
+            </div>
+          )}
           <section className="bg-white rounded-2xl border border-[#e6e6e6] p-6">
             <h2 className="text-lg font-semibold text-[#131313] mb-4">As minhas encomendas</h2>
             {orders.length === 0 ? (

@@ -38,6 +38,27 @@ function isPriceColumn(label: string): boolean {
   return t.includes('preço') || t.includes('preco') || t.includes('price');
 }
 
+function variantKeyFromRow(columns: string[], row: string[], rowIndex: number): string {
+  const codeIdx = columns.findIndex((c) => {
+    const t = c.toLowerCase();
+    return (
+      (t.includes('código') ||
+        t.includes('codigo') ||
+        t.includes('cod ') ||
+        t === 'cod' ||
+        t === 'id' ||
+        t.includes('ref') ||
+        t.includes('artigo')) &&
+      !t.includes('descri')
+    );
+  });
+  if (codeIdx >= 0) {
+    const code = String(row[codeIdx] ?? '').trim();
+    if (code) return code;
+  }
+  return `row:${rowIndex}`;
+}
+
 function parsePriceValue(raw: string, fallback: number): number {
   const normalized = String(raw ?? "")
     .replace(/[^\d,.-]/g, "")
@@ -99,6 +120,7 @@ export function ProductSpecs({ product }: ProductSpecsProps) {
               <tbody className="divide-y divide-[#d6d6d6]">
                 {rows.map((row, rowIndex) => {
                   const rowId = `${product.id}-spec-${rowIndex}`;
+                  const variantKey = variantKeyFromRow(columns, row, rowIndex);
                   const variantLabel = row.filter((_, i) => i !== priceColIndex).join(' / ') || '—';
                   const alreadyInCart = items.some((item) => item.id === rowId && item.variant === variantLabel);
                   const isAddedState = alreadyInCart || lastAddedRow === rowIndex;
@@ -130,6 +152,8 @@ export function ProductSpecs({ product }: ProductSpecsProps) {
                               variant: variantLabel,
                               price,
                               image: mainImage,
+                              productId: product.id,
+                              variantKey,
                             });
                             setLastAddedRow(rowIndex);
                             window.setTimeout(() => setLastAddedRow(null), 900);

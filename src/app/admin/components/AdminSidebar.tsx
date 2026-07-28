@@ -8,6 +8,9 @@ const LOJA_ITEMS = [
   { to: "/admin/categories", label: "Categorias" },
   { to: "/admin/attributes", label: "Atributos" },
   { to: "/admin/orders", label: "Encomendas" },
+  { to: "/admin/pricing", label: "Preços" },
+  { to: "/admin/groups", label: "Grupos" },
+  { to: "/admin/customers", label: "Clientes" },
 ];
 
 const navItems = [
@@ -79,7 +82,10 @@ export function AdminSidebar() {
     location.pathname.startsWith("/admin/products") ||
     location.pathname.startsWith("/admin/categories") ||
     location.pathname.startsWith("/admin/attributes") ||
-    location.pathname.startsWith("/admin/orders");
+    location.pathname.startsWith("/admin/orders") ||
+    location.pathname.startsWith("/admin/pricing") ||
+    location.pathname.startsWith("/admin/groups") ||
+    location.pathname.startsWith("/admin/customers");
   useEffect(() => {
     if (isPagesActive) setPagesExpanded(true);
   }, [isPagesActive]);

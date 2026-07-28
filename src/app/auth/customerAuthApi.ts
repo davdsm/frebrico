@@ -21,12 +21,20 @@ export type CustomerUser = {
   id: number;
   email: string;
   isAdmin: false;
+  approvalStatus?: "pending" | "approved" | "rejected";
+  groupId?: number | null;
   profile: CustomerProfile;
 };
 
 export type CustomerLoginResponse = {
   token: string;
-  user: { id: number; email: string; isAdmin: false };
+  user: {
+    id: number;
+    email: string;
+    isAdmin: false;
+    approvalStatus?: "pending" | "approved" | "rejected";
+    groupId?: number | null;
+  };
 };
 
 export type CustomerOrder = {
@@ -63,6 +71,8 @@ export type CheckoutOrderItem = {
   quantity: number;
   price: number;
   image: string;
+  productId?: number;
+  variantKey?: string;
 };
 
 export async function customerRegister(payload: {

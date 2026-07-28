@@ -43,6 +43,7 @@ export type Product = {
   slug: string | null;
   name: string;
   price: number;
+  price_source?: "customer" | "group" | "default";
   featured: number;
   image: string;
   images: string;
@@ -59,7 +60,18 @@ export type Product = {
   faqs: string;
   created_at: string;
   updated_at: string;
+  customer_approval_status?: string | null;
+  variant_prices?: { variant_key: string; price: number; source: string; default_price: number }[];
 };
+
+function customerAuthHeaders(): HeadersInit {
+  try {
+    const t = localStorage.getItem("frebrico_customer_token");
+    return t ? { Authorization: `Bearer ${t}` } : {};
+  } catch {
+    return {};
+  }
+}
 
 export type AttributeValue = { name: string; image_url?: string; gallery_image?: string };
 
@@ -97,7 +109,7 @@ export async function fetchProducts(categorySlug?: string, featuredOnly?: boolea
   if (categorySlug) params.set("category", categorySlug);
   if (featuredOnly) params.set("featured", "1");
   const url = `${API_BASE}/api/products${params.toString() ? `?${params.toString()}` : ""}`;
-  const res = await fetch(url);
+  const res = await fetch(url, { headers: customerAuthHeaders() });
   if (!res.ok) throw new Error("Failed to fetch products");
   return res.json() as Promise<Product[]>;
 }
@@ -113,13 +125,17 @@ export async function fetchSiteSearch(query: string): Promise<SiteSearchResponse
   if (!q) return { products: [], categories: [] };
   const params = new URLSearchParams();
   params.set("q", q);
-  const res = await fetch(`${API_BASE}/api/products/search?${params.toString()}`);
+  const res = await fetch(`${API_BASE}/api/products/search?${params.toString()}`, {
+    headers: customerAuthHeaders(),
+  });
   if (!res.ok) throw new Error("Failed to search");
   return res.json() as Promise<SiteSearchResponse>;
 }
 
 export async function fetchProductByIdOrSlug(idOrSlug: string | number): Promise<Product | null> {
-  const res = await fetch(`${API_BASE}/api/products/${encodeURIComponent(String(idOrSlug))}`);
+  const res = await fetch(`${API_BASE}/api/products/${encodeURIComponent(String(idOrSlug))}`, {
+    headers: customerAuthHeaders(),
+  });
   if (res.status === 404) return null;
   if (!res.ok) throw new Error("Failed to fetch product");
   return res.json() as Promise<Product>;
