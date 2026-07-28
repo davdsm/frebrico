@@ -1,4 +1,4 @@
-import { getAuthHeaders } from "../auth/authStore";
+import { getAuthHeaders } from "../../auth/authStore";
 
 const API_BASE = (() => {
   const raw =
