@@ -239,6 +239,18 @@ export default function Login() {
                 {loading ? "A entrar..." : "Entrar"}
               </button>
 
+              {!isAdminMode && (
+                <p className="text-center text-sm text-[#5a5a59] mt-2">
+                  Ainda não tem conta?{" "}
+                  <Link
+                    to="/account/register"
+                    className="text-[#313b2e] font-semibold hover:underline underline-offset-2"
+                  >
+                    Criar conta
+                  </Link>
+                </p>
+              )}
+
             </form>
           </motion.div>
         </div>
