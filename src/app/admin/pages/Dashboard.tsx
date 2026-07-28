@@ -2,7 +2,7 @@ import React from "react";
 import { Link } from "react-router";
 import { useAuth } from "../../auth/AuthContext";
 import { listAdminOrders, type AdminOrder } from "../../auth/authApi";
-import { pricingApi } from "../api/pricingApi";
+import { useAdminNotifications } from "../components/AdminNotifications";
 
 function getStatusLabel(status: string): string {
   const normalized = status.trim().toLowerCase();
@@ -68,15 +68,11 @@ export default function Dashboard() {
   const { user, token } = useAuth();
   const firstName = user?.email?.split("@")[0] ?? "Admin";
   const [orders, setOrders] = React.useState<AdminOrder[]>([]);
-  const [pendingCustomers, setPendingCustomers] = React.useState(0);
+  const { pendingCount: pendingCustomers } = useAdminNotifications();
 
   React.useEffect(() => {
     if (!token) return;
     void listAdminOrders(token).then((data) => setOrders(data.slice(0, 8))).catch(() => setOrders([]));
-    void pricingApi
-      .dashboard()
-      .then((s) => setPendingCustomers(s.pending || 0))
-      .catch(() => setPendingCustomers(0));
   }, [token]);
 
   return (

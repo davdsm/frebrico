@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router";
 import { useAuth } from "../../auth/AuthContext";
-import { pricingApi } from "../api/pricingApi";
 import { ADMIN_PAGES } from "../pagesList";
+import { useAdminNotifications } from "./AdminNotifications";
 
 const LOJA_ITEMS = [
   { to: "/admin/products", label: "Produtos" },
@@ -78,10 +78,10 @@ export function AdminSidebar() {
   const [open, setOpen] = useState(false);
   const [pagesExpanded, setPagesExpanded] = useState(false);
   const [lojaExpanded, setLojaExpanded] = useState(false);
-  const [pendingCustomers, setPendingCustomers] = useState(0);
   const location = useLocation();
-  const { user, logout, token } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const { pendingCount: pendingCustomers } = useAdminNotifications();
 
   const isPagesActive = location.pathname.startsWith("/admin/pages");
   const isCustomersActive = location.pathname.startsWith("/admin/customers");
@@ -98,21 +98,6 @@ export function AdminSidebar() {
   useEffect(() => {
     if (isLojaActive) setLojaExpanded(true);
   }, [isLojaActive]);
-  useEffect(() => {
-    if (!token) return;
-    let cancelled = false;
-    pricingApi
-      .dashboard()
-      .then((s) => {
-        if (!cancelled) setPendingCustomers(s.pending || 0);
-      })
-      .catch(() => {
-        if (!cancelled) setPendingCustomers(0);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [token, location.pathname]);
 
   const isActive = (to: string) => {
     if (to === "/admin") return location.pathname === "/admin";

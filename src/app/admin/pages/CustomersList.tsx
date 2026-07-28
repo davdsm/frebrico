@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router";
 import { pricingApi, type CustomerGroup, type PricingCustomer } from "../api/pricingApi";
+import { useAdminNotifications } from "../components/AdminNotifications";
 import { useToast } from "../components/Toast";
 
 export default function CustomersList() {
@@ -11,6 +12,7 @@ export default function CustomersList() {
   const [loading, setLoading] = useState(true);
   const [approveGroup, setApproveGroup] = useState<Record<number, string>>({});
   const { toast } = useToast();
+  const { refresh: refreshNotifications } = useAdminNotifications();
 
   const load = async () => {
     setLoading(true);
@@ -21,6 +23,7 @@ export default function CustomersList() {
       ]);
       setList(customers);
       setGroups(g);
+      await refreshNotifications();
     } catch (e) {
       toast(e instanceof Error ? e.message : "Erro", "error");
     } finally {

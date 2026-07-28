@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
 import { pricingApi, type CustomerGroup, type PriceRow, type PricingCustomer, type ProductVariantInfo } from "../api/pricingApi";
+import { useAdminNotifications } from "../components/AdminNotifications";
 import { useToast } from "../components/Toast";
 
 export default function CustomerDetail() {
   const { id } = useParams<{ id: string }>();
   const userId = Number(id);
   const { toast } = useToast();
+  const { refresh: refreshNotifications } = useAdminNotifications();
   const [customer, setCustomer] = useState<(PricingCustomer & { prices: PriceRow[] }) | null>(null);
   const [groups, setGroups] = useState<CustomerGroup[]>([]);
   const [products, setProducts] = useState<{ id: number; name: string; price: number }[]>([]);
@@ -90,6 +92,7 @@ export default function CustomerDetail() {
               await pricingApi.approveCustomer(userId, groupId ? Number(groupId) : null);
               toast("Aprovado.");
               await load();
+              await refreshNotifications();
             }}
           >
             Aprovar cliente
