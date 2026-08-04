@@ -133,8 +133,8 @@ export function ProductSpecs({ product }: ProductSpecsProps) {
                               : ""
                             : null;
                         return (
-                          <td key={colIndex} className="py-6 pr-4 text-base text-[#3f3f3f] align-middle">
-                            <CellText text={priceText != null ? priceText : cell} />
+                          <td key={colIndex} className="py-6 pr-4 text-base text-[#3f3f3f] text-center align-middle">
+                            <CellText text={priceText != null ? priceText : cell} className="text-center" />
                           </td>
                         );
                       })}
