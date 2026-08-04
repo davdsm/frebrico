@@ -97,22 +97,20 @@ export function ProductSpecs({ product }: ProductSpecsProps) {
     <FadeInUpInView>
       <section id="product-specs-table" className="w-full bg-white py-12 md:py-16 lg:py-20 scroll-mt-28">
         <div className="max-w-[1440px] mx-auto px-4 md:px-8 lg:px-20">
-          <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-            <p className="text-sm text-[#5a5a59]">Selecione a variante na tabela e clique em Adicionar.</p>
-            <p className="text-xs text-[#5a5a59]">
-              Ref. artigo: <span className="font-semibold text-[#36474f]">{product.id}</span>
-            </p>
-          </div>
-          <div className="w-full overflow-x-auto">
+          <p className="text-sm text-[#5a5a59] mb-4">Selecione a variante na tabela e clique em Adicionar.</p>
+          <div className="w-full max-h-[min(70vh,720px)] overflow-auto">
             <table className="w-full border-collapse">
               <thead>
                 <tr className="border-b-[3px] border-[#36474f]">
                   {columns.map((col, i) => (
-                    <th key={i} className="pb-4 pr-4 text-xs text-[#36474f] font-normal text-left whitespace-nowrap">
+                    <th
+                      key={i}
+                      className="sticky top-0 z-10 bg-white pb-4 pt-1 pr-4 text-xs text-[#36474f] font-normal text-center whitespace-nowrap shadow-[0_1px_0_0_#36474f]"
+                    >
                       {col}
                     </th>
                   ))}
-                  <th className="pb-4 text-xs text-[#36474f] font-normal text-right whitespace-nowrap">
+                  <th className="sticky top-0 z-10 bg-white pb-4 pt-1 text-xs text-[#36474f] font-normal text-center whitespace-nowrap shadow-[0_1px_0_0_#36474f]">
                     Carrinho
                   </th>
                 </tr>
@@ -140,7 +138,7 @@ export function ProductSpecs({ product }: ProductSpecsProps) {
                           </td>
                         );
                       })}
-                      <td className="py-6 text-right align-middle">
+                      <td className="py-6 text-center align-middle">
                         <button
                           type="button"
                           onClick={() => {
