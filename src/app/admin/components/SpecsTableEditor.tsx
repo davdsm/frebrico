@@ -150,6 +150,18 @@ export function SpecsTableEditor({ value, onChange, label = "Especificações" }
     setRows(safeRows.filter((_, i) => i !== rowIndex));
   };
 
+  const duplicateRow = (e: React.MouseEvent, rowIndex: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const source = safeRows[rowIndex] ?? columns.map(() => "");
+    const copy = [...source];
+    while (copy.length < columns.length) copy.push("");
+    const nextRows = [...safeRows];
+    nextRows.splice(rowIndex + 1, 0, copy.slice(0, columns.length));
+    rowIds.current.splice(rowIndex + 1, 0, generateId());
+    setRows(nextRows);
+  };
+
   const moveRow = (e: React.MouseEvent, rowIndex: number, direction: "up" | "down") => {
     e.preventDefault();
     e.stopPropagation();
@@ -193,7 +205,9 @@ export function SpecsTableEditor({ value, onChange, label = "Especificações" }
         </div>
       </div>
       <p className="text-[12px] text-[#5a5a59] mb-3">
-        Defina as colunas (cabeçalhos) e preencha as linhas. Pode incluir uma coluna &quot;Preço (€)&quot; para mostrar o botão Adicionar ao carrinho.
+        Defina as colunas (cabeçalhos) e preencha as linhas. Use <strong>Duplicar</strong> para copiar uma linha
+        quase igual e alterar só o que muda (ex.: cor). Pode incluir uma coluna &quot;Preço (€)&quot; para mostrar o
+        botão Adicionar ao carrinho.
       </p>
       <div className="w-full rounded-xl border border-[#e5e5e3] bg-[#fafaf9] overflow-hidden">
         <table className="w-full table-fixed border-collapse text-[13px]">
@@ -201,7 +215,7 @@ export function SpecsTableEditor({ value, onChange, label = "Especificações" }
             {columns.map((_, colIndex) => (
               <col key={colIds.current[colIndex]} />
             ))}
-            <col className="w-[92px]" />
+            <col className="w-[108px]" />
           </colgroup>
           <thead>
             <tr className="border-b border-[#e5e5e3] bg-[#f5f5f4]">
@@ -284,6 +298,14 @@ export function SpecsTableEditor({ value, onChange, label = "Especificações" }
                         ▼
                       </button>
                     </div>
+                    <button
+                      type="button"
+                      onClick={(e) => duplicateRow(e, rowIndex)}
+                      className="p-1 text-[#313b2e] hover:bg-[#313b2e]/10 rounded text-[11px] whitespace-nowrap font-medium"
+                      title="Duplicar linha"
+                    >
+                      Duplicar
+                    </button>
                     <button
                       type="button"
                       onClick={(e) => removeRow(e, rowIndex)}
