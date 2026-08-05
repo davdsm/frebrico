@@ -12,7 +12,7 @@ export function RelatedProducts({ products }: RelatedProductsProps) {
 
   return (
     <FadeInUpInView>
-      <section className="w-full bg-white py-12 md:py-16 lg:py-20">
+      <section className="w-full bg-white pt-4 md:pt-6 lg:pt-8 pb-12 md:pb-16 lg:pb-20">
       <div className="max-w-[1440px] mx-auto px-4 md:px-8 lg:px-20">
         {/* Section Header */}
         <div className="mb-12 md:mb-16">

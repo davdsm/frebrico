@@ -95,7 +95,7 @@ export function ProductSpecs({ product }: ProductSpecsProps) {
 
   return (
     <FadeInUpInView>
-      <section id="product-specs-table" className="w-full bg-white py-12 md:py-16 lg:py-20 scroll-mt-28">
+      <section id="product-specs-table" className="w-full bg-white pt-12 md:pt-16 lg:pt-20 pb-4 md:pb-6 lg:pb-8 scroll-mt-28">
         <div className="max-w-[1440px] mx-auto px-4 md:px-8 lg:px-20">
           <p className="text-sm text-[#5a5a59] mb-4">Selecione a variante na tabela e clique em Adicionar.</p>
           <div className="w-full max-h-[min(70vh,720px)] overflow-auto">
