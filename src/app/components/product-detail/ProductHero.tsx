@@ -5,6 +5,7 @@ import svgPaths from '../../../imports/svg-1y6ddsd0a6';
 import { FadeInUpInView } from '../atoms/FadeInUpInView';
 import { resolveImageUrl, type Product } from '../../api/shop';
 import { isColorAttributeName, pastelSwatchDataUrlForColorLabel } from '../../utils/pastelColorSwatch';
+import { formatDescriptionHtml } from '../../utils/richText';
 
 type AttributeValueItem = { name: string; image_url?: string; gallery_image?: string };
 type AttributeGroup = { attribute_id: number; attribute_name: string; values: AttributeValueItem[] };
@@ -40,35 +41,6 @@ function parseDownloads(raw: string): DownloadItem[] {
   } catch {
     return [];
   }
-}
-
-function formatDescriptionHtml(raw: string): string {
-  const text = (raw || '')
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/\r\n/g, '\n')
-    .trim();
-  if (!text) return '';
-
-  const lines = text.split('\n');
-  const firstBulletIndex = lines.findIndex((line) => line.trim().startsWith('-'));
-  const esc = (v: string) =>
-    v
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;');
-
-  if (firstBulletIndex < 0) {
-    return lines.map((line) => esc(line)).join('<br/>');
-  }
-
-  const before = lines.slice(0, firstBulletIndex).map((line) => esc(line)).join('<br/>').trim();
-  const bullets = lines
-    .slice(firstBulletIndex)
-    .filter((line) => line.trim() !== '')
-    .map((line) => esc(line.trim()))
-    .join('<br/>');
-
-  return before ? `${before}<br/><br/>${bullets}` : bullets;
 }
 
 function parseProductImages(raw: string | undefined | null): string[] {
@@ -266,8 +238,8 @@ export function ProductHero({ product, categoryName, categorySlug }: ProductHero
             <h1 className="text-[42px] font-semibold text-[#1e1b13] leading-[1.1]">{product.name}</h1>
 
             {product.description && (
-              <p
-                className="text-lg text-[#5a5a59] leading-normal"
+              <div
+                className="product-description text-lg text-[#5a5a59] leading-normal [&_p]:mb-3 [&_p:last-child]:mb-0 [&_h2]:text-[26px] [&_h2]:font-semibold [&_h2]:text-[#1e1b13] [&_h2]:mb-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_a]:text-[#313b2e] [&_a]:underline"
                 dangerouslySetInnerHTML={{ __html: formatDescriptionHtml(product.description) }}
               />
             )}

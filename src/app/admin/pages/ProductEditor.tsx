@@ -16,6 +16,8 @@ import { GalleryImagesEditor } from "../components/GalleryImagesEditor";
 import { AttributesPicker, type ProductAttributeGroup } from "../components/AttributesPicker";
 import { DownloadsEditor, type DownloadItem } from "../components/DownloadsEditor";
 import { SpecsTableEditor, type SpecsTableData } from "../components/SpecsTableEditor";
+import { RichTextEditor } from "../components/RichTextEditor";
+import { normalizeRichHtmlForSave } from "../../utils/richText";
 import { FaqsEditor, type FaqItem } from "../components/FaqsEditor";
 import { useToast } from "../components/Toast";
 
@@ -195,7 +197,7 @@ export default function ProductEditor() {
         image: image.trim(),
         images: JSON.stringify(images),
         category_id: categoryId,
-        description: description.trim(),
+        description: normalizeRichHtmlForSave(description),
         badge: badge.trim(),
         type_label: typeLabel.trim(),
         type_text: typeText.trim(),
@@ -300,10 +302,12 @@ export default function ProductEditor() {
                 ))}
               </select>
             </div>
-            <div>
-              <label className={labelClass}>Descrição</label>
-              <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className={inputClass + " resize-y"} />
-            </div>
+            <RichTextEditor
+              label="Descrição"
+              value={description}
+              onChange={setDescription}
+              placeholder="Descreva o produto com formatação, cores e listas..."
+            />
             <div>
               <label className={labelClass}>Badge (ex.: Destaque 🔥)</label>
               <input type="text" value={badge} onChange={(e) => setBadge(e.target.value)} placeholder="Texto curto" className={inputClass} />
