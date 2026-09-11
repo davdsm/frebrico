@@ -107,8 +107,10 @@ export function ProductsSubmenu({
     return () => { cancelled = true; };
   }, []);
 
-  const column1 = categories.slice(0, 5);
-  const column2 = categories.slice(5, 10);
+  // Split evenly so every category appears (was capped at 10 and hid "Linha Alternativa")
+  const mid = Math.ceil(categories.length / 2);
+  const column1 = categories.slice(0, mid);
+  const column2 = categories.slice(mid);
   const activeIndex = hoveredIndex ?? (categories.length > 0 ? 0 : null);
   const activeCategory = activeIndex !== null ? categories[activeIndex] : null;
 
