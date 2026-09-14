@@ -2,8 +2,8 @@ import nodemailer from "nodemailer";
 
 const ADMIN_EMAIL = process.env.MAIL_ADMIN ?? "info@frebrico.pt";
 const FROM_NAME = process.env.MAIL_FROM_NAME ?? "Frebrico";
-/** Verified Brevo sender when using API; defaults to DAVDSM verified mailbox. */
-const FROM_ADDRESS = process.env.MAIL_FROM ?? "geral@davdsm.pt";
+/** Brevo sender address (prefer no-reply@frebrico.pt once domain is authenticated). */
+const FROM_ADDRESS = process.env.MAIL_FROM ?? "no-reply@frebrico.pt";
 const REPLY_TO = process.env.MAIL_REPLY_TO ?? "info@frebrico.pt";
 
 function brevoApiKey() {
