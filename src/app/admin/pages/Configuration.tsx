@@ -366,9 +366,11 @@ function NotificationsPanel({ getVal, save, saving, savedKey }: {
 function SmtpStatusPanel() {
   const [status, setStatus] = useState<{
     configured: boolean;
+    provider?: string | null;
     host: string | null;
     port: number;
     from: string;
+    replyTo?: string;
     admin: string;
   } | null>(null);
   const [msg, setMsg] = useState("");
@@ -416,10 +418,10 @@ function SmtpStatusPanel() {
 
   return (
     <div className="bg-white rounded-2xl border border-[#e5e5e3] p-5 md:p-6">
-      <h2 className="text-[16px] font-semibold text-[#131313] mb-2">SMTP / envio de emails</h2>
+      <h2 className="text-[16px] font-semibold text-[#131313] mb-2">Envio de emails</h2>
       <p className="text-[13px] text-[#5a5a59] mb-4 leading-relaxed">
-        Os emails usam Nodemailer. Sem SMTP_HOST, SMTP_USER e SMTP_PASS no servidor, os emails não saem
-        (apenas ficam nos logs do backend).
+        Preferência: Brevo API (`BREVO_API_KEY`). Alternativa: SMTP (`SMTP_HOST` / `SMTP_USER` / `SMTP_PASS`).
+        Sem uma destas opções, os emails só ficam nos logs do backend.
       </p>
       {status && (
         <div className="text-[13px] space-y-1 mb-4">
@@ -428,12 +430,14 @@ function SmtpStatusPanel() {
             <strong className={status.configured ? "text-emerald-700" : "text-amber-700"}>
               {status.configured ? "Configurado" : "Não configurado"}
             </strong>
+            {status.provider ? ` (${status.provider})` : ""}
           </p>
           <p>
             Host: {status.host || "—"} · Porta: {status.port}
           </p>
           <p>
-            From: {status.from} · Admin: {status.admin}
+            From: {status.from}
+            {status.replyTo ? ` · Reply-To: ${status.replyTo}` : ""} · Admin: {status.admin}
           </p>
         </div>
       )}
@@ -444,7 +448,7 @@ function SmtpStatusPanel() {
           onClick={() => run("verify")}
           className="px-4 py-2 rounded-xl border border-[#e5e5e3] text-[13px] font-medium hover:bg-[#fafaf9] disabled:opacity-50"
         >
-          Testar ligação SMTP
+          Testar ligação
         </button>
         <button
           type="button"

@@ -2,7 +2,13 @@ import nodemailer from "nodemailer";
 
 const ADMIN_EMAIL = process.env.MAIL_ADMIN ?? "info@frebrico.pt";
 const FROM_NAME = process.env.MAIL_FROM_NAME ?? "Frebrico";
-const FROM_ADDRESS = process.env.MAIL_FROM ?? "info@frebrico.pt";
+/** Verified Brevo sender when using API; defaults to DAVDSM verified mailbox. */
+const FROM_ADDRESS = process.env.MAIL_FROM ?? "geral@davdsm.pt";
+const REPLY_TO = process.env.MAIL_REPLY_TO ?? "info@frebrico.pt";
+
+function brevoApiKey() {
+  return (process.env.BREVO_API_KEY || process.env.SIB_API_KEY || "").trim();
+}
 
 function createTransporter() {
   const host = process.env.SMTP_HOST;
@@ -11,7 +17,6 @@ function createTransporter() {
   const pass = process.env.SMTP_PASS;
 
   if (!host || !user || !pass) {
-    // Fallback: log-only (dev mode without SMTP configured)
     return null;
   }
 
@@ -23,25 +28,91 @@ function createTransporter() {
   });
 }
 
+function htmlToPlainText(html: string): string {
+  return html
+    .replace(/<style[\s\S]*?<\/style>/gi, "")
+    .replace(/<script[\s\S]*?<\/script>/gi, "")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>/gi, "\n\n")
+    .replace(/<\/div>/gi, "\n")
+    .replace(/<\/tr>/gi, "\n")
+    .replace(/<\/h[1-6]>/gi, "\n\n")
+    .replace(/<li[^>]*>/gi, "• ")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+async function sendViaBrevo(opts: { to: string; subject: string; html: string; text?: string }) {
+  const apiKey = brevoApiKey();
+  if (!apiKey) return null;
+
+  const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+    method: "POST",
+    headers: {
+      "api-key": apiKey,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      sender: { email: FROM_ADDRESS, name: FROM_NAME },
+      to: [{ email: opts.to }],
+      replyTo: { email: REPLY_TO, name: FROM_NAME },
+      subject: opts.subject,
+      htmlContent: opts.html,
+      textContent: opts.text || htmlToPlainText(opts.html),
+      tags: ["frebrico-transactional"],
+    }),
+  });
+
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`Brevo failed (${res.status}): ${body}`);
+  }
+
+  const data = (await res.json().catch(() => ({}))) as { messageId?: string };
+  return { ok: true as const, messageId: data.messageId || "brevo", provider: "brevo" as const };
+}
+
 async function sendMail(opts: { to: string; subject: string; html: string; text?: string }) {
+  // Prefer Brevo (transactional API) when configured
+  if (brevoApiKey()) {
+    try {
+      const result = await sendViaBrevo(opts);
+      if (result) {
+        console.log("[mail] sent via Brevo", { to: opts.to, subject: opts.subject, messageId: result.messageId });
+        return result;
+      }
+    } catch (e) {
+      console.error("[mail] Brevo send failed", e);
+      // fall through to SMTP if available
+    }
+  }
+
   const transporter = createTransporter();
   if (!transporter) {
-    console.warn("[mail] SMTP not configured — skipping email send. To:", opts.to, "Subject:", opts.subject);
-    console.warn("[mail] Set SMTP_HOST, SMTP_USER and SMTP_PASS in the server environment.");
-    return { ok: false as const, skipped: true as const, reason: "SMTP not configured" };
+    console.warn("[mail] Email not configured — skipping send. To:", opts.to, "Subject:", opts.subject);
+    console.warn("[mail] Set BREVO_API_KEY or SMTP_HOST/SMTP_USER/SMTP_PASS.");
+    return { ok: false as const, skipped: true as const, reason: "Email not configured" };
   }
   try {
     const info = await transporter.sendMail({
       from: `"${FROM_NAME}" <${FROM_ADDRESS}>`,
+      replyTo: REPLY_TO,
       to: opts.to,
       subject: opts.subject,
       html: opts.html,
       text: opts.text,
     });
-    console.log("[mail] sent", { to: opts.to, subject: opts.subject, messageId: info.messageId });
-    return { ok: true as const, messageId: info.messageId };
+    console.log("[mail] sent via SMTP", { to: opts.to, subject: opts.subject, messageId: info.messageId });
+    return { ok: true as const, messageId: info.messageId, provider: "smtp" as const };
   } catch (e) {
-    console.error("[mail] send failed", e);
+    console.error("[mail] SMTP send failed", e);
     throw e;
   }
 }
@@ -50,22 +121,39 @@ export function getMailStatus() {
   const host = process.env.SMTP_HOST || "";
   const user = process.env.SMTP_USER || "";
   const pass = process.env.SMTP_PASS || "";
-  const configured = Boolean(host && user && pass);
+  const brevo = Boolean(brevoApiKey());
+  const smtp = Boolean(host && user && pass);
   return {
-    configured,
-    host: host || null,
+    configured: brevo || smtp,
+    provider: brevo ? "brevo" : smtp ? "smtp" : null,
+    host: host || (brevo ? "api.brevo.com" : null),
     port: Number(process.env.SMTP_PORT ?? 587),
-    user: user ? `${user.slice(0, 2)}***` : null,
+    user: user ? `${user.slice(0, 2)}***` : brevo ? "brevo***" : null,
     from: FROM_ADDRESS,
     fromName: FROM_NAME,
+    replyTo: REPLY_TO,
     admin: ADMIN_EMAIL,
   };
 }
 
 export async function verifySmtpConnection() {
+  if (brevoApiKey()) {
+    try {
+      const res = await fetch("https://api.brevo.com/v3/account", {
+        headers: { "api-key": brevoApiKey() },
+      });
+      if (!res.ok) {
+        return { ok: false, error: `Brevo API inválida (${res.status}).` };
+      }
+      return { ok: true, message: "Ligação Brevo OK." };
+    } catch (e) {
+      return { ok: false, error: e instanceof Error ? e.message : "Erro Brevo" };
+    }
+  }
+
   const transporter = createTransporter();
   if (!transporter) {
-    return { ok: false, error: "SMTP não configurado (SMTP_HOST / SMTP_USER / SMTP_PASS)." };
+    return { ok: false, error: "Email não configurado (BREVO_API_KEY ou SMTP_HOST/USER/PASS)." };
   }
   await transporter.verify();
   return { ok: true, message: "Ligação SMTP OK." };
@@ -77,13 +165,13 @@ export async function sendTestEmail(to?: string) {
   const result = await sendMail({
     to: destination,
     subject: "Teste de email — Frebrico",
-    html: `<p>Este é um email de teste do backoffice Frebrico.</p><p>Se recebeu esta mensagem, o SMTP está a funcionar.</p>`,
-    text: "Teste de email Frebrico — SMTP OK.",
+    html: `<p>Este é um email de teste do backoffice Frebrico.</p><p>Se recebeu esta mensagem, o envio de emails está a funcionar.</p>`,
+    text: "Teste de email Frebrico — OK.",
   });
   if ("skipped" in result && result.skipped) {
     return { ok: false, error: result.reason };
   }
-  return { ok: true, to: destination };
+  return { ok: true, to: destination, provider: "provider" in result ? result.provider : undefined };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -198,7 +286,6 @@ interface ContactEmailData {
 export async function sendContactEmail(data: ContactEmailData) {
   const fullName = `${data.firstName} ${data.lastName}`.trim();
 
-  // Email to admin
   const adminHtml = `
     <div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#131313;">
       <h1 style="background:#313b2e;color:#fff;padding:24px 32px;margin:0;font-size:22px;">Novo Contacto via Website</h1>
@@ -219,7 +306,6 @@ export async function sendContactEmail(data: ContactEmailData) {
     html: adminHtml,
   });
 
-  // Auto-reply to sender
   const replyHtml = `
     <div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#131313;">
       <h1 style="background:#313b2e;color:#fff;padding:24px 32px;margin:0;font-size:22px;">Mensagem Recebida</h1>
