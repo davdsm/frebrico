@@ -227,8 +227,13 @@ function initSchema(database: Database.Database): void {
   try { database.exec("ALTER TABLE users ADD COLUMN approved_by INTEGER REFERENCES users(id) ON DELETE SET NULL"); } catch {}
   try { database.exec("ALTER TABLE users ADD COLUMN rejection_reason TEXT DEFAULT ''"); } catch {}
   try { database.exec("ALTER TABLE users ADD COLUMN show_discount_percent INTEGER NOT NULL DEFAULT 0"); } catch {}
-  try { database.exec("ALTER TABLE group_prices ADD COLUMN discount_percent REAL NOT NULL DEFAULT 0"); } catch {}
-  try { database.exec("ALTER TABLE customer_prices ADD COLUMN discount_percent REAL NOT NULL DEFAULT 0"); } catch {}
+
+  try { database.exec("ALTER TABLE customer_groups ADD COLUMN can_show_discount INTEGER NOT NULL DEFAULT 0"); } catch {}
+  try { database.exec("ALTER TABLE group_prices ADD COLUMN discount_percent REAL"); } catch {}
+  try { database.exec("ALTER TABLE customer_prices ADD COLUMN discount_percent REAL"); } catch {}
+
+  try { database.exec("ALTER TABLE orders ADD COLUMN coupon_code TEXT DEFAULT ''"); } catch {}
+  try { database.exec("ALTER TABLE orders ADD COLUMN coupon_discount REAL NOT NULL DEFAULT 0"); } catch {}
 
   try { database.exec("CREATE INDEX IF NOT EXISTS idx_users_approval ON users(approval_status)"); } catch {}
   try { database.exec("CREATE INDEX IF NOT EXISTS idx_users_group ON users(group_id)"); } catch {}
@@ -239,18 +244,7 @@ function initSchema(database: Database.Database): void {
     database.exec("UPDATE users SET approval_status = 'approved' WHERE is_admin = 1");
   } catch {}
 
-  // Default B2B groups
-  try {
-    database
-      .prepare(
-        `INSERT OR IGNORE INTO customer_groups (name, description, active)
-         VALUES
-           ('Revendedor', 'Conta de revendedor — elegível para ver % de desconto no checkout.', 1),
-           ('Parceiro', 'Conta de parceiro — elegível para ver % de desconto no checkout.', 1)`
-      )
-      .run();
-  } catch {}
-
+  // Coupons
   database.exec(`
     CREATE TABLE IF NOT EXISTS coupons (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -267,8 +261,37 @@ function initSchema(database: Database.Database): void {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
-    CREATE INDEX IF NOT EXISTS idx_coupons_code ON coupons(code);
   `);
+
+  // Seed partner groups (Revendedor / Parceiro) — only these can show discount %
+  try {
+    database
+      .prepare(
+        `INSERT INTO customer_groups (name, description, active, can_show_discount, updated_at)
+         VALUES (?, ?, 1, 1, CURRENT_TIMESTAMP)
+         ON CONFLICT(name) DO UPDATE SET
+           can_show_discount = 1,
+           description = COALESCE(NULLIF(excluded.description, ''), customer_groups.description),
+           updated_at = CURRENT_TIMESTAMP`
+      )
+      .run(
+        "Revendedor",
+        "Clientes revendedores — podem ver a percentagem de desconto no checkout (se ativado no cliente)."
+      );
+    database
+      .prepare(
+        `INSERT INTO customer_groups (name, description, active, can_show_discount, updated_at)
+         VALUES (?, ?, 1, 1, CURRENT_TIMESTAMP)
+         ON CONFLICT(name) DO UPDATE SET
+           can_show_discount = 1,
+           description = COALESCE(NULLIF(excluded.description, ''), customer_groups.description),
+           updated_at = CURRENT_TIMESTAMP`
+      )
+      .run(
+        "Parceiro",
+        "Clientes parceiros — podem ver a percentagem de desconto no checkout (se ativado no cliente)."
+      );
+  } catch {}
 }
 
 export type ContentRow = {
@@ -404,10 +427,10 @@ export type UserRow = {
   is_admin: number;
   approval_status: ApprovalStatus;
   group_id: number | null;
+  show_discount_percent: number;
   approved_at: string;
   approved_by: number | null;
   rejection_reason: string;
-  show_discount_percent: number;
   created_at: string;
 };
 
@@ -444,6 +467,8 @@ export type OrderRow = {
   subtotal: number;
   total: number;
   observations: string;
+  coupon_code: string;
+  coupon_discount: number;
   created_at: string;
 };
 
@@ -499,8 +524,8 @@ export function listCustomerUsers(status?: ApprovalStatus) {
   if (status) {
     return database
       .prepare(
-        `SELECT u.id, u.email, u.is_admin, u.approval_status, u.group_id, u.approved_at, u.rejection_reason, u.show_discount_percent, u.created_at,
-                p.name, p.phone, p.nif, p.locality, g.name as group_name
+        `SELECT u.id, u.email, u.is_admin, u.approval_status, u.group_id, u.show_discount_percent, u.approved_at, u.rejection_reason, u.created_at,
+                p.name, p.phone, p.nif, p.locality, g.name as group_name, g.can_show_discount as group_can_show_discount
          FROM users u
          LEFT JOIN user_profiles p ON p.user_id = u.id
          LEFT JOIN customer_groups g ON g.id = u.group_id
@@ -511,8 +536,8 @@ export function listCustomerUsers(status?: ApprovalStatus) {
   }
   return database
     .prepare(
-      `SELECT u.id, u.email, u.is_admin, u.approval_status, u.group_id, u.approved_at, u.rejection_reason, u.show_discount_percent, u.created_at,
-              p.name, p.phone, p.nif, p.locality, g.name as group_name
+      `SELECT u.id, u.email, u.is_admin, u.approval_status, u.group_id, u.show_discount_percent, u.approved_at, u.rejection_reason, u.created_at,
+              p.name, p.phone, p.nif, p.locality, g.name as group_name, g.can_show_discount as group_can_show_discount
        FROM users u
        LEFT JOIN user_profiles p ON p.user_id = u.id
        LEFT JOIN customer_groups g ON g.id = u.group_id
@@ -558,146 +583,6 @@ export function setUserShowDiscountPercent(userId: number, show: boolean): boole
     .prepare("UPDATE users SET show_discount_percent = ? WHERE id = ? AND is_admin = 0")
     .run(show ? 1 : 0, userId);
   return result.changes > 0;
-}
-
-export type CouponType = "percent" | "fixed";
-
-export type CouponRow = {
-  id: number;
-  code: string;
-  description: string;
-  type: CouponType;
-  value: number;
-  active: number;
-  min_subtotal: number;
-  max_uses: number | null;
-  used_count: number;
-  valid_from: string;
-  valid_to: string;
-  created_at: string;
-  updated_at: string;
-};
-
-export function listCoupons(): CouponRow[] {
-  return getDb()
-    .prepare("SELECT * FROM coupons ORDER BY created_at DESC")
-    .all() as CouponRow[];
-}
-
-export function getCouponById(id: number): CouponRow | undefined {
-  return getDb().prepare("SELECT * FROM coupons WHERE id = ?").get(id) as CouponRow | undefined;
-}
-
-export function getCouponByCode(code: string): CouponRow | undefined {
-  return getDb()
-    .prepare("SELECT * FROM coupons WHERE UPPER(code) = UPPER(?)")
-    .get(code.trim()) as CouponRow | undefined;
-}
-
-export function createCoupon(data: {
-  code: string;
-  description?: string;
-  type: CouponType;
-  value: number;
-  active?: boolean;
-  min_subtotal?: number;
-  max_uses?: number | null;
-  valid_from?: string;
-  valid_to?: string;
-}): number {
-  const result = getDb()
-    .prepare(
-      `INSERT INTO coupons (code, description, type, value, active, min_subtotal, max_uses, valid_from, valid_to)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-    )
-    .run(
-      data.code.trim().toUpperCase(),
-      data.description ?? "",
-      data.type,
-      data.value,
-      data.active === false ? 0 : 1,
-      data.min_subtotal ?? 0,
-      data.max_uses ?? null,
-      data.valid_from ?? "",
-      data.valid_to ?? ""
-    );
-  return Number(result.lastInsertRowid);
-}
-
-export function updateCoupon(
-  id: number,
-  data: {
-    code?: string;
-    description?: string;
-    type?: CouponType;
-    value?: number;
-    active?: boolean;
-    min_subtotal?: number;
-    max_uses?: number | null;
-    valid_from?: string;
-    valid_to?: string;
-  }
-): boolean {
-  const existing = getCouponById(id);
-  if (!existing) return false;
-  getDb()
-    .prepare(
-      `UPDATE coupons SET
-        code = ?, description = ?, type = ?, value = ?, active = ?,
-        min_subtotal = ?, max_uses = ?, valid_from = ?, valid_to = ?,
-        updated_at = CURRENT_TIMESTAMP
-       WHERE id = ?`
-    )
-    .run(
-      data.code != null ? data.code.trim().toUpperCase() : existing.code,
-      data.description != null ? data.description : existing.description,
-      data.type ?? existing.type,
-      data.value ?? existing.value,
-      data.active != null ? (data.active ? 1 : 0) : existing.active,
-      data.min_subtotal ?? existing.min_subtotal,
-      data.max_uses !== undefined ? data.max_uses : existing.max_uses,
-      data.valid_from != null ? data.valid_from : existing.valid_from,
-      data.valid_to != null ? data.valid_to : existing.valid_to,
-      id
-    );
-  return true;
-}
-
-export function deleteCoupon(id: number): boolean {
-  return getDb().prepare("DELETE FROM coupons WHERE id = ?").run(id).changes > 0;
-}
-
-export function incrementCouponUse(id: number): void {
-  getDb().prepare("UPDATE coupons SET used_count = used_count + 1, updated_at = CURRENT_TIMESTAMP WHERE id = ?").run(id);
-}
-
-export function validateCouponForSubtotal(
-  code: string,
-  subtotal: number
-): { ok: true; coupon: CouponRow; discount: number } | { ok: false; error: string } {
-  const coupon = getCouponByCode(code);
-  if (!coupon || !coupon.active) return { ok: false, error: "Cupão inválido ou inativo." };
-  const today = new Date().toISOString().slice(0, 10);
-  if (coupon.valid_from && today < coupon.valid_from) {
-    return { ok: false, error: "Este cupão ainda não é válido." };
-  }
-  if (coupon.valid_to && today > coupon.valid_to) {
-    return { ok: false, error: "Este cupão expirou." };
-  }
-  if (coupon.max_uses != null && coupon.used_count >= coupon.max_uses) {
-    return { ok: false, error: "Este cupão esgotou as utilizações." };
-  }
-  if (subtotal < (coupon.min_subtotal || 0)) {
-    return {
-      ok: false,
-      error: `Subtotal mínimo para este cupão: €${Number(coupon.min_subtotal).toFixed(2)}.`,
-    };
-  }
-  let discount =
-    coupon.type === "percent" ? (subtotal * Number(coupon.value)) / 100 : Number(coupon.value);
-  discount = Math.min(Math.max(0, discount), subtotal);
-  discount = Math.round(discount * 100) / 100;
-  return { ok: true, coupon, discount };
 }
 
 export function updateUserAdminFlag(id: number, isAdmin: boolean): void {
@@ -778,11 +663,13 @@ export function createOrder(order: {
   subtotal: number;
   total: number;
   observations?: string;
+  couponCode?: string;
+  couponDiscount?: number;
 }): number {
   const database = getDb();
   const stmt = database.prepare(`
-    INSERT INTO orders (user_id, order_number, status, email, customer_name, address, region, district, locality, postal_code, phone, nif, items_json, subtotal, total, observations)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO orders (user_id, order_number, status, email, customer_name, address, region, district, locality, postal_code, phone, nif, items_json, subtotal, total, observations, coupon_code, coupon_discount)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
   const result = stmt.run(
     order.userId,
@@ -800,7 +687,9 @@ export function createOrder(order: {
     order.itemsJson,
     order.subtotal,
     order.total,
-    order.observations ?? ''
+    order.observations ?? "",
+    order.couponCode ?? "",
+    order.couponDiscount ?? 0
   );
   return result.lastInsertRowid as number;
 }
@@ -1213,6 +1102,151 @@ export function deleteAttribute(id: number): boolean {
   const database = getDb();
   const stmt = database.prepare("DELETE FROM attributes WHERE id = ?");
   return stmt.run(id).changes > 0;
+}
+
+// ── Coupons ─────────────────────────────────────────────
+
+export type CouponType = "percent" | "fixed";
+
+export type CouponRow = {
+  id: number;
+  code: string;
+  description: string;
+  type: CouponType;
+  value: number;
+  active: number;
+  min_subtotal: number;
+  max_uses: number | null;
+  used_count: number;
+  valid_from: string;
+  valid_to: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export function listCoupons(): CouponRow[] {
+  return getDb()
+    .prepare("SELECT * FROM coupons ORDER BY created_at DESC")
+    .all() as CouponRow[];
+}
+
+export function getCouponById(id: number): CouponRow | undefined {
+  return getDb().prepare("SELECT * FROM coupons WHERE id = ?").get(id) as CouponRow | undefined;
+}
+
+export function getCouponByCode(code: string): CouponRow | undefined {
+  return getDb()
+    .prepare("SELECT * FROM coupons WHERE UPPER(code) = UPPER(?)")
+    .get(code.trim()) as CouponRow | undefined;
+}
+
+export function createCoupon(data: {
+  code: string;
+  description?: string;
+  type: CouponType;
+  value: number;
+  active?: boolean;
+  min_subtotal?: number;
+  max_uses?: number | null;
+  valid_from?: string;
+  valid_to?: string;
+}): number {
+  const result = getDb()
+    .prepare(
+      `INSERT INTO coupons (code, description, type, value, active, min_subtotal, max_uses, valid_from, valid_to, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`
+    )
+    .run(
+      data.code.trim().toUpperCase(),
+      data.description ?? "",
+      data.type,
+      data.value,
+      data.active === false ? 0 : 1,
+      data.min_subtotal ?? 0,
+      data.max_uses ?? null,
+      data.valid_from ?? "",
+      data.valid_to ?? ""
+    );
+  return result.lastInsertRowid as number;
+}
+
+export function updateCoupon(
+  id: number,
+  data: {
+    code?: string;
+    description?: string;
+    type?: CouponType;
+    value?: number;
+    active?: boolean;
+    min_subtotal?: number;
+    max_uses?: number | null;
+    valid_from?: string;
+    valid_to?: string;
+  }
+): boolean {
+  const current = getCouponById(id);
+  if (!current) return false;
+  getDb()
+    .prepare(
+      `UPDATE coupons SET code = ?, description = ?, type = ?, value = ?, active = ?, min_subtotal = ?,
+       max_uses = ?, valid_from = ?, valid_to = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`
+    )
+    .run(
+      data.code != null ? data.code.trim().toUpperCase() : current.code,
+      data.description ?? current.description,
+      data.type ?? current.type,
+      data.value ?? current.value,
+      data.active === undefined ? current.active : data.active ? 1 : 0,
+      data.min_subtotal ?? current.min_subtotal,
+      data.max_uses === undefined ? current.max_uses : data.max_uses,
+      data.valid_from ?? current.valid_from,
+      data.valid_to ?? current.valid_to,
+      id
+    );
+  return true;
+}
+
+export function deleteCoupon(id: number): boolean {
+  return getDb().prepare("DELETE FROM coupons WHERE id = ?").run(id).changes > 0;
+}
+
+export function incrementCouponUse(id: number): void {
+  getDb().prepare("UPDATE coupons SET used_count = used_count + 1, updated_at = CURRENT_TIMESTAMP WHERE id = ?").run(id);
+}
+
+function couponDateOk(validFrom: string, validTo: string): boolean {
+  const today = new Date().toISOString().slice(0, 10);
+  if (validFrom && today < validFrom) return false;
+  if (validTo && today > validTo) return false;
+  return true;
+}
+
+export function validateCouponForSubtotal(
+  code: string,
+  subtotal: number
+): { ok: true; coupon: CouponRow; discount: number } | { ok: false; error: string } {
+  const coupon = getCouponByCode(code);
+  if (!coupon || !coupon.active) return { ok: false, error: "Cupão inválido ou inativo." };
+  if (!couponDateOk(coupon.valid_from, coupon.valid_to)) {
+    return { ok: false, error: "Cupão fora da validade." };
+  }
+  if (coupon.max_uses != null && coupon.used_count >= coupon.max_uses) {
+    return { ok: false, error: "Cupão esgotado." };
+  }
+  if (subtotal < (coupon.min_subtotal || 0)) {
+    return {
+      ok: false,
+      error: `Subtotal mínimo de €${Number(coupon.min_subtotal).toFixed(2)} para este cupão.`,
+    };
+  }
+  const discount =
+    coupon.type === "percent"
+      ? Math.min(subtotal, (subtotal * Number(coupon.value)) / 100)
+      : Math.min(subtotal, Number(coupon.value));
+  if (!Number.isFinite(discount) || discount <= 0) {
+    return { ok: false, error: "Cupão sem desconto aplicável." };
+  }
+  return { ok: true, coupon, discount: Math.round(discount * 100) / 100 };
 }
 
 export { getDb, DB_PATH };

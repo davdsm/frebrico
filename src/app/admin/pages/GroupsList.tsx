@@ -53,7 +53,9 @@ export default function GroupsList() {
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold text-[#131313]">Grupos de clientes</h1>
-          <p className="text-[14px] text-[#5a5a59] mt-1">Ex.: Revendedores, Distribuidores, VIP.</p>
+          <p className="text-[14px] text-[#5a5a59] mt-1">
+            Revendedor e Parceiro são criados automaticamente e podem mostrar % de desconto no checkout.
+          </p>
         </div>
         <Link to="/admin/pricing" className="text-[13px] text-[#313b2e] hover:underline">
           ← Dashboard preços
@@ -93,6 +95,7 @@ export default function GroupsList() {
               <tr className="border-b border-[#e5e5e3] bg-[#fafaf9]">
                 <th className="px-4 py-3 text-[#5a5a59]">Nome</th>
                 <th className="px-4 py-3 text-[#5a5a59]">Membros</th>
+                <th className="px-4 py-3 text-[#5a5a59]">Ver %</th>
                 <th className="px-4 py-3 text-[#5a5a59]">Estado</th>
                 <th className="px-4 py-3 text-[#5a5a59] text-right">Ações</th>
               </tr>
@@ -105,6 +108,20 @@ export default function GroupsList() {
                     {g.description && <p className="text-[12px] text-[#5a5a59]">{g.description}</p>}
                   </td>
                   <td className="px-4 py-3">{g.memberCount ?? 0}</td>
+                  <td className="px-4 py-3">
+                    <button
+                      type="button"
+                      className="text-[#313b2e] hover:underline"
+                      onClick={async () => {
+                        await pricingApi.updateGroup(g.id, {
+                          can_show_discount: !g.can_show_discount,
+                        });
+                        await load();
+                      }}
+                    >
+                      {g.can_show_discount ? "Sim" : "Não"}
+                    </button>
+                  </td>
                   <td className="px-4 py-3">{g.active ? "Ativo" : "Inativo"}</td>
                   <td className="px-4 py-3 text-right space-x-2">
                     <Link to={`/admin/groups/${g.id}`} className="text-[#313b2e] font-medium hover:underline">

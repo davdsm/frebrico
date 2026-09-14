@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { CartHeader } from "../components/cart/CartHeader";
 import { CartCheckoutForm } from "../components/cart/CartCheckoutForm";
 import { CartSummary } from "../components/cart/CartSummary";
@@ -11,11 +11,18 @@ import { DominoFadeInDown } from "../components/atoms/DominoFadeInDown";
 export default function Cart() {
   const { items, updateQuantity, removeItem, subtotal } = useCart();
   const [shippingCountry, setShippingCountry] = useState("PT");
+  const [couponCode, setCouponCode] = useState("");
+  const [couponDiscount, setCouponDiscount] = useState(0);
   const seoTitle = useContent("cart", "seo", "title");
   const seoDescription = useContent("cart", "seo", "description");
 
+  useEffect(() => {
+    setCouponDiscount(0);
+    setCouponCode("");
+  }, [items.length]);
+
   const shipping = calculateShipping(shippingCountry, subtotal);
-  const total = computeTotal(subtotal, shipping);
+  const total = Math.max(0, computeTotal(subtotal, shipping) - couponDiscount);
 
   return (
     <>
@@ -28,6 +35,9 @@ export default function Cart() {
               <CartCheckoutForm
                 shipping={shipping}
                 onCountryChange={setShippingCountry}
+                couponCode={couponCode}
+                couponDiscount={couponDiscount}
+                orderTotal={total}
               />
               <CartSummary
                 cartItems={items}
@@ -36,6 +46,16 @@ export default function Cart() {
                 subtotal={subtotal}
                 shipping={shipping}
                 total={total}
+                couponCode={couponCode}
+                couponDiscount={couponDiscount}
+                onCouponApplied={(code, discount) => {
+                  setCouponCode(code);
+                  setCouponDiscount(discount);
+                }}
+                onCouponCleared={() => {
+                  setCouponCode("");
+                  setCouponDiscount(0);
+                }}
               />
             </div>
           </div>

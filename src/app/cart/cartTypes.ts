@@ -8,6 +8,6 @@ export interface CartItem {
   productId?: number;
   variantKey?: string;
   catalogPrice?: number;
-  discountPercent?: number;
+  discountPercent?: number | null;
 }
 

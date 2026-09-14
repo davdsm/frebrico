@@ -4,8 +4,6 @@ import { pricingApi, type CustomerGroup, type PriceRow, type PricingCustomer, ty
 import { useAdminNotifications } from "../components/AdminNotifications";
 import { useToast } from "../components/Toast";
 
-const DISCOUNT_GROUPS = ["revendedor", "parceiro"];
-
 export default function CustomerDetail() {
   const { id } = useParams<{ id: string }>();
   const userId = Number(id);
@@ -17,9 +15,9 @@ export default function CustomerDetail() {
   const [productId, setProductId] = useState<number | "">("");
   const [variants, setVariants] = useState<ProductVariantInfo | null>(null);
   const [variantKey, setVariantKey] = useState("");
-  const [price, setPrice] = useState("");
-  const [discountPercent, setDiscountPercent] = useState("");
   const [priceMode, setPriceMode] = useState<"fixed" | "percent">("fixed");
+  const [price, setPrice] = useState("");
+  const [discountPercent, setDiscountPercent] = useState("10");
   const [groupId, setGroupId] = useState<string>("");
   const [showDiscount, setShowDiscount] = useState(false);
 
@@ -55,9 +53,8 @@ export default function CustomerDetail() {
 
   if (!customer) return <div className="py-12 text-center text-[#5a5a59]">A carregar...</div>;
 
-  const selectedGroupName =
-    groups.find((g) => String(g.id) === groupId)?.name || customer.group_name || "";
-  const canToggleDiscount = DISCOUNT_GROUPS.includes(selectedGroupName.trim().toLowerCase());
+  const selectedGroup = groups.find((g) => String(g.id) === groupId);
+  const groupAllowsDiscount = Boolean(selectedGroup?.can_show_discount);
 
   return (
     <div>
@@ -79,16 +76,30 @@ export default function CustomerDetail() {
             {groups.map((g) => (
               <option key={g.id} value={g.id}>
                 {g.name}
+                {g.can_show_discount ? " (pode ver %)" : ""}
               </option>
             ))}
           </select>
         </div>
+        <label className="flex items-center gap-2 text-[13px] pb-2">
+          <input
+            type="checkbox"
+            checked={showDiscount}
+            disabled={!groupAllowsDiscount}
+            onChange={(e) => setShowDiscount(e.target.checked)}
+          />
+          Ver % de desconto no checkout
+        </label>
         <button
           type="button"
           className="px-4 py-2.5 bg-[#313b2e] text-white text-[13px] font-semibold rounded-xl"
           onClick={async () => {
-            await pricingApi.setCustomerGroup(userId, groupId ? Number(groupId) : null);
-            toast("Grupo atualizado.");
+            await pricingApi.setCustomerGroup(
+              userId,
+              groupId ? Number(groupId) : null,
+              groupAllowsDiscount ? showDiscount : false
+            );
+            toast("Cliente atualizado.");
             await load();
           }}
         >
@@ -100,6 +111,9 @@ export default function CustomerDetail() {
             className="px-4 py-2.5 border border-emerald-600 text-emerald-700 text-[13px] font-semibold rounded-xl"
             onClick={async () => {
               await pricingApi.approveCustomer(userId, groupId ? Number(groupId) : null);
+              if (groupAllowsDiscount) {
+                await pricingApi.setShowDiscountPercent(userId, showDiscount);
+              }
               toast("Aprovado.");
               await load();
               await refreshNotifications();
@@ -108,35 +122,10 @@ export default function CustomerDetail() {
             Aprovar cliente
           </button>
         )}
-      </div>
-
-      <div className="bg-white rounded-2xl border border-[#e5e5e3] p-4 mb-6">
-        <h2 className="text-[13px] font-semibold mb-2">Visibilidade da % de desconto no checkout</h2>
-        <p className="text-[12px] text-[#5a5a59] mb-3">
-          Apenas grupos <strong>Revendedor</strong> e <strong>Parceiro</strong> podem ver a percentagem.
-          O admin controla se este cliente a vê.
-        </p>
-        <label className={`inline-flex items-center gap-2 text-[13px] ${canToggleDiscount ? "" : "opacity-50"}`}>
-          <input
-            type="checkbox"
-            checked={showDiscount}
-            disabled={!canToggleDiscount}
-            onChange={async (e) => {
-              const next = e.target.checked;
-              try {
-                await pricingApi.setDiscountVisibility(userId, next);
-                setShowDiscount(next);
-                toast(next ? "Cliente verá a % de desconto." : "Cliente não verá a %.");
-                await load();
-              } catch (err) {
-                toast(err instanceof Error ? err.message : "Erro", "error");
-              }
-            }}
-          />
-          Mostrar % de desconto no checkout
-        </label>
-        {!canToggleDiscount && (
-          <p className="text-[12px] text-amber-700 mt-2">Atribua o grupo Revendedor ou Parceiro para ativar esta opção.</p>
+        {!groupAllowsDiscount && (
+          <p className="w-full text-[12px] text-[#5a5a59]">
+            Apenas grupos Revendedor/Parceiro (com permissão) permitem mostrar a % de desconto.
+          </p>
         )}
       </div>
 
@@ -145,41 +134,27 @@ export default function CustomerDetail() {
         onSubmit={async (e) => {
           e.preventDefault();
           if (!productId) return;
-          const payload =
-            priceMode === "percent"
-              ? {
-                  product_id: Number(productId),
-                  variant_key: variantKey,
-                  discount_percent: Number(String(discountPercent).replace(",", ".")),
-                  price: 0,
-                }
-              : {
-                  product_id: Number(productId),
-                  variant_key: variantKey,
-                  price: Number(String(price).replace(",", ".")),
-                  discount_percent: 0,
-                };
-          await pricingApi.upsertCustomerPrice(userId, payload);
+          await pricingApi.upsertCustomerPrice(userId, {
+            product_id: Number(productId),
+            variant_key: variantKey,
+            ...(priceMode === "percent"
+              ? { discount_percent: Number(String(discountPercent).replace(",", ".")), price: 0 }
+              : { price: Number(String(price).replace(",", ".")), discount_percent: null }),
+          });
           toast("Preço individual guardado.");
           await load();
         }}
       >
         <h2 className="text-[13px] font-semibold">Preço individual (maior prioridade)</h2>
-        <div className="flex gap-2 mb-1">
-          <button
-            type="button"
-            onClick={() => setPriceMode("fixed")}
-            className={`px-3 py-1.5 rounded-lg text-[12px] border ${priceMode === "fixed" ? "bg-[#313b2e] text-white border-[#313b2e]" : "border-[#e5e5e3]"}`}
-          >
-            Preço €
-          </button>
-          <button
-            type="button"
-            onClick={() => setPriceMode("percent")}
-            className={`px-3 py-1.5 rounded-lg text-[12px] border ${priceMode === "percent" ? "bg-[#313b2e] text-white border-[#313b2e]" : "border-[#e5e5e3]"}`}
-          >
+        <div className="flex gap-3 text-[13px]">
+          <label className="flex items-center gap-1.5">
+            <input type="radio" checked={priceMode === "fixed"} onChange={() => setPriceMode("fixed")} />
+            Preço fixo €
+          </label>
+          <label className="flex items-center gap-1.5">
+            <input type="radio" checked={priceMode === "percent"} onChange={() => setPriceMode("percent")} />
             Desconto %
-          </button>
+          </label>
         </div>
         <div className="grid md:grid-cols-3 gap-3">
           <select
@@ -210,20 +185,20 @@ export default function CustomerDetail() {
               </option>
             ))}
           </select>
-          {priceMode === "fixed" ? (
-            <input
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-              className="px-3 py-2 border border-[#e5e5e3] rounded-lg text-[13px]"
-              placeholder="Preço €"
-              required
-            />
-          ) : (
+          {priceMode === "percent" ? (
             <input
               value={discountPercent}
               onChange={(e) => setDiscountPercent(e.target.value)}
               className="px-3 py-2 border border-[#e5e5e3] rounded-lg text-[13px]"
               placeholder="% desconto"
+              required
+            />
+          ) : (
+            <input
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              className="px-3 py-2 border border-[#e5e5e3] rounded-lg text-[13px]"
+              placeholder="Preço €"
               required
             />
           )}
@@ -239,8 +214,7 @@ export default function CustomerDetail() {
             <tr className="border-b border-[#e5e5e3] bg-[#fafaf9]">
               <th className="px-4 py-3">Produto</th>
               <th className="px-4 py-3">Variante</th>
-              <th className="px-4 py-3">Preço</th>
-              <th className="px-4 py-3">% Desc.</th>
+              <th className="px-4 py-3">Preço / %</th>
               <th className="px-4 py-3 text-right">Ações</th>
             </tr>
           </thead>
@@ -249,8 +223,11 @@ export default function CustomerDetail() {
               <tr key={p.id} className="border-b border-[#e5e5e3]">
                 <td className="px-4 py-3">#{p.product_id}</td>
                 <td className="px-4 py-3 font-mono text-[12px]">{p.variant_key || "(base)"}</td>
-                <td className="px-4 py-3">{Number(p.price).toFixed(2)} €</td>
-                <td className="px-4 py-3">{p.discount_percent ? `${Number(p.discount_percent)}%` : "—"}</td>
+                <td className="px-4 py-3">
+                  {p.discount_percent != null && Number(p.discount_percent) > 0
+                    ? `${Number(p.discount_percent)}% desconto`
+                    : `${Number(p.price).toFixed(2)} €`}
+                </td>
                 <td className="px-4 py-3 text-right">
                   <button
                     type="button"

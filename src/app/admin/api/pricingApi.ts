@@ -27,6 +27,7 @@ export type CustomerGroup = {
   name: string;
   description: string;
   active: number;
+  can_show_discount?: number;
   memberCount?: number;
   created_at: string;
 };
@@ -37,6 +38,7 @@ export type PricingCustomer = {
   approval_status: "pending" | "approved" | "rejected";
   group_id: number | null;
   group_name?: string | null;
+  group_can_show_discount?: number | null;
   show_discount_percent?: number;
   name?: string;
   phone?: string;
@@ -51,7 +53,7 @@ export type PriceRow = {
   product_id: number;
   variant_key: string;
   price: number;
-  discount_percent?: number;
+  discount_percent?: number | null;
   valid_from: string;
   valid_to: string;
 };
@@ -63,6 +65,15 @@ export type ProductVariantInfo = {
   variants: { variant_key: string; label: string; default_price: number }[];
 };
 
+export type PricePayload = {
+  product_id: number;
+  variant_key?: string;
+  price?: number;
+  discount_percent?: number | null;
+  valid_from?: string;
+  valid_to?: string;
+};
+
 export const pricingApi = {
   dashboard: () =>
     api<{ groups: number; pending: number; approved: number; groupPrices: number; customerPrices: number }>(
@@ -70,25 +81,21 @@ export const pricingApi = {
     ),
   audit: (limit = 100) => api<unknown[]>(`/audit?limit=${limit}`),
   listGroups: (all = true) => api<CustomerGroup[]>(`/groups${all ? "?all=1" : ""}`),
-  createGroup: (name: string, description = "") =>
-    api<CustomerGroup>("/groups", { method: "POST", body: JSON.stringify({ name, description }) }),
-  updateGroup: (id: number, data: { name?: string; description?: string; active?: boolean }) =>
-    api<CustomerGroup>(`/groups/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
+  createGroup: (name: string, description = "", canShowDiscount = false) =>
+    api<CustomerGroup>("/groups", {
+      method: "POST",
+      body: JSON.stringify({ name, description, can_show_discount: canShowDiscount }),
+    }),
+  updateGroup: (
+    id: number,
+    data: { name?: string; description?: string; active?: boolean; can_show_discount?: boolean }
+  ) => api<CustomerGroup>(`/groups/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
   deleteGroup: (id: number) => api<{ ok: boolean }>(`/groups/${id}`, { method: "DELETE" }),
   getGroup: (id: number) =>
     api<CustomerGroup & { prices: PriceRow[]; memberCount: number }>(`/groups/${id}`),
   listGroupPrices: (id: number) => api<PriceRow[]>(`/groups/${id}/prices`),
-  upsertGroupPrice: (
-    groupId: number,
-    data: {
-      product_id: number;
-      variant_key?: string;
-      price?: number;
-      discount_percent?: number;
-      valid_from?: string;
-      valid_to?: string;
-    }
-  ) => api<PriceRow>(`/groups/${groupId}/prices`, { method: "PUT", body: JSON.stringify(data) }),
+  upsertGroupPrice: (groupId: number, data: PricePayload) =>
+    api<PriceRow>(`/groups/${groupId}/prices`, { method: "PUT", body: JSON.stringify(data) }),
   deleteGroupPrice: (id: number) => api<{ ok: boolean }>(`/group-prices/${id}`, { method: "DELETE" }),
   importGroupPrices: (groupId: number, rows: unknown[]) =>
     api<{ imported: number; errors: string[] }>(`/groups/${groupId}/prices/import`, {
@@ -109,30 +116,23 @@ export const pricingApi = {
       method: "POST",
       body: JSON.stringify({ reason }),
     }),
-  setCustomerGroup: (id: number, groupId: number | null) =>
+  setCustomerGroup: (id: number, groupId: number | null, showDiscountPercent?: boolean) =>
     api<{ ok: boolean }>(`/customers/${id}/group`, {
       method: "PATCH",
-      body: JSON.stringify({ group_id: groupId }),
+      body: JSON.stringify({
+        group_id: groupId,
+        ...(showDiscountPercent !== undefined
+          ? { show_discount_percent: showDiscountPercent }
+          : {}),
+      }),
     }),
-  setDiscountVisibility: (id: number, show: boolean) =>
-    api<{ ok: boolean; show_discount_percent: boolean; can_see_discount_percent: boolean }>(
-      `/customers/${id}/discount-visibility`,
-      {
-        method: "PATCH",
-        body: JSON.stringify({ show_discount_percent: show }),
-      }
-    ),
-  upsertCustomerPrice: (
-    userId: number,
-    data: {
-      product_id: number;
-      variant_key?: string;
-      price?: number;
-      discount_percent?: number;
-      valid_from?: string;
-      valid_to?: string;
-    }
-  ) => api<PriceRow>(`/customers/${userId}/prices`, { method: "PUT", body: JSON.stringify(data) }),
+  setShowDiscountPercent: (id: number, show: boolean) =>
+    api<{ ok: boolean }>(`/customers/${id}/show-discount`, {
+      method: "PATCH",
+      body: JSON.stringify({ show_discount_percent: show }),
+    }),
+  upsertCustomerPrice: (userId: number, data: PricePayload) =>
+    api<PriceRow>(`/customers/${userId}/prices`, { method: "PUT", body: JSON.stringify(data) }),
   deleteCustomerPrice: (id: number) =>
     api<{ ok: boolean }>(`/customer-prices/${id}`, { method: "DELETE" }),
   productVariants: (id: number) => api<ProductVariantInfo>(`/products/${id}/variants`),

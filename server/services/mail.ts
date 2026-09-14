@@ -27,21 +27,22 @@ async function sendMail(opts: { to: string; subject: string; html: string; text?
   const transporter = createTransporter();
   if (!transporter) {
     console.warn("[mail] SMTP not configured — skipping email send. To:", opts.to, "Subject:", opts.subject);
-    return { ok: false as const, skipped: true as const, error: "SMTP não configurado" };
+    console.warn("[mail] Set SMTP_HOST, SMTP_USER and SMTP_PASS in the server environment.");
+    return { ok: false as const, skipped: true as const, reason: "SMTP not configured" };
   }
   try {
-    await transporter.sendMail({
+    const info = await transporter.sendMail({
       from: `"${FROM_NAME}" <${FROM_ADDRESS}>`,
       to: opts.to,
       subject: opts.subject,
       html: opts.html,
       text: opts.text,
     });
-    return { ok: true as const };
+    console.log("[mail] sent", { to: opts.to, subject: opts.subject, messageId: info.messageId });
+    return { ok: true as const, messageId: info.messageId };
   } catch (e) {
-    const msg = e instanceof Error ? e.message : "Erro ao enviar email";
-    console.error("[mail] send failed:", msg);
-    return { ok: false as const, error: msg };
+    console.error("[mail] send failed", e);
+    throw e;
   }
 }
 
@@ -58,35 +59,31 @@ export function getMailStatus() {
     from: FROM_ADDRESS,
     fromName: FROM_NAME,
     admin: ADMIN_EMAIL,
-    hint: configured
-      ? "SMTP configurado. Use «Testar envio» para validar."
-      : "Defina SMTP_HOST, SMTP_USER e SMTP_PASS no ficheiro .env do servidor e reinicie o backend.",
   };
 }
 
 export async function verifySmtpConnection() {
   const transporter = createTransporter();
   if (!transporter) {
-    return { ok: false, error: "SMTP não configurado (faltam SMTP_HOST / SMTP_USER / SMTP_PASS)." };
+    return { ok: false, error: "SMTP não configurado (SMTP_HOST / SMTP_USER / SMTP_PASS)." };
   }
-  try {
-    await transporter.verify();
-    return { ok: true, message: "Ligação SMTP OK." };
-  } catch (e) {
-    return { ok: false, error: e instanceof Error ? e.message : "Falha na verificação SMTP" };
-  }
+  await transporter.verify();
+  return { ok: true, message: "Ligação SMTP OK." };
 }
 
 export async function sendTestEmail(to?: string) {
-  const dest = (to || ADMIN_EMAIL || "").trim();
-  if (!dest) return { ok: false, error: "Indique um email de destino." };
+  const destination = (to || ADMIN_EMAIL).trim();
+  if (!destination) return { ok: false, error: "Indique um email de destino." };
   const result = await sendMail({
-    to: dest,
-    subject: "Teste SMTP — Frebrico",
+    to: destination,
+    subject: "Teste de email — Frebrico",
     html: `<p>Este é um email de teste do backoffice Frebrico.</p><p>Se recebeu esta mensagem, o SMTP está a funcionar.</p>`,
+    text: "Teste de email Frebrico — SMTP OK.",
   });
-  if (!result.ok) return { ok: false, error: result.error || "Falha no envio" };
-  return { ok: true, to: dest };
+  if ("skipped" in result && result.skipped) {
+    return { ok: false, error: result.reason };
+  }
+  return { ok: true, to: destination };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

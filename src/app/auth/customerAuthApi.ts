@@ -25,7 +25,6 @@ export type CustomerUser = {
   groupId?: number | null;
   groupName?: string | null;
   showDiscountPercent?: boolean;
-  canSeeDiscountPercent?: boolean;
   profile: CustomerProfile;
 };
 
@@ -178,6 +177,7 @@ export async function createCheckoutOrder(payload: {
   subtotal: number;
   total: number;
   observations?: string;
+  couponCode?: string;
 }, authToken?: string): Promise<{ id: number; orderNumber: string }> {
   const res = await fetch(`${API_BASE}/api/orders`, {
     method: "POST",

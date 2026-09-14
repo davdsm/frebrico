@@ -13,7 +13,7 @@ import {
 } from "../db.js";
 import { requireAdmin, requireAuth, signToken } from "../middleware/auth.js";
 import { sendAdminNewCustomerPendingEmail } from "../services/mail.js";
-import { canUserSeeDiscountPercent, getCustomerGroup } from "../services/pricing.js";
+import { getCustomerGroup, userCanSeeDiscountPercent } from "../services/pricing.js";
 
 export const authRouter = Router();
 
@@ -241,8 +241,7 @@ authRouter.get("/customer/me", requireAuth, (req, res) => {
     approvalStatus: user.approval_status || "pending",
     groupId: user.group_id,
     groupName: group?.name ?? null,
-    showDiscountPercent: Boolean(user.show_discount_percent),
-    canSeeDiscountPercent: canUserSeeDiscountPercent(user),
+    showDiscountPercent: userCanSeeDiscountPercent(user),
     profile: {
       name: profile?.name ?? "",
       address: profile?.address ?? "",

@@ -28,8 +28,6 @@ import {
   getPricingDashboardStats,
   applyPricingToProduct,
   contextFromUser,
-  canUserSeeDiscountPercent,
-  isDiscountVisibleGroupName,
   variantKeyFromRow,
   parseSpecsTable,
   isPriceColumn,
@@ -72,9 +70,10 @@ pricingRouter.get("/groups", requireAdmin, (req, res) => {
 pricingRouter.post("/groups", requireAdmin, (req, res) => {
   const name = String(req.body?.name ?? "").trim();
   const description = String(req.body?.description ?? "").trim();
+  const canShowDiscount = Boolean(req.body?.can_show_discount);
   if (!name) return res.status(400).json({ error: "Nome obrigatório" });
   try {
-    const id = createCustomerGroup(name, description);
+    const id = createCustomerGroup(name, description, canShowDiscount);
     res.status(201).json(getCustomerGroup(id));
   } catch (e) {
     res.status(400).json({ error: e instanceof Error ? e.message : "Erro ao criar grupo" });
@@ -94,6 +93,8 @@ pricingRouter.patch("/groups/:id", requireAdmin, (req, res) => {
     name: req.body?.name != null ? String(req.body.name) : undefined,
     description: req.body?.description != null ? String(req.body.description) : undefined,
     active: req.body?.active != null ? Boolean(req.body.active) : undefined,
+    can_show_discount:
+      req.body?.can_show_discount != null ? Boolean(req.body.can_show_discount) : undefined,
   });
   if (!ok) return res.status(404).json({ error: "Not found" });
   res.json(getCustomerGroup(id));
@@ -117,29 +118,46 @@ pricingRouter.put("/groups/:id/prices", requireAdmin, (req, res) => {
   if (!getCustomerGroup(groupId)) return res.status(404).json({ error: "Not found" });
   const productId = Number(req.body?.product_id);
   const variantKey = String(req.body?.variant_key ?? "");
+  const discountPercent =
+    req.body?.discount_percent != null && req.body.discount_percent !== ""
+      ? Number(req.body.discount_percent)
+      : null;
   const price = Number(req.body?.price);
-  const discountPercent = Number(req.body?.discount_percent ?? 0) || 0;
   const validFrom = String(req.body?.valid_from ?? "");
   const validTo = String(req.body?.valid_to ?? "");
   if (!Number.isFinite(productId) || !getProductById(productId)) {
     return res.status(400).json({ error: "Produto inválido" });
   }
-  if (discountPercent <= 0 && (!Number.isFinite(price) || price < 0)) {
-    return res.status(400).json({ error: "Preço ou % de desconto inválido" });
-  }
-  if (discountPercent < 0 || discountPercent > 100) {
-    return res.status(400).json({ error: "Percentagem inválida (0–100)" });
+  if (discountPercent != null) {
+    if (!Number.isFinite(discountPercent) || discountPercent <= 0 || discountPercent > 100) {
+      return res.status(400).json({ error: "Percentagem inválida (1–100)" });
+    }
+  } else if (!Number.isFinite(price) || price < 0) {
+    return res.status(400).json({ error: "Preço inválido" });
   }
   const product = getProductById(productId)!;
-  const effectivePrice =
-    discountPercent > 0
-      ? Math.round(product.price * (1 - discountPercent / 100) * 100) / 100
+  let catalogBase = product.price;
+  if (variantKey) {
+    const specs = parseSpecsTable(product.specifications);
+    if (specs) {
+      const priceCol = specs.columns.findIndex(isPriceColumn);
+      const rowIndex = specs.rows.findIndex(
+        (row, i) => variantKeyFromRow(specs.columns, row, i) === variantKey
+      );
+      if (rowIndex >= 0 && priceCol >= 0) {
+        catalogBase = parsePriceCell(specs.rows[rowIndex][priceCol] ?? "", product.price);
+      }
+    }
+  }
+  const computedPrice =
+    discountPercent != null
+      ? Math.round(catalogBase * (1 - discountPercent / 100) * 100) / 100
       : price;
   const id = upsertGroupPrice(
     groupId,
     productId,
     variantKey,
-    effectivePrice,
+    computedPrice,
     validFrom,
     validTo,
     adminId(req as never),
@@ -150,7 +168,7 @@ pricingRouter.put("/groups/:id/prices", requireAdmin, (req, res) => {
     group_id: groupId,
     product_id: productId,
     variant_key: variantKey,
-    price: effectivePrice,
+    price: computedPrice,
     discount_percent: discountPercent,
     valid_from: validFrom,
     valid_to: validTo,
@@ -259,28 +277,29 @@ pricingRouter.patch("/customers/:id/group", requireAdmin, (req, res) => {
     return res.status(400).json({ error: "Grupo inválido" });
   }
   setUserGroup(id, groupId);
-  res.json({ ok: true, group_id: groupId });
+  if (req.body?.show_discount_percent != null) {
+    setUserShowDiscountPercent(id, Boolean(req.body.show_discount_percent));
+  }
+  res.json({
+    ok: true,
+    group_id: groupId,
+    show_discount_percent: getUserById(id)?.show_discount_percent ?? 0,
+  });
 });
 
-pricingRouter.patch("/customers/:id/discount-visibility", requireAdmin, (req, res) => {
+pricingRouter.patch("/customers/:id/show-discount", requireAdmin, (req, res) => {
   const id = Number(req.params.id);
   const user = getUserById(id);
   if (!user || user.is_admin) return res.status(404).json({ error: "Not found" });
   const show = Boolean(req.body?.show_discount_percent);
-  if (show) {
-    const group = user.group_id ? getCustomerGroup(user.group_id) : null;
-    if (!isDiscountVisibleGroupName(group?.name)) {
-      return res.status(400).json({
-        error: "Apenas clientes dos grupos Revendedor ou Parceiro podem ver a % de desconto.",
-      });
-    }
+  const group = user.group_id ? getCustomerGroup(user.group_id) : null;
+  if (show && (!group || !group.can_show_discount)) {
+    return res.status(400).json({
+      error: "Só Revendedor/Parceiro (grupos com permissão) podem ver a % de desconto.",
+    });
   }
   setUserShowDiscountPercent(id, show);
-  res.json({
-    ok: true,
-    show_discount_percent: show,
-    can_see_discount_percent: canUserSeeDiscountPercent(getUserById(id)),
-  });
+  res.json({ ok: true, show_discount_percent: show ? 1 : 0 });
 });
 
 pricingRouter.put("/customers/:id/prices", requireAdmin, (req, res) => {
@@ -289,29 +308,46 @@ pricingRouter.put("/customers/:id/prices", requireAdmin, (req, res) => {
   if (!user || user.is_admin) return res.status(404).json({ error: "Not found" });
   const productId = Number(req.body?.product_id);
   const variantKey = String(req.body?.variant_key ?? "");
+  const discountPercent =
+    req.body?.discount_percent != null && req.body.discount_percent !== ""
+      ? Number(req.body.discount_percent)
+      : null;
   const price = Number(req.body?.price);
-  const discountPercent = Number(req.body?.discount_percent ?? 0) || 0;
   const validFrom = String(req.body?.valid_from ?? "");
   const validTo = String(req.body?.valid_to ?? "");
   if (!Number.isFinite(productId) || !getProductById(productId)) {
     return res.status(400).json({ error: "Produto inválido" });
   }
-  if (discountPercent <= 0 && (!Number.isFinite(price) || price < 0)) {
-    return res.status(400).json({ error: "Preço ou % de desconto inválido" });
-  }
-  if (discountPercent < 0 || discountPercent > 100) {
-    return res.status(400).json({ error: "Percentagem inválida (0–100)" });
+  if (discountPercent != null) {
+    if (!Number.isFinite(discountPercent) || discountPercent <= 0 || discountPercent > 100) {
+      return res.status(400).json({ error: "Percentagem inválida (1–100)" });
+    }
+  } else if (!Number.isFinite(price) || price < 0) {
+    return res.status(400).json({ error: "Preço inválido" });
   }
   const product = getProductById(productId)!;
-  const effectivePrice =
-    discountPercent > 0
-      ? Math.round(product.price * (1 - discountPercent / 100) * 100) / 100
+  let catalogBase = product.price;
+  if (variantKey) {
+    const specs = parseSpecsTable(product.specifications);
+    if (specs) {
+      const priceCol = specs.columns.findIndex(isPriceColumn);
+      const rowIndex = specs.rows.findIndex(
+        (row, i) => variantKeyFromRow(specs.columns, row, i) === variantKey
+      );
+      if (rowIndex >= 0 && priceCol >= 0) {
+        catalogBase = parsePriceCell(specs.rows[rowIndex][priceCol] ?? "", product.price);
+      }
+    }
+  }
+  const computedPrice =
+    discountPercent != null
+      ? Math.round(catalogBase * (1 - discountPercent / 100) * 100) / 100
       : price;
   const id = upsertCustomerPrice(
     userId,
     productId,
     variantKey,
-    effectivePrice,
+    computedPrice,
     validFrom,
     validTo,
     adminId(req as never),
@@ -322,7 +358,7 @@ pricingRouter.put("/customers/:id/prices", requireAdmin, (req, res) => {
     user_id: userId,
     product_id: productId,
     variant_key: variantKey,
-    price: effectivePrice,
+    price: computedPrice,
     discount_percent: discountPercent,
   });
 });

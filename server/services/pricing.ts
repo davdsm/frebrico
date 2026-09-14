@@ -6,8 +6,8 @@ export type ResolvedPrice = {
   price: number;
   source: PriceSource;
   variantKey: string;
-  catalogPrice?: number;
-  discountPercent?: number;
+  catalogPrice: number;
+  discountPercent: number | null;
 };
 
 export type CustomerGroupRow = {
@@ -15,6 +15,7 @@ export type CustomerGroupRow = {
   name: string;
   description: string;
   active: number;
+  can_show_discount: number;
   created_at: string;
   updated_at: string;
 };
@@ -25,7 +26,7 @@ export type GroupPriceRow = {
   product_id: number;
   variant_key: string;
   price: number;
-  discount_percent: number;
+  discount_percent: number | null;
   valid_from: string;
   valid_to: string;
   created_at: string;
@@ -38,57 +39,12 @@ export type CustomerPriceRow = {
   product_id: number;
   variant_key: string;
   price: number;
-  discount_percent: number;
+  discount_percent: number | null;
   valid_from: string;
   valid_to: string;
   created_at: string;
   updated_at: string;
 };
-
-/** Groups that may see % discount in checkout when admin enables it. */
-export const DISCOUNT_VISIBLE_GROUP_NAMES = ["revendedor", "parceiro"];
-
-export function isDiscountVisibleGroupName(name: string | null | undefined): boolean {
-  const n = (name || "").trim().toLowerCase();
-  return DISCOUNT_VISIBLE_GROUP_NAMES.includes(n);
-}
-
-function roundMoney(n: number): number {
-  return Math.round(n * 100) / 100;
-}
-
-function applyDiscountPercent(defaultPrice: number, discountPercent: number): number {
-  const pct = Math.min(100, Math.max(0, Number(discountPercent) || 0));
-  return roundMoney(defaultPrice * (1 - pct / 100));
-}
-
-function effectiveFromRow(
-  defaultPrice: number,
-  row: { price: number; discount_percent?: number | null },
-  source: PriceSource,
-  variantKey: string
-): ResolvedPrice {
-  const pct = Number(row.discount_percent) || 0;
-  if (pct > 0) {
-    return {
-      price: applyDiscountPercent(defaultPrice, pct),
-      source,
-      variantKey,
-      catalogPrice: defaultPrice,
-      discountPercent: pct,
-    };
-  }
-  return {
-    price: Number(row.price),
-    source,
-    variantKey,
-    catalogPrice: defaultPrice,
-    discountPercent:
-      defaultPrice > 0 && Number(row.price) < defaultPrice
-        ? roundMoney(((defaultPrice - Number(row.price)) / defaultPrice) * 100)
-        : 0,
-  };
-}
 
 function todayIsoDate(): string {
   return new Date().toISOString().slice(0, 10);
@@ -194,29 +150,38 @@ export function getCustomerGroup(id: number): CustomerGroupRow | undefined {
   return getDb().prepare("SELECT * FROM customer_groups WHERE id = ?").get(id) as CustomerGroupRow | undefined;
 }
 
-export function createCustomerGroup(name: string, description = ""): number {
+export function createCustomerGroup(
+  name: string,
+  description = "",
+  canShowDiscount = false
+): number {
   const result = getDb()
     .prepare(
-      "INSERT INTO customer_groups (name, description, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)"
+      "INSERT INTO customer_groups (name, description, can_show_discount, updated_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP)"
     )
-    .run(name.trim(), description.trim());
+    .run(name.trim(), description.trim(), canShowDiscount ? 1 : 0);
   return result.lastInsertRowid as number;
 }
 
 export function updateCustomerGroup(
   id: number,
-  data: { name?: string; description?: string; active?: boolean }
+  data: { name?: string; description?: string; active?: boolean; can_show_discount?: boolean }
 ): boolean {
   const current = getCustomerGroup(id);
   if (!current) return false;
   getDb()
     .prepare(
-      `UPDATE customer_groups SET name = ?, description = ?, active = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`
+      `UPDATE customer_groups SET name = ?, description = ?, active = ?, can_show_discount = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`
     )
     .run(
       data.name?.trim() ?? current.name,
       data.description ?? current.description,
       data.active === undefined ? current.active : data.active ? 1 : 0,
+      data.can_show_discount === undefined
+        ? current.can_show_discount ?? 0
+        : data.can_show_discount
+          ? 1
+          : 0,
       id
     );
   return true;
@@ -256,13 +221,16 @@ export function upsertGroupPrice(
   validFrom = "",
   validTo = "",
   changedBy?: number | null,
-  discountPercent = 0
+  discountPercent: number | null = null
 ): number {
   const db = getDb();
-  const pct = Math.min(100, Math.max(0, Number(discountPercent) || 0));
   const existing = db
     .prepare("SELECT * FROM group_prices WHERE group_id = ? AND product_id = ? AND variant_key = ?")
     .get(groupId, productId, variantKey) as GroupPriceRow | undefined;
+  const pct =
+    discountPercent != null && Number.isFinite(discountPercent) && discountPercent > 0
+      ? discountPercent
+      : null;
 
   if (existing) {
     db.prepare(
@@ -277,7 +245,7 @@ export function upsertGroupPrice(
       oldPrice: existing.price,
       newPrice: price,
       changedBy,
-      note: `group:${groupId}${pct > 0 ? ` pct:${pct}` : ""}`,
+      note: `group:${groupId}${pct != null ? ` pct:${pct}` : ""}`,
     });
     return existing.id;
   }
@@ -297,7 +265,7 @@ export function upsertGroupPrice(
     oldPrice: null,
     newPrice: price,
     changedBy,
-    note: `group:${groupId}${pct > 0 ? ` pct:${pct}` : ""}`,
+    note: `group:${groupId}${pct != null ? ` pct:${pct}` : ""}`,
   });
   return id;
 }
@@ -342,13 +310,16 @@ export function upsertCustomerPrice(
   validFrom = "",
   validTo = "",
   changedBy?: number | null,
-  discountPercent = 0
+  discountPercent: number | null = null
 ): number {
   const db = getDb();
-  const pct = Math.min(100, Math.max(0, Number(discountPercent) || 0));
   const existing = db
     .prepare("SELECT * FROM customer_prices WHERE user_id = ? AND product_id = ? AND variant_key = ?")
     .get(userId, productId, variantKey) as CustomerPriceRow | undefined;
+  const pct =
+    discountPercent != null && Number.isFinite(discountPercent) && discountPercent > 0
+      ? discountPercent
+      : null;
 
   if (existing) {
     db.prepare(
@@ -363,7 +334,7 @@ export function upsertCustomerPrice(
       oldPrice: existing.price,
       newPrice: price,
       changedBy,
-      note: `user:${userId}${pct > 0 ? ` pct:${pct}` : ""}`,
+      note: `user:${userId}${pct != null ? ` pct:${pct}` : ""}`,
     });
     return existing.id;
   }
@@ -383,7 +354,7 @@ export function upsertCustomerPrice(
     oldPrice: null,
     newPrice: price,
     changedBy,
-    note: `user:${userId}${pct > 0 ? ` pct:${pct}` : ""}`,
+    note: `user:${userId}${pct != null ? ` pct:${pct}` : ""}`,
   });
   return id;
 }
@@ -414,6 +385,7 @@ type PriceContext = {
   userId?: number | null;
   groupId?: number | null;
   approvalStatus?: string;
+  showDiscountPercent?: boolean;
 };
 
 function getActiveCustomerPrice(
@@ -446,10 +418,32 @@ function getActiveGroupPrice(
   return row;
 }
 
+function priceFromOverride(
+  defaultPrice: number,
+  override: { price: number; discount_percent?: number | null },
+  source: PriceSource,
+  variantKey: string
+): ResolvedPrice {
+  const pct =
+    override.discount_percent != null && Number(override.discount_percent) > 0
+      ? Number(override.discount_percent)
+      : null;
+  const price =
+    pct != null
+      ? Math.round(defaultPrice * (1 - pct / 100) * 100) / 100
+      : Number(override.price);
+  return {
+    price,
+    source,
+    variantKey,
+    catalogPrice: defaultPrice,
+    discountPercent: pct,
+  };
+}
+
 /**
  * Hierarchy: individual (approved only) → group → default.
- * Empty variant_key means product-level price.
- * If discount_percent > 0 on a row, price = catalog * (1 - pct/100).
+ * discount_percent (when set) is applied over catalog/default price.
  */
 export function resolvePrice(
   productId: number,
@@ -459,30 +453,44 @@ export function resolvePrice(
 ): ResolvedPrice {
   const key = variantKey || "";
   const canUseCustom = ctx.approvalStatus === "approved";
+  const catalog = Number(defaultPrice) || 0;
 
   if (canUseCustom && ctx.userId) {
     const individual = getActiveCustomerPrice(ctx.userId, productId, key);
-    if (individual) return effectiveFromRow(defaultPrice, individual, "customer", key);
+    if (individual) return priceFromOverride(catalog, individual, "customer", key);
   }
 
   if (canUseCustom && ctx.groupId) {
     const groupPrice = getActiveGroupPrice(ctx.groupId, productId, key);
-    if (groupPrice) return effectiveFromRow(defaultPrice, groupPrice, "group", key);
+    if (groupPrice) return priceFromOverride(catalog, groupPrice, "group", key);
   }
 
-  // Fallback: product-level custom price when variant has no specific override
   if (canUseCustom && key) {
     if (ctx.userId) {
       const ind = getActiveCustomerPrice(ctx.userId, productId, "");
-      if (ind) return effectiveFromRow(defaultPrice, ind, "customer", "");
+      if (ind) return priceFromOverride(catalog, ind, "customer", "");
     }
     if (ctx.groupId) {
       const grp = getActiveGroupPrice(ctx.groupId, productId, "");
-      if (grp) return effectiveFromRow(defaultPrice, grp, "group", "");
+      if (grp) return priceFromOverride(catalog, grp, "group", "");
     }
   }
 
-  return { price: defaultPrice, source: "default", variantKey: key, catalogPrice: defaultPrice, discountPercent: 0 };
+  return {
+    price: catalog,
+    source: "default",
+    variantKey: key,
+    catalogPrice: catalog,
+    discountPercent: null,
+  };
+}
+
+export function userCanSeeDiscountPercent(user: UserRow | null | undefined): boolean {
+  if (!user || user.is_admin || user.approval_status !== "approved") return false;
+  if (!user.show_discount_percent) return false;
+  if (!user.group_id) return false;
+  const group = getCustomerGroup(user.group_id);
+  return Boolean(group?.active && group.can_show_discount);
 }
 
 export function contextFromUser(user: UserRow | null | undefined): PriceContext {
@@ -491,49 +499,43 @@ export function contextFromUser(user: UserRow | null | undefined): PriceContext 
     userId: user.id,
     groupId: user.group_id,
     approvalStatus: user.approval_status || "pending",
+    showDiscountPercent: userCanSeeDiscountPercent(user),
   };
-}
-
-export function canUserSeeDiscountPercent(user: UserRow | null | undefined): boolean {
-  if (!user || user.is_admin || !user.show_discount_percent) return false;
-  if (user.approval_status !== "approved" || !user.group_id) return false;
-  const group = getCustomerGroup(user.group_id);
-  return isDiscountVisibleGroupName(group?.name);
 }
 
 export type PricedProductPayload = {
   price: number;
   price_source: PriceSource;
   specifications: string;
-  catalog_price?: number;
-  discount_percent?: number;
   show_discount_percent?: boolean;
+  catalog_price?: number;
+  discount_percent?: number | null;
   variant_prices?: {
     variant_key: string;
     price: number;
     source: PriceSource;
     default_price: number;
-    discount_percent?: number;
+    catalog_price: number;
+    discount_percent: number | null;
   }[];
 };
 
 /** Apply pricing hierarchy to a product (base price + specs Preço column). */
 export function applyPricingToProduct(
   product: { id: number; price: number; specifications: string },
-  ctx: PriceContext,
-  opts?: { showDiscountPercent?: boolean }
+  ctx: PriceContext
 ): PricedProductPayload {
   const baseResolved = resolvePrice(product.id, product.price, "", ctx);
-  const showDiscount = Boolean(opts?.showDiscountPercent);
+  const showDiscount = Boolean(ctx.showDiscountPercent);
   const specs = parseSpecsTable(product.specifications);
   if (!specs || specs.columns.length === 0) {
     return {
       price: baseResolved.price,
       price_source: baseResolved.source,
       specifications: product.specifications,
-      catalog_price: baseResolved.catalogPrice ?? product.price,
-      discount_percent: baseResolved.discountPercent ?? 0,
       show_discount_percent: showDiscount,
+      catalog_price: showDiscount ? baseResolved.catalogPrice : undefined,
+      discount_percent: showDiscount ? baseResolved.discountPercent : undefined,
     };
   }
 
@@ -549,7 +551,8 @@ export function applyPricingToProduct(
       price: resolved.price,
       source: resolved.source,
       default_price: defaultCell,
-      discount_percent: resolved.discountPercent ?? 0,
+      catalog_price: resolved.catalogPrice,
+      discount_percent: resolved.discountPercent,
     });
     if (priceCol < 0) return row;
     const next = [...row];
@@ -561,9 +564,9 @@ export function applyPricingToProduct(
     price: baseResolved.price,
     price_source: baseResolved.source,
     specifications: JSON.stringify({ columns: specs.columns, rows: nextRows }),
-    catalog_price: baseResolved.catalogPrice ?? product.price,
-    discount_percent: baseResolved.discountPercent ?? 0,
     show_discount_percent: showDiscount,
+    catalog_price: showDiscount ? baseResolved.catalogPrice : undefined,
+    discount_percent: showDiscount ? baseResolved.discountPercent : undefined,
     variant_prices: variantPrices,
   };
 }

@@ -11,17 +11,14 @@ import {
   getUserById,
 } from "../db.js";
 import { requireAdmin, attachOptionalAuth } from "../middleware/auth.js";
-import { applyPricingToProduct, canUserSeeDiscountPercent, contextFromUser } from "../services/pricing.js";
+import { applyPricingToProduct, contextFromUser } from "../services/pricing.js";
 
 export const productsRouter = Router();
 
 function withPricing(product: ReturnType<typeof getProductById>, req: { user?: { id: number; isAdmin: boolean } }) {
   if (!product) return product;
   const fullUser = req.user && !req.user.isAdmin ? getUserById(req.user.id) : null;
-  const showDiscount = canUserSeeDiscountPercent(fullUser ?? undefined);
-  const priced = applyPricingToProduct(product, contextFromUser(fullUser ?? undefined), {
-    showDiscountPercent: showDiscount,
-  });
+  const priced = applyPricingToProduct(product, contextFromUser(fullUser ?? undefined));
   return {
     ...product,
     price: priced.price,

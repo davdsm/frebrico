@@ -8,6 +8,9 @@ import {
   getUserByEmail,
   listOrders,
   updateOrderStatus,
+  validateCouponForSubtotal,
+  incrementCouponUse,
+  getCouponByCode,
 } from "../db.js";
 import { attachOptionalAuth, requireAdmin, requireAuth } from "../middleware/auth.js";
 import { sendOrderConfirmationToCustomer, sendOrderNotificationToAdmin } from "../services/mail.js";
@@ -39,6 +42,7 @@ ordersRouter.post("/", attachOptionalAuth, (req, res) => {
     subtotal?: unknown;
     total?: unknown;
     observations?: unknown;
+    couponCode?: unknown;
   };
 
   const email = clean(body.email, 254).toLowerCase();
@@ -53,6 +57,7 @@ ordersRouter.post("/", attachOptionalAuth, (req, res) => {
   const subtotal = Number(body.subtotal ?? 0);
   const total = Number(body.total ?? 0);
   const observations = clean(body.observations, 1000);
+  const couponCode = clean(body.couponCode, 40).toUpperCase();
   const items = Array.isArray(body.items) ? body.items : [];
 
   if (!email || !name || !address || !postalCode || !phone || !nif || items.length === 0) {
@@ -117,8 +122,21 @@ ordersRouter.post("/", attachOptionalAuth, (req, res) => {
   // Keep shipping delta from client total when present
   const shippingDelta =
     Number.isFinite(total) && Number.isFinite(subtotal) ? Math.max(0, total - subtotal) : 0;
+
+  let couponDiscount = 0;
+  let appliedCouponCode = "";
+  if (couponCode) {
+    const couponResult = validateCouponForSubtotal(couponCode, computedSubtotal);
+    if (!couponResult.ok) {
+      res.status(400).json({ error: couponResult.error });
+      return;
+    }
+    couponDiscount = couponResult.discount;
+    appliedCouponCode = couponResult.coupon.code;
+  }
+
   const finalSubtotal = computedSubtotal;
-  const finalTotal = computedSubtotal + shippingDelta;
+  const finalTotal = Math.max(0, computedSubtotal - couponDiscount + shippingDelta);
 
   const orderNumber = `FRB-${Date.now()}-${Math.floor(100 + Math.random() * 900)}`;
   const orderId = createOrder({
@@ -138,9 +156,16 @@ ordersRouter.post("/", attachOptionalAuth, (req, res) => {
     subtotal: finalSubtotal,
     total: finalTotal,
     observations,
+    couponCode: appliedCouponCode,
+    couponDiscount,
   });
 
-  res.status(201).json({ id: orderId, orderNumber });
+  if (appliedCouponCode) {
+    const c = getCouponByCode(appliedCouponCode);
+    if (c) incrementCouponUse(c.id);
+  }
+
+  res.status(201).json({ id: orderId, orderNumber, couponDiscount, couponCode: appliedCouponCode });
 
   // Send emails asynchronously (do not block response)
   const orderEmailData = {

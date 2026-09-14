@@ -11,9 +11,17 @@ import type { ShippingResult } from "../../cart/shippingUtils";
 interface CartCheckoutFormProps {
   shipping: ShippingResult;
   onCountryChange: (country: string) => void;
+  couponCode?: string;
+  couponDiscount?: number;
+  orderTotal?: number;
 }
 
-export function CartCheckoutForm({ shipping, onCountryChange }: CartCheckoutFormProps) {
+export function CartCheckoutForm({
+  shipping,
+  onCountryChange,
+  couponCode = "",
+  orderTotal,
+}: CartCheckoutFormProps) {
   const navigate = useNavigate();
   const contactTitle = useContent("cart", "checkout", "contact_title");
   const loginLink = useContent("cart", "checkout", "login_link");
@@ -23,7 +31,7 @@ export function CartCheckoutForm({ shipping, onCountryChange }: CartCheckoutForm
   const submitButton = useContent("cart", "checkout", "submit_button");
   const { user, login, logout, token } = useCustomerAuth();
   const { items, subtotal, clearCart } = useCart();
-  const total = computeTotal(subtotal, shipping);
+  const total = orderTotal ?? computeTotal(subtotal, shipping);
   const [form, setForm] = useState({
     email: "",
     firstName: "",
@@ -105,6 +113,7 @@ export function CartCheckoutForm({ shipping, onCountryChange }: CartCheckoutForm
           subtotal,
           total,
           observations: form.observations,
+          couponCode: couponCode || undefined,
         },
         token ?? undefined
       );

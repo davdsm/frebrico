@@ -13,9 +13,9 @@ export default function GroupPrices() {
   const [productId, setProductId] = useState<number | "">("");
   const [variants, setVariants] = useState<ProductVariantInfo | null>(null);
   const [variantKey, setVariantKey] = useState("");
-  const [price, setPrice] = useState("");
-  const [discountPercent, setDiscountPercent] = useState("");
   const [priceMode, setPriceMode] = useState<"fixed" | "percent">("fixed");
+  const [price, setPrice] = useState("");
+  const [discountPercent, setDiscountPercent] = useState("10");
   const [csv, setCsv] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -63,22 +63,13 @@ export default function GroupPrices() {
     e.preventDefault();
     if (!productId) return;
     try {
-      await pricingApi.upsertGroupPrice(
-        groupId,
-        priceMode === "percent"
-          ? {
-              product_id: Number(productId),
-              variant_key: variantKey,
-              discount_percent: Number(String(discountPercent).replace(",", ".")),
-              price: 0,
-            }
-          : {
-              product_id: Number(productId),
-              variant_key: variantKey,
-              price: Number(String(price).replace(",", ".")),
-              discount_percent: 0,
-            }
-      );
+      await pricingApi.upsertGroupPrice(groupId, {
+        product_id: Number(productId),
+        variant_key: variantKey,
+        ...(priceMode === "percent"
+          ? { discount_percent: Number(String(discountPercent).replace(",", ".")), price: 0 }
+          : { price: Number(String(price).replace(",", ".")), discount_percent: null }),
+      });
       toast("Preço guardado.");
       await load();
     } catch (err) {
@@ -122,21 +113,15 @@ export default function GroupPrices() {
       </div>
 
       <form onSubmit={savePrice} className="bg-white rounded-2xl border border-[#e5e5e3] p-4 mb-6 space-y-3">
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={() => setPriceMode("fixed")}
-            className={`px-3 py-1.5 rounded-lg text-[12px] border ${priceMode === "fixed" ? "bg-[#313b2e] text-white border-[#313b2e]" : "border-[#e5e5e3]"}`}
-          >
-            Preço €
-          </button>
-          <button
-            type="button"
-            onClick={() => setPriceMode("percent")}
-            className={`px-3 py-1.5 rounded-lg text-[12px] border ${priceMode === "percent" ? "bg-[#313b2e] text-white border-[#313b2e]" : "border-[#e5e5e3]"}`}
-          >
+        <div className="flex gap-3 text-[13px]">
+          <label className="flex items-center gap-1.5">
+            <input type="radio" checked={priceMode === "fixed"} onChange={() => setPriceMode("fixed")} />
+            Preço fixo €
+          </label>
+          <label className="flex items-center gap-1.5">
+            <input type="radio" checked={priceMode === "percent"} onChange={() => setPriceMode("percent")} />
             Desconto %
-          </button>
+          </label>
         </div>
         <div className="grid md:grid-cols-3 gap-3">
           <div>
@@ -176,7 +161,7 @@ export default function GroupPrices() {
           </div>
           <div>
             <label className="block text-[12px] font-medium mb-1">
-              {priceMode === "percent" ? "Desconto grupo (%)" : "Preço grupo (€)"}
+              {priceMode === "percent" ? "Desconto (%)" : "Preço grupo (€)"}
             </label>
             <input
               value={priceMode === "percent" ? discountPercent : price}
@@ -221,7 +206,6 @@ export default function GroupPrices() {
               <th className="px-4 py-3">Produto</th>
               <th className="px-4 py-3">Variante</th>
               <th className="px-4 py-3">Preço</th>
-              <th className="px-4 py-3">% Desc.</th>
               <th className="px-4 py-3 text-right">Ações</th>
             </tr>
           </thead>
@@ -230,8 +214,11 @@ export default function GroupPrices() {
               <tr key={p.id} className="border-b border-[#e5e5e3]">
                 <td className="px-4 py-3">{productNameById.get(p.product_id) ?? p.product_id}</td>
                 <td className="px-4 py-3 font-mono text-[12px]">{p.variant_key || "(base)"}</td>
-                <td className="px-4 py-3">{Number(p.price).toFixed(2)} €</td>
-                <td className="px-4 py-3">{p.discount_percent ? `${Number(p.discount_percent)}%` : "—"}</td>
+                <td className="px-4 py-3">
+                  {p.discount_percent != null && Number(p.discount_percent) > 0
+                    ? `${Number(p.discount_percent)}% desconto`
+                    : `${Number(p.price).toFixed(2)} €`}
+                </td>
                 <td className="px-4 py-3 text-right">
                   <button
                     type="button"
