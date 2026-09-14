@@ -5,6 +5,7 @@ import {
   listCustomerUsers,
   setUserApproval,
   setUserGroup,
+  setUserShowDiscountPercent,
   getProductById,
   getProductBySlug,
   listProducts,
@@ -27,6 +28,8 @@ import {
   getPricingDashboardStats,
   applyPricingToProduct,
   contextFromUser,
+  canUserSeeDiscountPercent,
+  isDiscountVisibleGroupName,
   variantKeyFromRow,
   parseSpecsTable,
   isPriceColumn,
@@ -115,16 +118,43 @@ pricingRouter.put("/groups/:id/prices", requireAdmin, (req, res) => {
   const productId = Number(req.body?.product_id);
   const variantKey = String(req.body?.variant_key ?? "");
   const price = Number(req.body?.price);
+  const discountPercent = Number(req.body?.discount_percent ?? 0) || 0;
   const validFrom = String(req.body?.valid_from ?? "");
   const validTo = String(req.body?.valid_to ?? "");
   if (!Number.isFinite(productId) || !getProductById(productId)) {
     return res.status(400).json({ error: "Produto inválido" });
   }
-  if (!Number.isFinite(price) || price < 0) {
-    return res.status(400).json({ error: "Preço inválido" });
+  if (discountPercent <= 0 && (!Number.isFinite(price) || price < 0)) {
+    return res.status(400).json({ error: "Preço ou % de desconto inválido" });
   }
-  const id = upsertGroupPrice(groupId, productId, variantKey, price, validFrom, validTo, adminId(req as never));
-  res.json({ id, group_id: groupId, product_id: productId, variant_key: variantKey, price, valid_from: validFrom, valid_to: validTo });
+  if (discountPercent < 0 || discountPercent > 100) {
+    return res.status(400).json({ error: "Percentagem inválida (0–100)" });
+  }
+  const product = getProductById(productId)!;
+  const effectivePrice =
+    discountPercent > 0
+      ? Math.round(product.price * (1 - discountPercent / 100) * 100) / 100
+      : price;
+  const id = upsertGroupPrice(
+    groupId,
+    productId,
+    variantKey,
+    effectivePrice,
+    validFrom,
+    validTo,
+    adminId(req as never),
+    discountPercent
+  );
+  res.json({
+    id,
+    group_id: groupId,
+    product_id: productId,
+    variant_key: variantKey,
+    price: effectivePrice,
+    discount_percent: discountPercent,
+    valid_from: validFrom,
+    valid_to: validTo,
+  });
 });
 
 pricingRouter.delete("/group-prices/:id", requireAdmin, (req, res) => {
@@ -232,6 +262,27 @@ pricingRouter.patch("/customers/:id/group", requireAdmin, (req, res) => {
   res.json({ ok: true, group_id: groupId });
 });
 
+pricingRouter.patch("/customers/:id/discount-visibility", requireAdmin, (req, res) => {
+  const id = Number(req.params.id);
+  const user = getUserById(id);
+  if (!user || user.is_admin) return res.status(404).json({ error: "Not found" });
+  const show = Boolean(req.body?.show_discount_percent);
+  if (show) {
+    const group = user.group_id ? getCustomerGroup(user.group_id) : null;
+    if (!isDiscountVisibleGroupName(group?.name)) {
+      return res.status(400).json({
+        error: "Apenas clientes dos grupos Revendedor ou Parceiro podem ver a % de desconto.",
+      });
+    }
+  }
+  setUserShowDiscountPercent(id, show);
+  res.json({
+    ok: true,
+    show_discount_percent: show,
+    can_see_discount_percent: canUserSeeDiscountPercent(getUserById(id)),
+  });
+});
+
 pricingRouter.put("/customers/:id/prices", requireAdmin, (req, res) => {
   const userId = Number(req.params.id);
   const user = getUserById(userId);
@@ -239,24 +290,41 @@ pricingRouter.put("/customers/:id/prices", requireAdmin, (req, res) => {
   const productId = Number(req.body?.product_id);
   const variantKey = String(req.body?.variant_key ?? "");
   const price = Number(req.body?.price);
+  const discountPercent = Number(req.body?.discount_percent ?? 0) || 0;
   const validFrom = String(req.body?.valid_from ?? "");
   const validTo = String(req.body?.valid_to ?? "");
   if (!Number.isFinite(productId) || !getProductById(productId)) {
     return res.status(400).json({ error: "Produto inválido" });
   }
-  if (!Number.isFinite(price) || price < 0) {
-    return res.status(400).json({ error: "Preço inválido" });
+  if (discountPercent <= 0 && (!Number.isFinite(price) || price < 0)) {
+    return res.status(400).json({ error: "Preço ou % de desconto inválido" });
   }
+  if (discountPercent < 0 || discountPercent > 100) {
+    return res.status(400).json({ error: "Percentagem inválida (0–100)" });
+  }
+  const product = getProductById(productId)!;
+  const effectivePrice =
+    discountPercent > 0
+      ? Math.round(product.price * (1 - discountPercent / 100) * 100) / 100
+      : price;
   const id = upsertCustomerPrice(
     userId,
     productId,
     variantKey,
-    price,
+    effectivePrice,
     validFrom,
     validTo,
-    adminId(req as never)
+    adminId(req as never),
+    discountPercent
   );
-  res.json({ id, user_id: userId, product_id: productId, variant_key: variantKey, price });
+  res.json({
+    id,
+    user_id: userId,
+    product_id: productId,
+    variant_key: variantKey,
+    price: effectivePrice,
+    discount_percent: discountPercent,
+  });
 });
 
 pricingRouter.delete("/customer-prices/:id", requireAdmin, (req, res) => {

@@ -23,6 +23,9 @@ export type CustomerUser = {
   isAdmin: false;
   approvalStatus?: "pending" | "approved" | "rejected";
   groupId?: number | null;
+  groupName?: string | null;
+  showDiscountPercent?: boolean;
+  canSeeDiscountPercent?: boolean;
   profile: CustomerProfile;
 };
 

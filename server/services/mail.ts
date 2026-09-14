@@ -27,15 +27,66 @@ async function sendMail(opts: { to: string; subject: string; html: string; text?
   const transporter = createTransporter();
   if (!transporter) {
     console.warn("[mail] SMTP not configured — skipping email send. To:", opts.to, "Subject:", opts.subject);
-    return;
+    return { ok: false as const, skipped: true as const, error: "SMTP não configurado" };
   }
-  await transporter.sendMail({
-    from: `"${FROM_NAME}" <${FROM_ADDRESS}>`,
-    to: opts.to,
-    subject: opts.subject,
-    html: opts.html,
-    text: opts.text,
+  try {
+    await transporter.sendMail({
+      from: `"${FROM_NAME}" <${FROM_ADDRESS}>`,
+      to: opts.to,
+      subject: opts.subject,
+      html: opts.html,
+      text: opts.text,
+    });
+    return { ok: true as const };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Erro ao enviar email";
+    console.error("[mail] send failed:", msg);
+    return { ok: false as const, error: msg };
+  }
+}
+
+export function getMailStatus() {
+  const host = process.env.SMTP_HOST || "";
+  const user = process.env.SMTP_USER || "";
+  const pass = process.env.SMTP_PASS || "";
+  const configured = Boolean(host && user && pass);
+  return {
+    configured,
+    host: host || null,
+    port: Number(process.env.SMTP_PORT ?? 587),
+    user: user ? `${user.slice(0, 2)}***` : null,
+    from: FROM_ADDRESS,
+    fromName: FROM_NAME,
+    admin: ADMIN_EMAIL,
+    hint: configured
+      ? "SMTP configurado. Use «Testar envio» para validar."
+      : "Defina SMTP_HOST, SMTP_USER e SMTP_PASS no ficheiro .env do servidor e reinicie o backend.",
+  };
+}
+
+export async function verifySmtpConnection() {
+  const transporter = createTransporter();
+  if (!transporter) {
+    return { ok: false, error: "SMTP não configurado (faltam SMTP_HOST / SMTP_USER / SMTP_PASS)." };
+  }
+  try {
+    await transporter.verify();
+    return { ok: true, message: "Ligação SMTP OK." };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Falha na verificação SMTP" };
+  }
+}
+
+export async function sendTestEmail(to?: string) {
+  const dest = (to || ADMIN_EMAIL || "").trim();
+  if (!dest) return { ok: false, error: "Indique um email de destino." };
+  const result = await sendMail({
+    to: dest,
+    subject: "Teste SMTP — Frebrico",
+    html: `<p>Este é um email de teste do backoffice Frebrico.</p><p>Se recebeu esta mensagem, o SMTP está a funcionar.</p>`,
   });
+  if (!result.ok) return { ok: false, error: result.error || "Falha no envio" };
+  return { ok: true, to: dest };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -9,6 +9,7 @@ const LOJA_ITEMS = [
   { to: "/admin/categories", label: "Categorias" },
   { to: "/admin/attributes", label: "Atributos" },
   { to: "/admin/orders", label: "Encomendas" },
+  { to: "/admin/coupons", label: "Cupões" },
   { to: "/admin/pricing", label: "Preços" },
   { to: "/admin/groups", label: "Grupos" },
 ];
@@ -90,6 +91,7 @@ export function AdminSidebar() {
     location.pathname.startsWith("/admin/categories") ||
     location.pathname.startsWith("/admin/attributes") ||
     location.pathname.startsWith("/admin/orders") ||
+    location.pathname.startsWith("/admin/coupons") ||
     location.pathname.startsWith("/admin/pricing") ||
     location.pathname.startsWith("/admin/groups");
   useEffect(() => {

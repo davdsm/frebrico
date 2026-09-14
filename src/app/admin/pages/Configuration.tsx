@@ -4,6 +4,7 @@ import { putContent, uploadImage, getApiBase } from "../../content/api";
 import { useContentState } from "../../content/ContentContext";
 import { getDefault } from "../../content/defaults";
 import { useToast } from "../components/Toast";
+import { getAuthHeaders } from "../../auth/authStore";
 import HeaderEditor from "./HeaderEditor";
 import FooterEditor from "./FooterEditor";
 
@@ -285,8 +286,111 @@ function NotificationsPanel({ getVal, save, saving, savedKey }: {
   saving: string | null;
   savedKey: string | null;
 }) {
+  const { toast } = useToast();
+  const [smtpStatus, setSmtpStatus] = useState<{
+    configured: boolean;
+    host: string | null;
+    port: number;
+    from: string;
+    hint: string;
+  } | null>(null);
+  const [smtpBusy, setSmtpBusy] = useState(false);
+  const [testTo, setTestTo] = useState("");
+
+  useEffect(() => {
+    const base = getApiBase();
+    fetch(`${base}/api/mail/status`, { headers: { ...getAuthHeaders() } })
+      .then((r) => r.json())
+      .then((d) => setSmtpStatus(d))
+      .catch(() => setSmtpStatus(null));
+  }, []);
+
   return (
     <div className="max-w-2xl space-y-5">
+      <div className="bg-white rounded-2xl border border-[#e5e5e3] p-5 md:p-6">
+        <div className="flex items-center gap-3 mb-5 pb-4 border-b border-[#e5e5e3]">
+          <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
+            <svg className="w-4 h-4 text-amber-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+            </svg>
+          </div>
+          <h2 className="text-[16px] font-semibold text-[#131313]">Envio SMTP</h2>
+        </div>
+        {smtpStatus ? (
+          <>
+            <p className={`text-[13px] mb-2 font-medium ${smtpStatus.configured ? "text-emerald-700" : "text-red-600"}`}>
+              {smtpStatus.configured ? "SMTP configurado" : "SMTP não configurado — emails não saem"}
+            </p>
+            <p className="text-[12px] text-[#5a5a59] mb-3 leading-relaxed">{smtpStatus.hint}</p>
+            <p className="text-[12px] text-[#5a5a59] mb-4">
+              Host: {smtpStatus.host || "—"} · Porta: {smtpStatus.port} · From: {smtpStatus.from}
+            </p>
+            <div className="flex flex-wrap gap-2 items-end">
+              <div className="flex-1 min-w-[180px]">
+                <label className="block text-[12px] font-medium mb-1">Email de teste</label>
+                <input
+                  value={testTo}
+                  onChange={(e) => setTestTo(e.target.value)}
+                  placeholder={getVal("notifications", "email", "info@frebrico.pt")}
+                  className="w-full px-3 py-2 border border-[#e5e5e3] rounded-lg text-[13px]"
+                />
+              </div>
+              <button
+                type="button"
+                disabled={smtpBusy}
+                className="px-4 py-2.5 border border-[#e5e5e3] rounded-xl text-[13px] font-medium hover:bg-[#fafaf9] disabled:opacity-50"
+                onClick={async () => {
+                  setSmtpBusy(true);
+                  try {
+                    const base = getApiBase();
+                    const res = await fetch(`${base}/api/mail/verify`, {
+                      method: "POST",
+                      headers: { ...getAuthHeaders() },
+                    });
+                    const data = await res.json();
+                    if (!data.ok) throw new Error(data.error || "Falha SMTP");
+                    toast(data.message || "Ligação SMTP OK.");
+                  } catch (e) {
+                    toast(e instanceof Error ? e.message : "Erro SMTP", "error");
+                  } finally {
+                    setSmtpBusy(false);
+                  }
+                }}
+              >
+                Verificar SMTP
+              </button>
+              <button
+                type="button"
+                disabled={smtpBusy}
+                className="px-4 py-2.5 bg-[#313b2e] text-white rounded-xl text-[13px] font-semibold disabled:opacity-50"
+                onClick={async () => {
+                  setSmtpBusy(true);
+                  try {
+                    const base = getApiBase();
+                    const res = await fetch(`${base}/api/mail/test`, {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json", ...getAuthHeaders() },
+                      body: JSON.stringify({ to: testTo || undefined }),
+                    });
+                    const data = await res.json();
+                    if (!data.ok) throw new Error(data.error || "Falha no envio");
+                    toast(`Email de teste enviado para ${data.to}.`);
+                  } catch (e) {
+                    toast(e instanceof Error ? e.message : "Erro ao enviar", "error");
+                  } finally {
+                    setSmtpBusy(false);
+                  }
+                }}
+              >
+                Testar envio
+              </button>
+            </div>
+          </>
+        ) : (
+          <p className="text-[13px] text-[#5a5a59]">A carregar estado SMTP…</p>
+        )}
+      </div>
+
       <div className="bg-white rounded-2xl border border-[#e5e5e3] p-5 md:p-6">
         <div className="flex items-center gap-3 mb-5 pb-4 border-b border-[#e5e5e3]">
           <div className="w-8 h-8 rounded-lg bg-blue-500/8 flex items-center justify-center">

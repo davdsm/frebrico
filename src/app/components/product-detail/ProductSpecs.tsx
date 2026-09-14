@@ -144,6 +144,14 @@ export function ProductSpecs({ product }: ProductSpecsProps) {
                           onClick={() => {
                             const priceCell = hasPriceColumn ? (row[priceColIndex] ?? "") : "";
                             const price = parsePriceValue(priceCell, Number(product.price) || 0);
+                            const vp = product.variant_prices?.find((x) => x.variant_key === variantKey);
+                            const catalogPrice = vp?.default_price ?? (Number(product.catalog_price) || price);
+                            const discountPercent =
+                              vp?.discount_percent ??
+                              (product.show_discount_percent ? product.discount_percent : undefined) ??
+                              (catalogPrice > price && catalogPrice > 0
+                                ? Math.round(((catalogPrice - price) / catalogPrice) * 1000) / 10
+                                : 0);
                             addItem({
                               id: rowId,
                               name: product.name,
@@ -152,6 +160,8 @@ export function ProductSpecs({ product }: ProductSpecsProps) {
                               image: mainImage,
                               productId: product.id,
                               variantKey,
+                              catalogPrice,
+                              discountPercent: product.show_discount_percent ? discountPercent : undefined,
                             });
                             setLastAddedRow(rowIndex);
                             window.setTimeout(() => setLastAddedRow(null), 900);

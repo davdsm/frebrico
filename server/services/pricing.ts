@@ -6,6 +6,8 @@ export type ResolvedPrice = {
   price: number;
   source: PriceSource;
   variantKey: string;
+  catalogPrice?: number;
+  discountPercent?: number;
 };
 
 export type CustomerGroupRow = {
@@ -23,6 +25,7 @@ export type GroupPriceRow = {
   product_id: number;
   variant_key: string;
   price: number;
+  discount_percent: number;
   valid_from: string;
   valid_to: string;
   created_at: string;
@@ -35,11 +38,57 @@ export type CustomerPriceRow = {
   product_id: number;
   variant_key: string;
   price: number;
+  discount_percent: number;
   valid_from: string;
   valid_to: string;
   created_at: string;
   updated_at: string;
 };
+
+/** Groups that may see % discount in checkout when admin enables it. */
+export const DISCOUNT_VISIBLE_GROUP_NAMES = ["revendedor", "parceiro"];
+
+export function isDiscountVisibleGroupName(name: string | null | undefined): boolean {
+  const n = (name || "").trim().toLowerCase();
+  return DISCOUNT_VISIBLE_GROUP_NAMES.includes(n);
+}
+
+function roundMoney(n: number): number {
+  return Math.round(n * 100) / 100;
+}
+
+function applyDiscountPercent(defaultPrice: number, discountPercent: number): number {
+  const pct = Math.min(100, Math.max(0, Number(discountPercent) || 0));
+  return roundMoney(defaultPrice * (1 - pct / 100));
+}
+
+function effectiveFromRow(
+  defaultPrice: number,
+  row: { price: number; discount_percent?: number | null },
+  source: PriceSource,
+  variantKey: string
+): ResolvedPrice {
+  const pct = Number(row.discount_percent) || 0;
+  if (pct > 0) {
+    return {
+      price: applyDiscountPercent(defaultPrice, pct),
+      source,
+      variantKey,
+      catalogPrice: defaultPrice,
+      discountPercent: pct,
+    };
+  }
+  return {
+    price: Number(row.price),
+    source,
+    variantKey,
+    catalogPrice: defaultPrice,
+    discountPercent:
+      defaultPrice > 0 && Number(row.price) < defaultPrice
+        ? roundMoney(((defaultPrice - Number(row.price)) / defaultPrice) * 100)
+        : 0,
+  };
+}
 
 function todayIsoDate(): string {
   return new Date().toISOString().slice(0, 10);
@@ -206,18 +255,20 @@ export function upsertGroupPrice(
   price: number,
   validFrom = "",
   validTo = "",
-  changedBy?: number | null
+  changedBy?: number | null,
+  discountPercent = 0
 ): number {
   const db = getDb();
+  const pct = Math.min(100, Math.max(0, Number(discountPercent) || 0));
   const existing = db
     .prepare("SELECT * FROM group_prices WHERE group_id = ? AND product_id = ? AND variant_key = ?")
     .get(groupId, productId, variantKey) as GroupPriceRow | undefined;
 
   if (existing) {
     db.prepare(
-      `UPDATE group_prices SET price = ?, valid_from = ?, valid_to = ?, updated_at = CURRENT_TIMESTAMP
+      `UPDATE group_prices SET price = ?, discount_percent = ?, valid_from = ?, valid_to = ?, updated_at = CURRENT_TIMESTAMP
        WHERE id = ?`
-    ).run(price, validFrom, validTo, existing.id);
+    ).run(price, pct, validFrom, validTo, existing.id);
     writeAudit({
       entityType: "group_price",
       entityId: existing.id,
@@ -226,17 +277,17 @@ export function upsertGroupPrice(
       oldPrice: existing.price,
       newPrice: price,
       changedBy,
-      note: `group:${groupId}`,
+      note: `group:${groupId}${pct > 0 ? ` pct:${pct}` : ""}`,
     });
     return existing.id;
   }
 
   const result = db
     .prepare(
-      `INSERT INTO group_prices (group_id, product_id, variant_key, price, valid_from, valid_to)
-       VALUES (?, ?, ?, ?, ?, ?)`
+      `INSERT INTO group_prices (group_id, product_id, variant_key, price, discount_percent, valid_from, valid_to)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`
     )
-    .run(groupId, productId, variantKey, price, validFrom, validTo);
+    .run(groupId, productId, variantKey, price, pct, validFrom, validTo);
   const id = result.lastInsertRowid as number;
   writeAudit({
     entityType: "group_price",
@@ -246,7 +297,7 @@ export function upsertGroupPrice(
     oldPrice: null,
     newPrice: price,
     changedBy,
-    note: `group:${groupId}`,
+    note: `group:${groupId}${pct > 0 ? ` pct:${pct}` : ""}`,
   });
   return id;
 }
@@ -290,18 +341,20 @@ export function upsertCustomerPrice(
   price: number,
   validFrom = "",
   validTo = "",
-  changedBy?: number | null
+  changedBy?: number | null,
+  discountPercent = 0
 ): number {
   const db = getDb();
+  const pct = Math.min(100, Math.max(0, Number(discountPercent) || 0));
   const existing = db
     .prepare("SELECT * FROM customer_prices WHERE user_id = ? AND product_id = ? AND variant_key = ?")
     .get(userId, productId, variantKey) as CustomerPriceRow | undefined;
 
   if (existing) {
     db.prepare(
-      `UPDATE customer_prices SET price = ?, valid_from = ?, valid_to = ?, updated_at = CURRENT_TIMESTAMP
+      `UPDATE customer_prices SET price = ?, discount_percent = ?, valid_from = ?, valid_to = ?, updated_at = CURRENT_TIMESTAMP
        WHERE id = ?`
-    ).run(price, validFrom, validTo, existing.id);
+    ).run(price, pct, validFrom, validTo, existing.id);
     writeAudit({
       entityType: "customer_price",
       entityId: existing.id,
@@ -310,17 +363,17 @@ export function upsertCustomerPrice(
       oldPrice: existing.price,
       newPrice: price,
       changedBy,
-      note: `user:${userId}`,
+      note: `user:${userId}${pct > 0 ? ` pct:${pct}` : ""}`,
     });
     return existing.id;
   }
 
   const result = db
     .prepare(
-      `INSERT INTO customer_prices (user_id, product_id, variant_key, price, valid_from, valid_to)
-       VALUES (?, ?, ?, ?, ?, ?)`
+      `INSERT INTO customer_prices (user_id, product_id, variant_key, price, discount_percent, valid_from, valid_to)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`
     )
-    .run(userId, productId, variantKey, price, validFrom, validTo);
+    .run(userId, productId, variantKey, price, pct, validFrom, validTo);
   const id = result.lastInsertRowid as number;
   writeAudit({
     entityType: "customer_price",
@@ -330,7 +383,7 @@ export function upsertCustomerPrice(
     oldPrice: null,
     newPrice: price,
     changedBy,
-    note: `user:${userId}`,
+    note: `user:${userId}${pct > 0 ? ` pct:${pct}` : ""}`,
   });
   return id;
 }
@@ -396,6 +449,7 @@ function getActiveGroupPrice(
 /**
  * Hierarchy: individual (approved only) → group → default.
  * Empty variant_key means product-level price.
+ * If discount_percent > 0 on a row, price = catalog * (1 - pct/100).
  */
 export function resolvePrice(
   productId: number,
@@ -408,27 +462,27 @@ export function resolvePrice(
 
   if (canUseCustom && ctx.userId) {
     const individual = getActiveCustomerPrice(ctx.userId, productId, key);
-    if (individual) return { price: individual.price, source: "customer", variantKey: key };
+    if (individual) return effectiveFromRow(defaultPrice, individual, "customer", key);
   }
 
   if (canUseCustom && ctx.groupId) {
     const groupPrice = getActiveGroupPrice(ctx.groupId, productId, key);
-    if (groupPrice) return { price: groupPrice.price, source: "group", variantKey: key };
+    if (groupPrice) return effectiveFromRow(defaultPrice, groupPrice, "group", key);
   }
 
   // Fallback: product-level custom price when variant has no specific override
   if (canUseCustom && key) {
     if (ctx.userId) {
       const ind = getActiveCustomerPrice(ctx.userId, productId, "");
-      if (ind) return { price: ind.price, source: "customer", variantKey: "" };
+      if (ind) return effectiveFromRow(defaultPrice, ind, "customer", "");
     }
     if (ctx.groupId) {
       const grp = getActiveGroupPrice(ctx.groupId, productId, "");
-      if (grp) return { price: grp.price, source: "group", variantKey: "" };
+      if (grp) return effectiveFromRow(defaultPrice, grp, "group", "");
     }
   }
 
-  return { price: defaultPrice, source: "default", variantKey: key };
+  return { price: defaultPrice, source: "default", variantKey: key, catalogPrice: defaultPrice, discountPercent: 0 };
 }
 
 export function contextFromUser(user: UserRow | null | undefined): PriceContext {
@@ -440,25 +494,46 @@ export function contextFromUser(user: UserRow | null | undefined): PriceContext 
   };
 }
 
+export function canUserSeeDiscountPercent(user: UserRow | null | undefined): boolean {
+  if (!user || user.is_admin || !user.show_discount_percent) return false;
+  if (user.approval_status !== "approved" || !user.group_id) return false;
+  const group = getCustomerGroup(user.group_id);
+  return isDiscountVisibleGroupName(group?.name);
+}
+
 export type PricedProductPayload = {
   price: number;
   price_source: PriceSource;
   specifications: string;
-  variant_prices?: { variant_key: string; price: number; source: PriceSource; default_price: number }[];
+  catalog_price?: number;
+  discount_percent?: number;
+  show_discount_percent?: boolean;
+  variant_prices?: {
+    variant_key: string;
+    price: number;
+    source: PriceSource;
+    default_price: number;
+    discount_percent?: number;
+  }[];
 };
 
 /** Apply pricing hierarchy to a product (base price + specs Preço column). */
 export function applyPricingToProduct(
   product: { id: number; price: number; specifications: string },
-  ctx: PriceContext
+  ctx: PriceContext,
+  opts?: { showDiscountPercent?: boolean }
 ): PricedProductPayload {
   const baseResolved = resolvePrice(product.id, product.price, "", ctx);
+  const showDiscount = Boolean(opts?.showDiscountPercent);
   const specs = parseSpecsTable(product.specifications);
   if (!specs || specs.columns.length === 0) {
     return {
       price: baseResolved.price,
       price_source: baseResolved.source,
       specifications: product.specifications,
+      catalog_price: baseResolved.catalogPrice ?? product.price,
+      discount_percent: baseResolved.discountPercent ?? 0,
+      show_discount_percent: showDiscount,
     };
   }
 
@@ -474,6 +549,7 @@ export function applyPricingToProduct(
       price: resolved.price,
       source: resolved.source,
       default_price: defaultCell,
+      discount_percent: resolved.discountPercent ?? 0,
     });
     if (priceCol < 0) return row;
     const next = [...row];
@@ -485,6 +561,9 @@ export function applyPricingToProduct(
     price: baseResolved.price,
     price_source: baseResolved.source,
     specifications: JSON.stringify({ columns: specs.columns, rows: nextRows }),
+    catalog_price: baseResolved.catalogPrice ?? product.price,
+    discount_percent: baseResolved.discountPercent ?? 0,
+    show_discount_percent: showDiscount,
     variant_prices: variantPrices,
   };
 }

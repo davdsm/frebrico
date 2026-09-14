@@ -41,6 +41,7 @@ const importAdminGroupsList = () => import("./admin/pages/GroupsList");
 const importAdminGroupPrices = () => import("./admin/pages/GroupPrices");
 const importAdminCustomersList = () => import("./admin/pages/CustomersList");
 const importAdminCustomerDetail = () => import("./admin/pages/CustomerDetail");
+const importAdminCouponsList = () => import("./admin/pages/CouponsList");
 
 const Home = React.lazy(importHome);
 const About = React.lazy(importAbout);
@@ -78,6 +79,7 @@ const AdminGroupsList = React.lazy(importAdminGroupsList);
 const AdminGroupPrices = React.lazy(importAdminGroupPrices);
 const AdminCustomersList = React.lazy(importAdminCustomersList);
 const AdminCustomerDetail = React.lazy(importAdminCustomerDetail);
+const AdminCouponsList = React.lazy(importAdminCouponsList);
 
 export async function preloadRouteChunks(): Promise<void> {
   await Promise.allSettled([
@@ -116,6 +118,7 @@ export async function preloadRouteChunks(): Promise<void> {
     importAdminGroupPrices(),
     importAdminCustomersList(),
     importAdminCustomerDetail(),
+    importAdminCouponsList(),
   ]);
 }
 
@@ -168,6 +171,7 @@ export const router = createBrowserRouter([
       { path: "groups/:id", element: <SuspenseWrap><AdminGroupPrices /></SuspenseWrap> },
       { path: "customers", element: <SuspenseWrap><AdminCustomersList /></SuspenseWrap> },
       { path: "customers/:id", element: <SuspenseWrap><AdminCustomerDetail /></SuspenseWrap> },
+      { path: "coupons", element: <SuspenseWrap><AdminCouponsList /></SuspenseWrap> },
       { path: "register", element: <SuspenseWrap><AdminCreateAdminPage /></SuspenseWrap> },
     ],
   },

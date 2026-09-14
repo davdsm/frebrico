@@ -37,6 +37,7 @@ export type PricingCustomer = {
   approval_status: "pending" | "approved" | "rejected";
   group_id: number | null;
   group_name?: string | null;
+  show_discount_percent?: number;
   name?: string;
   phone?: string;
   nif?: string;
@@ -50,6 +51,7 @@ export type PriceRow = {
   product_id: number;
   variant_key: string;
   price: number;
+  discount_percent?: number;
   valid_from: string;
   valid_to: string;
 };
@@ -78,7 +80,14 @@ export const pricingApi = {
   listGroupPrices: (id: number) => api<PriceRow[]>(`/groups/${id}/prices`),
   upsertGroupPrice: (
     groupId: number,
-    data: { product_id: number; variant_key?: string; price: number; valid_from?: string; valid_to?: string }
+    data: {
+      product_id: number;
+      variant_key?: string;
+      price?: number;
+      discount_percent?: number;
+      valid_from?: string;
+      valid_to?: string;
+    }
   ) => api<PriceRow>(`/groups/${groupId}/prices`, { method: "PUT", body: JSON.stringify(data) }),
   deleteGroupPrice: (id: number) => api<{ ok: boolean }>(`/group-prices/${id}`, { method: "DELETE" }),
   importGroupPrices: (groupId: number, rows: unknown[]) =>
@@ -105,9 +114,24 @@ export const pricingApi = {
       method: "PATCH",
       body: JSON.stringify({ group_id: groupId }),
     }),
+  setDiscountVisibility: (id: number, show: boolean) =>
+    api<{ ok: boolean; show_discount_percent: boolean; can_see_discount_percent: boolean }>(
+      `/customers/${id}/discount-visibility`,
+      {
+        method: "PATCH",
+        body: JSON.stringify({ show_discount_percent: show }),
+      }
+    ),
   upsertCustomerPrice: (
     userId: number,
-    data: { product_id: number; variant_key?: string; price: number; valid_from?: string; valid_to?: string }
+    data: {
+      product_id: number;
+      variant_key?: string;
+      price?: number;
+      discount_percent?: number;
+      valid_from?: string;
+      valid_to?: string;
+    }
   ) => api<PriceRow>(`/customers/${userId}/prices`, { method: "PUT", body: JSON.stringify(data) }),
   deleteCustomerPrice: (id: number) =>
     api<{ ok: boolean }>(`/customer-prices/${id}`, { method: "DELETE" }),

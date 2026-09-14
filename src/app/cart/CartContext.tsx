@@ -9,6 +9,8 @@ interface AddCartItemInput {
   image: string;
   productId?: number;
   variantKey?: string;
+  catalogPrice?: number;
+  discountPercent?: number;
 }
 
 interface CartContextValue {

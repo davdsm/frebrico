@@ -61,7 +61,16 @@ export type Product = {
   created_at: string;
   updated_at: string;
   customer_approval_status?: string | null;
-  variant_prices?: { variant_key: string; price: number; source: string; default_price: number }[];
+  catalog_price?: number;
+  discount_percent?: number;
+  show_discount_percent?: boolean;
+  variant_prices?: {
+    variant_key: string;
+    price: number;
+    source: string;
+    default_price: number;
+    discount_percent?: number;
+  }[];
 };
 
 function customerAuthHeaders(): HeadersInit {

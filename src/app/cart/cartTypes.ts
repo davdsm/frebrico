@@ -7,5 +7,7 @@ export interface CartItem {
   image: string;
   productId?: number;
   variantKey?: string;
+  catalogPrice?: number;
+  discountPercent?: number;
 }
 
