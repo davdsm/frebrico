@@ -137,3 +137,14 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Production / runtime data (NEVER overwrite via git pull/reset)
+data/frebrico.db
+data/frebrico.db-shm
+data/frebrico.db-wal
+data/frebrico.db.*
+server/data/frebrico.db
+server/data/frebrico.db-shm
+server/data/frebrico.db-wal
+data/uploads/
+!data/uploads/.gitkeep
