@@ -307,6 +307,8 @@ export default function ProductEditor() {
               value={description}
               onChange={setDescription}
               placeholder="Descreva o produto com formatação, cores e listas..."
+              uploadPage="products"
+              uploadSection="description"
             />
             <div>
               <label className={labelClass}>Badge (ex.: Destaque 🔥)</label>

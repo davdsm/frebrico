@@ -1,4 +1,5 @@
 import DOMPurify from "dompurify";
+import { resolveImageUrl } from "../api/shop";
 
 const ALLOWED_TAGS = [
   "p",
@@ -16,9 +17,10 @@ const ALLOWED_TAGS = [
   "h2",
   "h3",
   "a",
+  "img",
 ];
 
-const ALLOWED_ATTR = ["style", "href", "target", "rel", "class"];
+const ALLOWED_ATTR = ["style", "href", "target", "rel", "class", "src", "alt", "width", "height", "title"];
 
 export function sanitizeRichHtml(html: string): string {
   return DOMPurify.sanitize(html, {
@@ -32,10 +34,28 @@ export function isRichHtmlContent(raw: string): boolean {
   return /<\/?[a-z][\s\S]*>/i.test((raw || "").trim());
 }
 
+/** Rewrite relative /uploads paths in img src so they resolve against the API base. */
+export function rewriteDescriptionImageUrls(html: string): string {
+  if (!html || !html.includes("<img")) return html;
+  return html.replace(/<img\b([^>]*)>/gi, (full, attrs: string) => {
+    const srcMatch = attrs.match(/\bsrc\s*=\s*(["'])(.*?)\1/i);
+    if (!srcMatch) return full;
+    const resolved = resolveImageUrl(srcMatch[2]);
+    if (!resolved || resolved === srcMatch[2]) return full;
+    const newAttrs = attrs.replace(/\bsrc\s*=\s*(["']).*?\1/i, `src="${resolved}"`);
+    return `<img${newAttrs}>`;
+  });
+}
+
 export function normalizeRichHtmlForSave(html: string): string {
   const trimmed = (html || "").trim();
   if (!trimmed || trimmed === "<p></p>" || trimmed === "<p><br></p>") return "";
-  return sanitizeRichHtml(trimmed);
+  // Persist relative /uploads paths even if the editor briefly had an absolute API URL.
+  const withRelativeUploads = trimmed.replace(
+    /\bsrc=(["'])(https?:\/\/[^"']+)\/uploads\//gi,
+    (_m, q) => `src=${q}/uploads/`
+  );
+  return sanitizeRichHtml(withRelativeUploads);
 }
 
 /** Legacy plain text + bullet lines, or sanitized rich HTML from the admin editor. */
@@ -44,7 +64,7 @@ export function formatDescriptionHtml(raw: string): string {
   if (!trimmed) return "";
 
   if (isRichHtmlContent(trimmed)) {
-    return sanitizeRichHtml(trimmed);
+    return rewriteDescriptionImageUrls(sanitizeRichHtml(trimmed));
   }
 
   const text = trimmed.replace(/<br\s*\/?>/gi, "\n").replace(/\r\n/g, "\n");

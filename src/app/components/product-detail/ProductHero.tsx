@@ -239,7 +239,7 @@ export function ProductHero({ product, categoryName, categorySlug }: ProductHero
 
             {product.description && (
               <div
-                className="product-description text-lg text-[#5a5a59] leading-normal [&_p]:mb-3 [&_p:last-child]:mb-0 [&_h2]:text-[26px] [&_h2]:font-semibold [&_h2]:text-[#1e1b13] [&_h2]:mb-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_a]:text-[#313b2e] [&_a]:underline"
+                className="product-description text-lg text-[#5a5a59] leading-normal [&_p]:mb-3 [&_p:last-child]:mb-0 [&_h2]:text-[26px] [&_h2]:font-semibold [&_h2]:text-[#1e1b13] [&_h2]:mb-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_a]:text-[#313b2e] [&_a]:underline [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-xl [&_img]:my-4 [&_img]:border [&_img]:border-[rgba(19,19,19,0.08)]"
                 dangerouslySetInnerHTML={{ __html: formatDescriptionHtml(product.description) }}
               />
             )}
