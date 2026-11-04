@@ -6,6 +6,7 @@ import { FadeInUpInView } from '../atoms/FadeInUpInView';
 import { resolveImageUrl, type Product } from '../../api/shop';
 import { isColorAttributeName, pastelSwatchDataUrlForColorLabel } from '../../utils/pastelColorSwatch';
 import { formatDescriptionHtml } from '../../utils/richText';
+import { ProductImageZoom } from './ProductImageZoom';
 
 type AttributeValueItem = { name: string; image_url?: string; gallery_image?: string };
 type AttributeGroup = { attribute_id: number; attribute_name: string; values: AttributeValueItem[] };
@@ -213,12 +214,22 @@ export function ProductHero({ product, categoryName, categorySlug }: ProductHero
                   )}
                 </div>
               )}
-              <div className="bg-[#f1f1f1] rounded-[53px] w-full aspect-square max-w-[620px] relative flex items-center justify-center">
-                {mainImage ? <img src={mainImage} alt={product.name} className="w-full h-full object-cover rounded-xl" /> : <div className="w-full h-full bg-[#e5e5e3] rounded-xl" />}
-                {product.availability && (
-                  <div className="absolute top-8 left-8 bg-[#00c8b3] px-6 py-3 rounded-[53px]">
-                    <p className="text-lg font-semibold text-white leading-normal">{product.availability}</p>
-                  </div>
+              <div className="bg-[#f1f1f1] rounded-[53px] w-full aspect-square max-w-[620px] relative flex items-center justify-center overflow-hidden">
+                {mainImage ? (
+                  <ProductImageZoom
+                    src={mainImage}
+                    alt={product.name}
+                    className="w-full h-full rounded-[53px]"
+                    overlay={
+                      product.availability ? (
+                        <div className="absolute top-8 left-8 bg-[#00c8b3] px-6 py-3 rounded-[53px] pointer-events-none z-10">
+                          <p className="text-lg font-semibold text-white leading-normal">{product.availability}</p>
+                        </div>
+                      ) : null
+                    }
+                  />
+                ) : (
+                  <div className="w-full h-full bg-[#e5e5e3] rounded-xl" />
                 )}
               </div>
             </div>
