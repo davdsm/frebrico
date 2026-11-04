@@ -47,6 +47,8 @@ export type Product = {
   featured: number;
   image: string;
   images: string;
+  /** Listing card image height: 80 (default) or 100. */
+  listing_image_height?: number;
   category_id: number | null;
   description: string;
   badge: string;

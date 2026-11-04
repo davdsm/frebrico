@@ -95,6 +95,7 @@ productsRouter.post("/", requireAdmin, (req, res) => {
   const featured = Boolean(body.featured);
   const image = body.image != null ? String(body.image) : "";
   const images = typeof body.images === "string" ? body.images : JSON.stringify(body.images || []);
+  const listingImageHeight = body.listing_image_height != null ? Number(body.listing_image_height) : 80;
   const categoryId = body.category_id != null && Number.isFinite(Number(body.category_id)) ? Number(body.category_id) : null;
   const description = body.description != null ? String(body.description) : "";
   const badge = body.badge != null ? String(body.badge) : "";
@@ -125,7 +126,8 @@ productsRouter.post("/", requireAdmin, (req, res) => {
       downloads,
       specifications,
       relatedProductIds,
-      faqs
+      faqs,
+      listingImageHeight
     );
     const row = getProductById(id);
     res.status(201).json(row);
@@ -145,6 +147,7 @@ productsRouter.put("/:id", requireAdmin, (req, res) => {
   const featured = Boolean(body.featured);
   const image = body.image != null ? String(body.image) : "";
   const images = typeof body.images === "string" ? body.images : JSON.stringify(body.images || []);
+  const listingImageHeight = body.listing_image_height != null ? Number(body.listing_image_height) : 80;
   const categoryId = body.category_id != null && Number.isFinite(Number(body.category_id)) ? Number(body.category_id) : null;
   const description = body.description != null ? String(body.description) : "";
   const badge = body.badge != null ? String(body.badge) : "";
@@ -175,7 +178,8 @@ productsRouter.put("/:id", requireAdmin, (req, res) => {
     downloads,
     specifications,
     relatedProductIds,
-    faqs
+    faqs,
+    listingImageHeight
   );
   if (!ok) return res.status(404).json({ error: "Not found" });
   const row = getProductById(id);

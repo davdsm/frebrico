@@ -9,6 +9,8 @@ export interface Product {
   price: number;
   featured?: boolean;
   image?: string;
+  /** Listing card image height percent: 80 (default) or 100. */
+  listing_image_height?: number;
 }
 
 /** Same shape used by category, products listing, and related products grids. */
@@ -20,6 +22,7 @@ export function shopProductToCardProduct(p: ShopProduct): Product {
     price: Number(p.price),
     featured: Boolean(p.featured),
     image: p.image,
+    listing_image_height: Number(p.listing_image_height) === 100 ? 100 : 80,
   };
 }
 
@@ -67,6 +70,8 @@ export function ProductCard({ product, linkable = true, className }: ProductCard
   const imgSrc = resolveImageUrl(product.image);
   const productUrl = `/product/${encodeURIComponent(product.slug || String(product.id))}`;
   const canLink = linkable && isProductLinkable(product);
+  const imageHeight = Number(product.listing_image_height) === 100 ? 100 : 80;
+  const imageHeightClass = imageHeight === 100 ? "h-full" : "h-[80%]";
 
   const card = (
     <div className="flex flex-col gap-4">
@@ -77,7 +82,7 @@ export function ProductCard({ product, linkable = true, className }: ProductCard
         }
       >
         {imgSrc ? (
-          <img src={imgSrc} alt={product.name} className="w-full h-[80%] object-contain" />
+          <img src={imgSrc} alt={product.name} className={`w-full ${imageHeightClass} object-contain`} />
         ) : null}
         {product.featured ? (
           <div className="absolute top-3 left-3 bg-white px-6 py-3 rounded-2xl">

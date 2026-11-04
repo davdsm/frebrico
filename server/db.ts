@@ -152,6 +152,12 @@ function initSchema(database: Database.Database): void {
   } catch {
     // Column already exists.
   }
+  // Listing card image height: 80 (default) or 100 (% of the grey square).
+  try {
+    database.exec("ALTER TABLE products ADD COLUMN listing_image_height INTEGER NOT NULL DEFAULT 80");
+  } catch {
+    // Column already exists.
+  }
   // Lightweight migrations: add missing orders columns if needed.
   try { database.exec("ALTER TABLE orders ADD COLUMN email TEXT DEFAULT ''"); } catch {}
   try { database.exec("ALTER TABLE orders ADD COLUMN customer_name TEXT DEFAULT ''"); } catch {}
@@ -835,6 +841,8 @@ export type ProductRow = {
   featured: number;
   image: string;
   images: string;
+  /** Percent of listing card height used by the main image: 80 (default) or 100. */
+  listing_image_height: number;
   category_id: number | null;
   description: string;
   badge: string;
@@ -849,6 +857,11 @@ export type ProductRow = {
   created_at: string;
   updated_at: string;
 };
+
+export function normalizeListingImageHeight(value: unknown): 80 | 100 {
+  const n = Number(value);
+  return n === 100 ? 100 : 80;
+}
 
 export function listProducts(categorySlug?: string, featuredOnly?: boolean): ProductRow[] {
   const database = getDb();
@@ -996,17 +1009,20 @@ export function createProduct(
   downloads: string,
   specifications: string,
   relatedProductIds: string,
-  faqs: string
+  faqs: string,
+  listingImageHeight: number = 80
 ): number {
   const database = getDb();
   const stmt = database.prepare(`
-    INSERT INTO products (slug, name, price, featured, image, images, category_id, description, badge, type_label, type_text, availability, variants, downloads, specifications, related_product_ids, faqs)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO products (slug, name, price, featured, image, images, listing_image_height, category_id, description, badge, type_label, type_text, availability, variants, downloads, specifications, related_product_ids, faqs)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
   const requested = slug ? makeProductSlug(slug) : makeProductSlug(name);
   const slugNorm = ensureUniqueProductSlug(database, requested);
   const result = stmt.run(
-    slugNorm, name, price, featured ? 1 : 0, image || "", images || "[]", categoryId, description || "", badge || "",
+    slugNorm, name, price, featured ? 1 : 0, image || "", images || "[]",
+    normalizeListingImageHeight(listingImageHeight),
+    categoryId, description || "", badge || "",
     typeLabel || "", typeText || "", availability || "", variants || "[]", downloads || "[]",
     specifications || "[]", relatedProductIds || "[]", faqs || "[]"
   );
@@ -1031,17 +1047,20 @@ export function updateProduct(
   downloads: string,
   specifications: string,
   relatedProductIds: string,
-  faqs: string
+  faqs: string,
+  listingImageHeight: number = 80
 ): boolean {
   const database = getDb();
   const stmt = database.prepare(`
-    UPDATE products SET slug = ?, name = ?, price = ?, featured = ?, image = ?, images = ?, category_id = ?, description = ?, badge = ?, type_label = ?, type_text = ?, availability = ?, variants = ?, downloads = ?, specifications = ?, related_product_ids = ?, faqs = ?, updated_at = datetime('now')
+    UPDATE products SET slug = ?, name = ?, price = ?, featured = ?, image = ?, images = ?, listing_image_height = ?, category_id = ?, description = ?, badge = ?, type_label = ?, type_text = ?, availability = ?, variants = ?, downloads = ?, specifications = ?, related_product_ids = ?, faqs = ?, updated_at = datetime('now')
     WHERE id = ?
   `);
   const requested = slug ? makeProductSlug(slug) : makeProductSlug(name);
   const slugNorm = ensureUniqueProductSlug(database, requested, id);
   const result = stmt.run(
-    slugNorm, name, price, featured ? 1 : 0, image || "", images || "[]", categoryId, description || "", badge || "",
+    slugNorm, name, price, featured ? 1 : 0, image || "", images || "[]",
+    normalizeListingImageHeight(listingImageHeight),
+    categoryId, description || "", badge || "",
     typeLabel || "", typeText || "", availability || "", variants || "[]", downloads || "[]",
     specifications || "[]", relatedProductIds || "[]", faqs || "[]", id
   );

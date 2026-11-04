@@ -109,6 +109,7 @@ export default function ProductEditor() {
   const [price, setPrice] = useState("");
   const [featured, setFeatured] = useState(false);
   const [image, setImage] = useState("");
+  const [listingImageHeight, setListingImageHeight] = useState<80 | 100>(80);
   const [images, setImages] = useState<string[]>([]);
   const [categoryId, setCategoryId] = useState<number | null>(null);
   const [description, setDescription] = useState("");
@@ -163,6 +164,7 @@ export default function ProductEditor() {
           setPrice(String(product.price));
           setFeatured(Boolean(product.featured));
           setImage(product.image ?? "");
+          setListingImageHeight(Number(product.listing_image_height) === 100 ? 100 : 80);
           setImages(parseJsonArray<string>(product.images, []));
           setCategoryId(product.category_id);
           setDescription(product.description ?? "");
@@ -195,6 +197,7 @@ export default function ProductEditor() {
         price: Number(price) || 0,
         featured: featured ? 1 : 0,
         image: image.trim(),
+        listing_image_height: listingImageHeight,
         images: JSON.stringify(images),
         category_id: categoryId,
         description: normalizeRichHtmlForSave(description),
@@ -280,6 +283,26 @@ export default function ProductEditor() {
                 hint="Imagem principal do produto (a primeira que o cliente vê)."
                 extraPaths={productImagePaths}
               />
+              <label className="mt-3 flex items-start gap-3 cursor-pointer select-none">
+                <span className="relative inline-flex h-6 w-11 shrink-0 items-center mt-0.5">
+                  <input
+                    type="checkbox"
+                    className="peer sr-only"
+                    checked={listingImageHeight === 100}
+                    onChange={(e) => setListingImageHeight(e.target.checked ? 100 : 80)}
+                  />
+                  <span className="absolute inset-0 rounded-full bg-[#e5e5e3] transition-colors peer-checked:bg-[#313b2e] peer-focus-visible:ring-2 peer-focus-visible:ring-[#313b2e]/30" />
+                  <span className="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform peer-checked:translate-x-5" />
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-[13px] font-medium text-[#131313]">
+                    Imagem a 100% na listagem
+                  </span>
+                  <span className="block text-[12px] text-[#5a5a59] mt-0.5">
+                    Por defeito ocupa 80% da altura do quadrado cinzento. Ative para preencher os 100%.
+                  </span>
+                </span>
+              </label>
             </div>
             <div>
               <GalleryImagesEditor
