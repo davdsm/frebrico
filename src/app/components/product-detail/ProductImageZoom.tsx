@@ -1,8 +1,5 @@
 import React from "react";
 
-const LENS_SIZE = 160;
-const ZOOM = 2.4;
-
 interface ProductImageZoomProps {
   src: string;
   alt: string;
@@ -12,33 +9,38 @@ interface ProductImageZoomProps {
 }
 
 /**
- * Product main image with hover loupe (desktop) and click/tap lightbox zoom.
+ * Product main image with a bottom-right loupe button that opens a zoomable,
+ * pannable lightbox.
  */
 export function ProductImageZoom({ src, alt, className, overlay }: ProductImageZoomProps) {
-  const containerRef = React.useRef<HTMLDivElement | null>(null);
-  const [lens, setLens] = React.useState<{ x: number; y: number; visible: boolean }>({
-    x: 0,
-    y: 0,
-    visible: false,
-  });
   const [lightboxOpen, setLightboxOpen] = React.useState(false);
-  const [lightboxScale, setLightboxScale] = React.useState(1);
+  const [scale, setScale] = React.useState(1);
+  const [offset, setOffset] = React.useState({ x: 0, y: 0 });
+  const dragRef = React.useRef<{
+    active: boolean;
+    startX: number;
+    startY: number;
+    origX: number;
+    origY: number;
+  } | null>(null);
+  const [dragging, setDragging] = React.useState(false);
 
-  const updateLens = (clientX: number, clientY: number) => {
-    const el = containerRef.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const x = Math.min(Math.max(clientX - rect.left, 0), rect.width);
-    const y = Math.min(Math.max(clientY - rect.top, 0), rect.height);
-    setLens({ x, y, visible: true });
+  const openLightbox = (e: React.MouseEvent | React.KeyboardEvent) => {
+    e.stopPropagation();
+    setLightboxOpen(true);
   };
 
-  const hideLens = () => setLens((prev) => ({ ...prev, visible: false }));
+  const closeLightbox = () => setLightboxOpen(false);
+
+  const resetView = React.useCallback(() => {
+    setScale(1);
+    setOffset({ x: 0, y: 0 });
+  }, []);
 
   React.useEffect(() => {
     if (!lightboxOpen) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setLightboxOpen(false);
+      if (e.key === "Escape") closeLightbox();
     };
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -50,68 +52,75 @@ export function ProductImageZoom({ src, alt, className, overlay }: ProductImageZ
   }, [lightboxOpen]);
 
   React.useEffect(() => {
-    if (!lightboxOpen) setLightboxScale(1);
-  }, [lightboxOpen, src]);
+    if (!lightboxOpen) resetView();
+  }, [lightboxOpen, src, resetView]);
 
-  const openLightbox = () => {
-    hideLens();
-    setLightboxOpen(true);
+  React.useEffect(() => {
+    if (scale <= 1) setOffset({ x: 0, y: 0 });
+  }, [scale]);
+
+  const zoomOut = () => setScale((s) => Math.max(1, Number((s - 0.5).toFixed(1))));
+  const zoomIn = () => setScale((s) => Math.min(4, Number((s + 0.5).toFixed(1))));
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    if (scale <= 1) return;
+    e.preventDefault();
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    dragRef.current = {
+      active: true,
+      startX: e.clientX,
+      startY: e.clientY,
+      origX: offset.x,
+      origY: offset.y,
+    };
+    setDragging(true);
   };
 
-  const lensLeft = lens.x - LENS_SIZE / 2;
-  const lensTop = lens.y - LENS_SIZE / 2;
-  const bgPosX = containerRef.current
-    ? (lens.x / containerRef.current.clientWidth) * 100
-    : 50;
-  const bgPosY = containerRef.current
-    ? (lens.y / containerRef.current.clientHeight) * 100
-    : 50;
+  const onPointerMove = (e: React.PointerEvent) => {
+    const drag = dragRef.current;
+    if (!drag?.active) return;
+    setOffset({
+      x: drag.origX + (e.clientX - drag.startX),
+      y: drag.origY + (e.clientY - drag.startY),
+    });
+  };
+
+  const onPointerUp = (e: React.PointerEvent) => {
+    if (!dragRef.current?.active) return;
+    try {
+      (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+    } catch {
+      /* ignore */
+    }
+    dragRef.current = null;
+    setDragging(false);
+  };
 
   return (
     <>
-      <div
-        ref={containerRef}
-        className={`relative overflow-hidden cursor-zoom-in group ${className ?? ""}`}
-        onMouseEnter={(e) => updateLens(e.clientX, e.clientY)}
-        onMouseMove={(e) => updateLens(e.clientX, e.clientY)}
-        onMouseLeave={hideLens}
-        onClick={openLightbox}
-        role="button"
-        tabIndex={0}
-        aria-label={`Ampliar imagem: ${alt}`}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            openLightbox();
-          }
-        }}
-      >
-        <img src={src} alt={alt} className="w-full h-full object-cover rounded-xl pointer-events-none select-none" draggable={false} />
+      <div className={`relative overflow-hidden ${className ?? ""}`}>
+        <img
+          src={src}
+          alt={alt}
+          className="w-full h-full object-cover rounded-xl pointer-events-none select-none"
+          draggable={false}
+        />
 
-        {/* Desktop loupe — hidden on coarse pointers / touch */}
-        {lens.visible && (
-          <div
-            className="pointer-events-none absolute z-20 hidden md:block rounded-full border-2 border-white shadow-[0_8px_28px_rgba(0,0,0,0.28)] ring-1 ring-black/10"
-            style={{
-              width: LENS_SIZE,
-              height: LENS_SIZE,
-              left: lensLeft,
-              top: lensTop,
-              backgroundImage: `url(${src})`,
-              backgroundRepeat: "no-repeat",
-              backgroundSize: `${ZOOM * 100}%`,
-              backgroundPosition: `${bgPosX}% ${bgPosY}%`,
-            }}
-            aria-hidden
-          />
-        )}
-
-        <div className="absolute bottom-5 right-5 z-10 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity hidden md:flex items-center gap-2 bg-white/90 backdrop-blur-sm text-[#313b2e] text-[12px] font-semibold px-3 py-1.5 rounded-full border border-black/5 shadow-sm">
+        <button
+          type="button"
+          onClick={openLightbox}
+          className="absolute bottom-5 right-5 z-20 inline-flex items-center gap-2 bg-white/95 hover:bg-white text-[#313b2e] text-[12px] font-semibold px-3 py-2 rounded-full border border-black/5 shadow-sm transition-colors"
+          aria-label={`Ampliar imagem: ${alt}`}
+        >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6"
+            />
           </svg>
           Lupa
-        </div>
+        </button>
 
         {overlay}
       </div>
@@ -122,33 +131,44 @@ export function ProductImageZoom({ src, alt, className, overlay }: ProductImageZ
           role="dialog"
           aria-modal="true"
           aria-label="Zoom da imagem do produto"
-          onClick={() => setLightboxOpen(false)}
+          onClick={closeLightbox}
         >
           <div className="flex items-center justify-between gap-3 px-4 py-3 text-white shrink-0">
             <p className="text-sm font-medium truncate min-w-0">{alt}</p>
             <div className="flex items-center gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
               <button
                 type="button"
-                className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 transition-colors text-lg font-semibold"
+                className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 transition-colors text-lg font-semibold disabled:opacity-40"
                 aria-label="Diminuir zoom"
-                onClick={() => setLightboxScale((s) => Math.max(1, Number((s - 0.5).toFixed(1))))}
+                disabled={scale <= 1}
+                onClick={zoomOut}
               >
                 −
               </button>
-              <span className="text-sm tabular-nums w-12 text-center">{Math.round(lightboxScale * 100)}%</span>
+              <span className="text-sm tabular-nums w-12 text-center">{Math.round(scale * 100)}%</span>
               <button
                 type="button"
-                className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 transition-colors text-lg font-semibold"
+                className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 transition-colors text-lg font-semibold disabled:opacity-40"
                 aria-label="Aumentar zoom"
-                onClick={() => setLightboxScale((s) => Math.min(4, Number((s + 0.5).toFixed(1))))}
+                disabled={scale >= 4}
+                onClick={zoomIn}
               >
                 +
               </button>
+              {scale > 1 && (
+                <button
+                  type="button"
+                  className="h-10 px-3 rounded-full bg-white/10 hover:bg-white/20 transition-colors text-[12px] font-semibold"
+                  onClick={resetView}
+                >
+                  Reset
+                </button>
+              )}
               <button
                 type="button"
                 className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 transition-colors ml-1"
                 aria-label="Fechar"
-                onClick={() => setLightboxOpen(false)}
+                onClick={closeLightbox}
               >
                 ✕
               </button>
@@ -156,19 +176,29 @@ export function ProductImageZoom({ src, alt, className, overlay }: ProductImageZ
           </div>
 
           <div
-            className="flex-1 min-h-0 overflow-auto flex items-center justify-center p-4"
+            className={`flex-1 min-h-0 overflow-hidden flex items-center justify-center p-4 ${
+              scale > 1 ? (dragging ? "cursor-grabbing" : "cursor-grab") : "cursor-default"
+            }`}
             onClick={(e) => e.stopPropagation()}
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+            onPointerCancel={onPointerUp}
           >
             <img
               src={src}
               alt={alt}
-              className="w-auto max-w-[min(100%,960px)] max-h-[calc(100vh-8rem)] object-contain origin-center transition-transform duration-200 select-none"
-              style={{ transform: `scale(${lightboxScale})` }}
+              className="w-auto max-w-[min(100%,960px)] max-h-[calc(100vh-8rem)] object-contain select-none touch-none"
+              style={{
+                transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`,
+                transition: dragging ? "none" : "transform 0.15s ease-out",
+              }}
               draggable={false}
             />
           </div>
           <p className="text-center text-white/60 text-[12px] pb-4 shrink-0">
-            Clique fora ou Escape para fechar
+            {scale > 1 ? "Arraste para mover · " : ""}
+            Escape ou clique fora para fechar
           </p>
         </div>
       )}
