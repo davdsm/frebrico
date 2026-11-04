@@ -70,8 +70,9 @@ export function ProductCard({ product, linkable = true, className }: ProductCard
   const imgSrc = resolveImageUrl(product.image);
   const productUrl = `/product/${encodeURIComponent(product.slug || String(product.id))}`;
   const canLink = linkable && isProductLinkable(product);
-  const imageHeight = Number(product.listing_image_height) === 100 ? 100 : 80;
-  const imageHeightClass = imageHeight === 100 ? "h-full" : "h-[80%]";
+  const imageFullHeight = Number(product.listing_image_height) === 100;
+  const imageHeightClass = imageFullHeight ? "h-full" : "h-[80%]";
+  const imageFitClass = imageFullHeight ? "!object-cover" : "object-contain";
 
   const card = (
     <div className="flex flex-col gap-4">
@@ -82,7 +83,12 @@ export function ProductCard({ product, linkable = true, className }: ProductCard
         }
       >
         {imgSrc ? (
-          <img src={imgSrc} alt={product.name} className={`w-full ${imageHeightClass} object-contain`} />
+          <img
+            src={imgSrc}
+            alt={product.name}
+            className={`w-full ${imageHeightClass} ${imageFitClass}`}
+            style={imageFullHeight ? { objectFit: "cover" } : undefined}
+          />
         ) : null}
         {product.featured ? (
           <div className="absolute top-3 left-3 bg-white px-6 py-3 rounded-2xl">
