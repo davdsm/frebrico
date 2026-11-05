@@ -31,7 +31,13 @@ export default defineConfig({
     },
   },
   preview: {
-    allowedHosts: ['frebrico.salazarconcept.com'],
+    allowedHosts: [
+      'frebrico.pt',
+      'www.frebrico.pt',
+      'frebrico.com',
+      'www.frebrico.com',
+      'frebrico.salazarconcept.com',
+    ],
     proxy: {
       '/api': { target: apiProxyTarget, changeOrigin: true },
       '/uploads': { target: apiProxyTarget, changeOrigin: true },
