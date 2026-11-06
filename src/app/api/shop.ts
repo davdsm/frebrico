@@ -49,6 +49,8 @@ export type Product = {
   images: string;
   /** Listing card image height: 80 (default) or 100. */
   listing_image_height?: number;
+  /** Display order within the product's category. */
+  sort_order?: number;
   category_id: number | null;
   description: string;
   badge: string;
@@ -191,6 +193,31 @@ export async function deleteCategoryApi(id: number): Promise<void> {
     const out = await res.json().catch(() => ({}));
     throw new Error((out as { error?: string }).error ?? "Failed to delete category");
   }
+}
+
+/** Admin: products assigned directly to a category, in display order. */
+export async function fetchCategoryProductsApi(categoryId: number): Promise<Product[]> {
+  const res = await fetch(`${API_BASE}/api/categories/${categoryId}/products`, {
+    headers: getAuthHeaders(),
+  });
+  const out = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error((out as { error?: string }).error ?? "Failed to fetch category products");
+  return out as Product[];
+}
+
+/** Admin: save drag-and-drop order (only updates sort_order). */
+export async function reorderCategoryProductsApi(
+  categoryId: number,
+  productIds: number[]
+): Promise<Product[]> {
+  const res = await fetch(`${API_BASE}/api/categories/${categoryId}/products-order`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...getAuthHeaders() },
+    body: JSON.stringify({ product_ids: productIds }),
+  });
+  const out = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error((out as { error?: string }).error ?? "Failed to save product order");
+  return out as Product[];
 }
 
 export async function createProductApi(data: Partial<Product> & { name: string }): Promise<Product> {

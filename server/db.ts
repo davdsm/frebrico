@@ -158,6 +158,33 @@ function initSchema(database: Database.Database): void {
   } catch {
     // Column already exists.
   }
+  // Product order within a category (admin drag-and-drop).
+  let addedProductSortOrder = false;
+  try {
+    database.exec("ALTER TABLE products ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0");
+    addedProductSortOrder = true;
+  } catch {
+    // Column already exists.
+  }
+  if (addedProductSortOrder) {
+    // Preserve current alphabetical listing as the initial order per category.
+    const cats = database.prepare("SELECT DISTINCT category_id AS cid FROM products").all() as Array<{ cid: number | null }>;
+    const upd = database.prepare("UPDATE products SET sort_order = ? WHERE id = ?");
+    const assign = database.transaction(() => {
+      for (const { cid } of cats) {
+        const rows =
+          cid == null
+            ? (database
+                .prepare("SELECT id FROM products WHERE category_id IS NULL ORDER BY name COLLATE NOCASE ASC")
+                .all() as Array<{ id: number }>)
+            : (database
+                .prepare("SELECT id FROM products WHERE category_id = ? ORDER BY name COLLATE NOCASE ASC")
+                .all(cid) as Array<{ id: number }>);
+        rows.forEach((row, index) => upd.run(index, row.id));
+      }
+    });
+    assign();
+  }
   // Lightweight migrations: add missing orders columns if needed.
   try { database.exec("ALTER TABLE orders ADD COLUMN email TEXT DEFAULT ''"); } catch {}
   try { database.exec("ALTER TABLE orders ADD COLUMN customer_name TEXT DEFAULT ''"); } catch {}
@@ -843,6 +870,8 @@ export type ProductRow = {
   images: string;
   /** Percent of listing card height used by the main image: 80 (default) or 100. */
   listing_image_height: number;
+  /** Display order within the product's category (lower first). */
+  sort_order: number;
   category_id: number | null;
   description: string;
   badge: string;
@@ -882,15 +911,66 @@ export function listProducts(categorySlug?: string, featuredOnly?: boolean): Pro
       }
     }
     const placeholders = ids.map(() => "?").join(", ");
-    const stmt = database.prepare(`SELECT * FROM products WHERE category_id IN (${placeholders}) ORDER BY name ASC`);
+    const stmt = database.prepare(
+      `SELECT * FROM products WHERE category_id IN (${placeholders}) ORDER BY sort_order ASC, name COLLATE NOCASE ASC`
+    );
     return stmt.all(...ids) as ProductRow[];
   }
   if (featuredOnly) {
-    const stmt = database.prepare("SELECT * FROM products WHERE featured = 1 ORDER BY name ASC");
+    const stmt = database.prepare(
+      "SELECT * FROM products WHERE featured = 1 ORDER BY sort_order ASC, name COLLATE NOCASE ASC"
+    );
     return stmt.all() as ProductRow[];
   }
-  const stmt = database.prepare("SELECT * FROM products ORDER BY name ASC");
+  const stmt = database.prepare("SELECT * FROM products ORDER BY sort_order ASC, name COLLATE NOCASE ASC");
   return stmt.all() as ProductRow[];
+}
+
+/** Products assigned directly to a category (no descendants), in display order. */
+export function listProductsByCategoryId(categoryId: number): ProductRow[] {
+  const database = getDb();
+  const stmt = database.prepare(
+    "SELECT * FROM products WHERE category_id = ? ORDER BY sort_order ASC, name COLLATE NOCASE ASC"
+  );
+  return stmt.all(categoryId) as ProductRow[];
+}
+
+/**
+ * Persist drag-and-drop order for products that belong to the given category.
+ * Only updates `sort_order`; never touches images, text, or other fields.
+ */
+export function reorderProductsInCategory(categoryId: number, productIds: number[]): boolean {
+  const database = getDb();
+  const cat = getCategoryById(categoryId);
+  if (!cat) return false;
+  const existing = listProductsByCategoryId(categoryId);
+  const existingIds = new Set(existing.map((p) => p.id));
+  if (productIds.length !== existing.length) return false;
+  if (productIds.some((id) => !existingIds.has(id))) return false;
+  if (new Set(productIds).size !== productIds.length) return false;
+
+  const upd = database.prepare(
+    "UPDATE products SET sort_order = ?, updated_at = updated_at WHERE id = ? AND category_id = ?"
+  );
+  const run = database.transaction(() => {
+    productIds.forEach((id, index) => {
+      upd.run(index, id, categoryId);
+    });
+  });
+  run();
+  return true;
+}
+
+function nextSortOrderForCategory(database: Database.Database, categoryId: number | null): number {
+  const row =
+    categoryId == null
+      ? (database
+          .prepare("SELECT COALESCE(MAX(sort_order), -1) AS m FROM products WHERE category_id IS NULL")
+          .get() as { m: number })
+      : (database
+          .prepare("SELECT COALESCE(MAX(sort_order), -1) AS m FROM products WHERE category_id = ?")
+          .get(categoryId) as { m: number });
+  return (row?.m ?? -1) + 1;
 }
 
 /** Case-insensitive substring search across product text fields (name, slug, ref in specs JSON, etc.). */
@@ -1014,14 +1094,16 @@ export function createProduct(
 ): number {
   const database = getDb();
   const stmt = database.prepare(`
-    INSERT INTO products (slug, name, price, featured, image, images, listing_image_height, category_id, description, badge, type_label, type_text, availability, variants, downloads, specifications, related_product_ids, faqs)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO products (slug, name, price, featured, image, images, listing_image_height, sort_order, category_id, description, badge, type_label, type_text, availability, variants, downloads, specifications, related_product_ids, faqs)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
   const requested = slug ? makeProductSlug(slug) : makeProductSlug(name);
   const slugNorm = ensureUniqueProductSlug(database, requested);
+  const sortOrder = nextSortOrderForCategory(database, categoryId);
   const result = stmt.run(
     slugNorm, name, price, featured ? 1 : 0, image || "", images || "[]",
     normalizeListingImageHeight(listingImageHeight),
+    sortOrder,
     categoryId, description || "", badge || "",
     typeLabel || "", typeText || "", availability || "", variants || "[]", downloads || "[]",
     specifications || "[]", relatedProductIds || "[]", faqs || "[]"
@@ -1051,8 +1133,14 @@ export function updateProduct(
   listingImageHeight: number = 80
 ): boolean {
   const database = getDb();
+  const existing = getProductById(id);
+  if (!existing) return false;
+  const categoryChanged = (existing.category_id ?? null) !== (categoryId ?? null);
+  const sortOrder = categoryChanged
+    ? nextSortOrderForCategory(database, categoryId)
+    : Number(existing.sort_order) || 0;
   const stmt = database.prepare(`
-    UPDATE products SET slug = ?, name = ?, price = ?, featured = ?, image = ?, images = ?, listing_image_height = ?, category_id = ?, description = ?, badge = ?, type_label = ?, type_text = ?, availability = ?, variants = ?, downloads = ?, specifications = ?, related_product_ids = ?, faqs = ?, updated_at = datetime('now')
+    UPDATE products SET slug = ?, name = ?, price = ?, featured = ?, image = ?, images = ?, listing_image_height = ?, sort_order = ?, category_id = ?, description = ?, badge = ?, type_label = ?, type_text = ?, availability = ?, variants = ?, downloads = ?, specifications = ?, related_product_ids = ?, faqs = ?, updated_at = datetime('now')
     WHERE id = ?
   `);
   const requested = slug ? makeProductSlug(slug) : makeProductSlug(name);
@@ -1060,6 +1148,7 @@ export function updateProduct(
   const result = stmt.run(
     slugNorm, name, price, featured ? 1 : 0, image || "", images || "[]",
     normalizeListingImageHeight(listingImageHeight),
+    sortOrder,
     categoryId, description || "", badge || "",
     typeLabel || "", typeText || "", availability || "", variants || "[]", downloads || "[]",
     specifications || "[]", relatedProductIds || "[]", faqs || "[]", id

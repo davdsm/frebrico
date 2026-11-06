@@ -6,6 +6,8 @@ import {
   createCategory,
   updateCategory,
   deleteCategory,
+  listProductsByCategoryId,
+  reorderProductsInCategory,
 } from "../db.js";
 import { requireAdmin } from "../middleware/auth.js";
 
@@ -30,6 +32,38 @@ categoriesRouter.get("/", (req, res) => {
     }
   }
   res.json(roots);
+});
+
+/** Products directly in this category, in current display order (admin). */
+categoriesRouter.get("/:id/products", requireAdmin, (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isFinite(id)) return res.status(400).json({ error: "Invalid id" });
+  const cat = getCategoryById(id);
+  if (!cat) return res.status(404).json({ error: "Not found" });
+  res.json(listProductsByCategoryId(id));
+});
+
+/** Persist drag-and-drop product order for this category. Only updates sort_order. */
+categoriesRouter.put("/:id/products-order", requireAdmin, (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isFinite(id)) return res.status(400).json({ error: "Invalid id" });
+  const cat = getCategoryById(id);
+  if (!cat) return res.status(404).json({ error: "Not found" });
+  const raw = req.body?.product_ids;
+  if (!Array.isArray(raw) || raw.length === 0) {
+    return res.status(400).json({ error: "product_ids array required" });
+  }
+  const productIds = raw.map((x: unknown) => Number(x)).filter((n: number) => Number.isFinite(n));
+  if (productIds.length !== raw.length) {
+    return res.status(400).json({ error: "product_ids must be numbers" });
+  }
+  const ok = reorderProductsInCategory(id, productIds);
+  if (!ok) {
+    return res.status(400).json({
+      error: "Invalid product list for this category (must include every product exactly once)",
+    });
+  }
+  res.json(listProductsByCategoryId(id));
 });
 
 categoriesRouter.get("/:slugOrId", (req, res) => {
