@@ -56,9 +56,16 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
   const navItems = useContentJson<{ label: string; url: string }[]>("header", "nav", "items", []);
   const navList = Array.isArray(navItems) ? navItems : [];
   const normalizeNavPath = (url: string) => {
-    const p = url.split("?")[0];
+    const p = url.split("?")[0].split("#")[0];
     if (!p.startsWith("/")) return p;
     return p.replace(/\/+$/, "") || "/";
+  };
+  const navLinkTo = (url: string): string | { pathname: string; hash: string } => {
+    if (url.includes("#")) {
+      const [path, hash = ""] = url.split("#");
+      return { pathname: path && path.length > 0 ? path : "/", hash };
+    }
+    return url.startsWith("/") ? url : "/";
   };
   const navItemsForMenu = navList.filter((item) => normalizeNavPath(item.url) !== "/contact");
   const categoriesTitle = useContent("header", "mobile", "categories_title");
@@ -161,7 +168,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                   </Link>
                 </motion.div>
                 {navItemsForMenu.map((item, idx) => {
-                  const to = item.url.startsWith("/") ? item.url : "/";
+                  const to = navLinkTo(item.url);
                   return (
                     <motion.div key={`mobile-nav-${idx}-${item.url}`} variants={listItemVariants}>
                       <Link

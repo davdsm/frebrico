@@ -13,6 +13,7 @@ const defaults: DefaultsMap = {
       items: JSON.stringify([
         { label: "Sobre Nós", url: "/about" },
         { label: "Produtos", url: "/products" },
+        { label: "Catálogo", url: "/#catalogo" },
         { label: "Contactos", url: "/contact" },
       ]),
     },
@@ -21,6 +22,7 @@ const defaults: DefaultsMap = {
       nav_home: "Início",
       nav_about: "Sobre Nós",
       nav_products: "Produtos",
+      nav_catalog: "Catálogo",
       nav_contact: "Contactos",
       categories_title: "Categorias de produtos",
       categories: JSON.stringify([
@@ -107,6 +109,14 @@ const defaults: DefaultsMap = {
       button_url: "/contact",
       image: "",
       image_alt: "Soluções de vedação e estruturas metálicas para habitação, agricultura e indústria",
+    },
+    catalog: {
+      eyebrow: "Catálogo",
+      title: "O nosso catálogo completo",
+      description:
+        "Consulte a gama Frebrico em PDF: vedações, redes, portões, arames e acessórios, com referências e informação técnica para ajudar a escolher a solução certa.",
+      button: "Abrir Catálogo",
+      pdf_url: "/uploads/catalogo/Frebrico-Catalogo.pdf",
     },
     carousel: {
       title: "Produtos pensados e preparados para si",

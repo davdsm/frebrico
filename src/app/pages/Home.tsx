@@ -2,6 +2,7 @@ import React from 'react';
 import {
   Hero,
   FeaturesSection,
+  CatalogSection,
   ProductCarousel,
   FAQSectionNew,
 } from '../components';
@@ -19,6 +20,7 @@ export default function Home() {
       <DominoFadeInDown initialDelay={0.1} stagger={0.06}>
         <Hero />
         <FeaturesSection />
+        <CatalogSection />
         <ProductCarousel />
         <FAQSectionNew />
       </DominoFadeInDown>

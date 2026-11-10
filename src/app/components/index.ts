@@ -11,6 +11,7 @@ export { ProductCard } from './common/ProductCard';
 export { Header } from './organisms/Header';
 export { Hero } from './organisms/Hero';
 export { FeaturesSection } from './organisms/FeaturesSection';
+export { CatalogSection } from './organisms/CatalogSection';
 export { ProductCarousel } from './organisms/ProductCarousel';
 export { FAQSectionNew } from './organisms/FAQSectionNew';
 export { NewFooter } from './organisms/NewFooter';

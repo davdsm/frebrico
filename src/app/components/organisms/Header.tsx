@@ -33,9 +33,16 @@ export function Header({ isCompact = false }: HeaderProps) {
   const navItems = useContentJson<{ label: string; url: string }[]>("header", "nav", "items", []);
   const navList = Array.isArray(navItems) ? navItems : [];
   const normalizeNavPath = (url: string) => {
-    const p = url.split("?")[0];
+    const p = url.split("?")[0].split("#")[0];
     if (!p.startsWith("/")) return p;
     return p.replace(/\/+$/, "") || "/";
+  };
+  const navLinkTo = (url: string): string | { pathname: string; hash: string } => {
+    if (url.includes("#")) {
+      const [path, hash = ""] = url.split("#");
+      return { pathname: path && path.length > 0 ? path : "/", hash };
+    }
+    return url.startsWith("/") ? url : "/";
   };
   /** Contact is only the header button — not duplicated in the nav list */
   const navItemsForMenu = navList.filter((item) => normalizeNavPath(item.url) !== "/contact");
@@ -163,14 +170,22 @@ export function Header({ isCompact = false }: HeaderProps) {
                   </div>
                 );
               }
-              const to = item.url.startsWith("/") ? item.url : "/";
+              const to = navLinkTo(item.url);
+              const hashOnly = typeof to === "object";
               return (
                 <NavLink
                   key={`nav-${idx}-${item.url}`}
                   to={to}
+                  end={hashOnly ? true : undefined}
                   className="transition-opacity duration-200 group-hover/nav:opacity-20 hover:opacity-100"
                 >
-                  {({ isActive }) => <NavItem label={item.label} isActive={isActive} compact={isCompact} />}
+                  {({ isActive }) => (
+                    <NavItem
+                      label={item.label}
+                      isActive={hashOnly ? false : isActive}
+                      compact={isCompact}
+                    />
+                  )}
                 </NavLink>
               );
             })}
