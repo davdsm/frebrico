@@ -41,7 +41,7 @@ export function CatalogSection() {
     let cancelled = false;
     (async () => {
       try {
-        const products = await fetchProducts();
+        const products = await fetchProducts(undefined, undefined, { light: true });
         const urls = products
           .map((p) => resolveImageUrl(p.image))
           .filter((u) => Boolean(u));

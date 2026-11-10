@@ -118,10 +118,15 @@ export async function fetchCategoryById(id: number): Promise<Category | null> {
   return res.json() as Promise<Category>;
 }
 
-export async function fetchProducts(categorySlug?: string, featuredOnly?: boolean): Promise<Product[]> {
+export async function fetchProducts(
+  categorySlug?: string,
+  featuredOnly?: boolean,
+  opts?: { light?: boolean }
+): Promise<Product[]> {
   const params = new URLSearchParams();
   if (categorySlug) params.set("category", categorySlug);
   if (featuredOnly) params.set("featured", "1");
+  if (opts?.light) params.set("light", "1");
   const url = `${API_BASE}/api/products${params.toString() ? `?${params.toString()}` : ""}`;
   const res = await fetch(url, { headers: customerAuthHeaders() });
   if (!res.ok) throw new Error("Failed to fetch products");

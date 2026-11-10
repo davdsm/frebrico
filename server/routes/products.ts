@@ -35,7 +35,16 @@ function withPricing(product: ReturnType<typeof getProductById>, req: { user?: {
 productsRouter.get("/", attachOptionalAuth, (req, res) => {
   const category = req.query.category as string | undefined;
   const featured = req.query.featured === "1" || req.query.featured === "true";
+  const light = req.query.light === "1" || req.query.light === "true";
   const list = listProducts(category, featured);
+  // Lightweight payload for UI that only needs thumbnails (e.g. home catalog mosaic).
+  if (light) {
+    return res.json(
+      list
+        .filter((p) => p.image && String(p.image).trim())
+        .map((p) => ({ id: p.id, slug: p.slug, name: p.name, image: p.image }))
+    );
+  }
   const reqUser = (req as { user?: { id: number; isAdmin: boolean } }).user;
   const fullUser = reqUser && !reqUser.isAdmin ? getUserById(reqUser.id) : null;
   const ctx = contextFromUser(fullUser ?? undefined);
