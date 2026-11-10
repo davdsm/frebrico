@@ -1,10 +1,9 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "../atoms/Button";
 import { Icon } from "../atoms/Icon";
 import { FadeInUpInView } from "../atoms/FadeInUpInView";
 import { useContent } from "../../content/useContent";
-import { fetchProducts } from "../../api/shop";
-import { resolveImageUrl } from "../../api/shop";
+import { fetchProducts, resolveImageUrl } from "../../api/shop";
 
 const FALLBACKS = {
   eyebrow: "Catálogo",
@@ -15,15 +14,53 @@ const FALLBACKS = {
   pdf_url: "/uploads/catalogo/Frebrico-Catalogo.pdf",
 };
 
-function pickRandom<T>(items: T[], count: number): T[] {
+const TILE_COUNT = 6;
+const ROTATE_MS = 3000;
+const FADE_MS = 300;
+/** Warm a limited set so rotation stays snappy without downloading the whole catalog. */
+const WARM_COUNT = 24;
+const WARM_CONCURRENCY = 4;
+
+function pickRandom<T>(items: T[], count: number, avoid: Set<string> = new Set()): T[] {
   if (items.length === 0) return [];
-  if (items.length <= count) return [...items];
-  const copy = [...items];
+  const preferred = avoid.size ? items.filter((x) => !avoid.has(String(x))) : items;
+  const source = preferred.length >= count ? preferred : items;
+  if (source.length <= count) return [...source];
+  const copy = [...source];
   for (let i = copy.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [copy[i], copy[j]] = [copy[j], copy[i]];
   }
   return copy.slice(0, count);
+}
+
+function preloadImage(url: string): Promise<void> {
+  return new Promise((resolve) => {
+    if (!url) {
+      resolve();
+      return;
+    }
+    const img = new Image();
+    img.decoding = "async";
+    img.onload = () => resolve();
+    img.onerror = () => resolve();
+    img.src = url;
+  });
+}
+
+async function preloadAll(urls: string[]): Promise<void> {
+  await Promise.all(urls.map((url) => preloadImage(url)));
+}
+
+async function warmPool(urls: string[], concurrency: number): Promise<void> {
+  let index = 0;
+  const workers = Array.from({ length: Math.min(concurrency, urls.length) }, async () => {
+    while (index < urls.length) {
+      const current = urls[index++];
+      await preloadImage(current);
+    }
+  });
+  await Promise.all(workers);
 }
 
 export function CatalogSection() {
@@ -36,26 +73,43 @@ export function CatalogSection() {
   const [imagePool, setImagePool] = useState<string[]>([]);
   const [tiles, setTiles] = useState<string[]>([]);
   const [visible, setVisible] = useState(true);
+  const [ready, setReady] = useState(false);
+  const nextTilesRef = useRef<string[]>([]);
+  const tilesRef = useRef<string[]>([]);
+  const rotatingRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
         const products = await fetchProducts(undefined, undefined, { light: true });
-        const urls = products
-          .map((p) => resolveImageUrl(p.image))
-          .filter((u) => Boolean(u));
-        // unique preserve order
+        const urls = products.map((p) => resolveImageUrl(p.image)).filter(Boolean);
         const seen = new Set<string>();
         const unique = urls.filter((u) => (seen.has(u) ? false : (seen.add(u), true)));
-        if (!cancelled) {
-          setImagePool(unique);
-          setTiles(pickRandom(unique, 6));
-        }
+        if (cancelled || unique.length === 0) return;
+
+        const first = pickRandom(unique, TILE_COUNT);
+        await preloadAll(first);
+        if (cancelled) return;
+
+        setImagePool(unique);
+        tilesRef.current = first;
+        setTiles(first);
+        setReady(true);
+        setVisible(true);
+
+        const next = pickRandom(unique, TILE_COUNT, new Set(first));
+        await preloadAll(next);
+        if (!cancelled) nextTilesRef.current = next;
+
+        // Background warm of a limited subset (includes first/next implicitly via cache).
+        const warmList = pickRandom(unique, Math.min(WARM_COUNT, unique.length));
+        void warmPool(warmList, WARM_CONCURRENCY);
       } catch {
         if (!cancelled) {
           setImagePool([]);
           setTiles([]);
+          setReady(false);
         }
       }
     })();
@@ -65,16 +119,37 @@ export function CatalogSection() {
   }, []);
 
   useEffect(() => {
-    if (imagePool.length === 0) return;
+    if (!ready || imagePool.length === 0) return;
+
     const interval = window.setInterval(() => {
-      setVisible(false);
-      window.setTimeout(() => {
-        setTiles(pickRandom(imagePool, 6));
+      if (rotatingRef.current) return;
+      rotatingRef.current = true;
+
+      void (async () => {
+        const upcoming =
+          nextTilesRef.current.length === TILE_COUNT
+            ? nextTilesRef.current
+            : pickRandom(imagePool, TILE_COUNT, new Set(tilesRef.current));
+
+        // Ensure next set is cached before revealing.
+        await preloadAll(upcoming);
+
+        setVisible(false);
+        await new Promise((r) => window.setTimeout(r, FADE_MS));
+        tilesRef.current = upcoming;
+        setTiles(upcoming);
         setVisible(true);
-      }, 350);
-    }, 3000);
+
+        const following = pickRandom(imagePool, TILE_COUNT, new Set(upcoming));
+        nextTilesRef.current = following;
+        void preloadAll(following).finally(() => {
+          rotatingRef.current = false;
+        });
+      })();
+    }, ROTATE_MS);
+
     return () => window.clearInterval(interval);
-  }, [imagePool]);
+  }, [ready, imagePool]);
 
   useEffect(() => {
     const scrollToCatalog = () => {
@@ -89,8 +164,8 @@ export function CatalogSection() {
 
   const gridTiles = useMemo(() => {
     const filled = [...tiles];
-    while (filled.length < 6) filled.push("");
-    return filled.slice(0, 6);
+    while (filled.length < TILE_COUNT) filled.push("");
+    return filled.slice(0, TILE_COUNT);
   }, [tiles]);
 
   return (
@@ -100,7 +175,7 @@ export function CatalogSection() {
           <FadeInUpInView>
             <div
               className={`grid grid-cols-3 grid-rows-2 gap-2 sm:gap-3 transition-opacity duration-300 ease-out ${
-                visible ? "opacity-100" : "opacity-0"
+                visible && ready ? "opacity-100" : "opacity-0"
               }`}
               aria-hidden={gridTiles.every((t) => !t)}
             >
@@ -114,7 +189,9 @@ export function CatalogSection() {
                       src={src}
                       alt=""
                       className="w-full h-full object-cover"
-                      loading="lazy"
+                      loading="eager"
+                      decoding="async"
+                      fetchPriority={i < 3 ? "high" : "auto"}
                       draggable={false}
                     />
                   ) : null}
