@@ -1,9 +1,11 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useLocation } from "react-router";
 import { Button } from "../atoms/Button";
 import { Icon } from "../atoms/Icon";
 import { FadeInUpInView } from "../atoms/FadeInUpInView";
 import { useContent } from "../../content/useContent";
 import { fetchProducts, resolveImageUrl } from "../../api/shop";
+import { scrollToHashId } from "../../utils/scrollToHash";
 
 const FALLBACKS = {
   eyebrow: "Catálogo",
@@ -64,6 +66,7 @@ async function warmPool(urls: string[], concurrency: number): Promise<void> {
 }
 
 export function CatalogSection() {
+  const location = useLocation();
   const eyebrow = useContent("home", "catalog", "eyebrow", FALLBACKS.eyebrow);
   const title = useContent("home", "catalog", "title", FALLBACKS.title);
   const description = useContent("home", "catalog", "description", FALLBACKS.description);
@@ -152,14 +155,24 @@ export function CatalogSection() {
   }, [ready, imagePool]);
 
   useEffect(() => {
-    const scrollToCatalog = () => {
+    const hash = (location.hash || window.location.hash).replace(/^#/, "");
+    if (hash !== "catalogo") return;
+    const t1 = window.setTimeout(() => scrollToHashId("catalogo"), 0);
+    const t2 = window.setTimeout(() => scrollToHashId("catalogo"), 150);
+    return () => {
+      window.clearTimeout(t1);
+      window.clearTimeout(t2);
+    };
+  }, [location.hash, location.key]);
+
+  useEffect(() => {
+    const onHashChange = () => {
       if (window.location.hash.replace(/^#/, "") === "catalogo") {
-        document.getElementById("catalogo")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        scrollToHashId("catalogo");
       }
     };
-    scrollToCatalog();
-    window.addEventListener("hashchange", scrollToCatalog);
-    return () => window.removeEventListener("hashchange", scrollToCatalog);
+    window.addEventListener("hashchange", onHashChange);
+    return () => window.removeEventListener("hashchange", onHashChange);
   }, []);
 
   const gridTiles = useMemo(() => {

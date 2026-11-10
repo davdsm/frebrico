@@ -10,6 +10,7 @@ import { useContent, useContentJson } from "../../content/useContent";
 import { motion } from "framer-motion";
 import { useCustomerAuth } from "../../auth/CustomerAuthContext";
 import { SiteSearchOverlay } from "../common/SiteSearchOverlay";
+import { goToHomeHash } from "../../utils/scrollToHash";
 
 const CLOSE_DELAY_MS = 180;
 
@@ -178,6 +179,11 @@ export function Header({ isCompact = false }: HeaderProps) {
                   to={to}
                   end={hashOnly ? true : undefined}
                   className="transition-opacity duration-200 group-hover/nav:opacity-20 hover:opacity-100"
+                  onClick={(e) => {
+                    if (hashOnly && typeof to === "object" && to.hash) {
+                      goToHomeHash(to.hash, e);
+                    }
+                  }}
                 >
                   {({ isActive }) => (
                     <NavItem

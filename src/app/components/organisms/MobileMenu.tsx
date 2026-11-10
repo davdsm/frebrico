@@ -3,6 +3,7 @@ import { Link } from "react-router";
 import { AnimatePresence, motion } from "framer-motion";
 import { Logo } from "../atoms/Logo";
 import { useContent, useContentJson } from "../../content/useContent";
+import { goToHomeHash } from "../../utils/scrollToHash";
 
 interface MobileMenuProps {
   isOpen: boolean;
@@ -169,11 +170,17 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                 </motion.div>
                 {navItemsForMenu.map((item, idx) => {
                   const to = navLinkTo(item.url);
+                  const hashOnly = typeof to === "object";
                   return (
                     <motion.div key={`mobile-nav-${idx}-${item.url}`} variants={listItemVariants}>
                       <Link
                         to={to}
-                        onClick={handleLinkClick}
+                        onClick={(e) => {
+                          if (hashOnly && typeof to === "object" && to.hash) {
+                            goToHomeHash(to.hash, e);
+                          }
+                          handleLinkClick();
+                        }}
                         className="py-2 flex items-center justify-between border-b border-black/5"
                       >
                         <span>{item.label}</span>
