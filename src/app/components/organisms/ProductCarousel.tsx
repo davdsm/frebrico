@@ -3,11 +3,13 @@ import {
   ProductCard,
   cmsProductItemKey,
   cmsProductItemToCardProduct,
+  type Product,
 } from '../common/ProductCard';
 import { Icon } from '../atoms/Icon';
 import { useContent } from '../../content/useContent';
 import { FadeInUpInView } from '../atoms/FadeInUpInView';
 import { StaggeredFadeInUpInView } from '../atoms/StaggeredFadeInUpInView';
+import { fetchProducts } from '../../api/shop';
 
 function shuffleArray<T>(items: T[]): T[] {
   const copy = [...items];
@@ -21,6 +23,8 @@ function shuffleArray<T>(items: T[]): T[] {
 export function ProductCarousel() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [isPaused, setIsPaused] = useState(false);
+  const [heightById, setHeightById] = useState<Map<number, 80 | 100>>(new Map());
+  const [heightBySlug, setHeightBySlug] = useState<Map<string, 80 | 100>>(new Map());
   const title = useContent('home', 'carousel', 'title');
   const productsRaw = useContent('home', 'carousel', 'products', '');
   const productList = useMemo(() => {
@@ -33,6 +37,43 @@ export function ProductCarousel() {
       return [];
     }
   }, [productsRaw]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const list = await fetchProducts(undefined, undefined, { light: true });
+        if (cancelled) return;
+        const byId = new Map<number, 80 | 100>();
+        const bySlug = new Map<string, 80 | 100>();
+        for (const p of list) {
+          const h: 80 | 100 = Number(p.listing_image_height) === 100 ? 100 : 80;
+          if (typeof p.id === 'number') byId.set(p.id, h);
+          if (p.slug) bySlug.set(String(p.slug), h);
+        }
+        setHeightById(byId);
+        setHeightBySlug(bySlug);
+      } catch {
+        if (!cancelled) {
+          setHeightById(new Map());
+          setHeightBySlug(new Map());
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const cards: Product[] = useMemo(() => {
+    return productList.map((raw) => {
+      const base = cmsProductItemToCardProduct(raw);
+      const fromId = base.id > 0 ? heightById.get(base.id) : undefined;
+      const fromSlug = base.slug ? heightBySlug.get(base.slug) : undefined;
+      const listing_image_height = fromId ?? fromSlug ?? base.listing_image_height ?? 80;
+      return { ...base, listing_image_height };
+    });
+  }, [productList, heightById, heightBySlug]);
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollContainerRef.current) {
@@ -112,10 +153,10 @@ export function ProductCarousel() {
             className="flex gap-4 md:gap-8 overflow-x-auto pb-4 scrollbar-hide scroll-smooth pl-4 md:pl-8 lg:pl-0"
             stagger={0.1}
           >
-            {productList.map((raw, index) => (
+            {cards.map((product, index) => (
               <ProductCard
-                key={cmsProductItemKey(raw, index)}
-                product={cmsProductItemToCardProduct(raw)}
+                key={cmsProductItemKey(productList[index] ?? {}, index)}
+                product={product}
                 className="w-[200px] sm:w-[220px] md:w-[250px] shrink-0"
               />
             ))}

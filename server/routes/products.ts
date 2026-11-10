@@ -42,7 +42,13 @@ productsRouter.get("/", attachOptionalAuth, (req, res) => {
     return res.json(
       list
         .filter((p) => p.image && String(p.image).trim())
-        .map((p) => ({ id: p.id, slug: p.slug, name: p.name, image: p.image }))
+        .map((p) => ({
+          id: p.id,
+          slug: p.slug,
+          name: p.name,
+          image: p.image,
+          listing_image_height: Number(p.listing_image_height) === 100 ? 100 : 80,
+        }))
     );
   }
   const reqUser = (req as { user?: { id: number; isAdmin: boolean } }).user;

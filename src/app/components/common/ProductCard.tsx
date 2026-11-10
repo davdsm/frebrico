@@ -43,6 +43,7 @@ export function cmsProductItemToCardProduct(item: Record<string, unknown>): Prod
     price,
     featured: Boolean(item.featured),
     image: typeof item.image === 'string' ? item.image : undefined,
+    listing_image_height: Number(item.listing_image_height) === 100 ? 100 : 80,
   };
 }
 
