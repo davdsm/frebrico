@@ -153,6 +153,7 @@ export function ProductSpecs({ product }: ProductSpecsProps) {
                               price,
                               image: mainImage,
                               productId: product.id,
+                              slug: product.slug ?? null,
                               variantKey,
                               catalogPrice: vp?.catalog_price ?? catalogPrice,
                               discountPercent: vp?.discount_percent ?? null,

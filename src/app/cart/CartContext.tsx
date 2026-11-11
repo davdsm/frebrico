@@ -8,6 +8,7 @@ interface AddCartItemInput {
   price: number;
   image: string;
   productId?: number;
+  slug?: string | null;
   variantKey?: string;
   catalogPrice?: number;
   discountPercent?: number;

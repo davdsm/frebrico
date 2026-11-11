@@ -1,9 +1,19 @@
 import React, { useMemo, useState } from "react";
+import { Link } from "react-router";
 import type { CartItem } from "../../cart/cartTypes";
 import { useContent } from "../../content/useContent";
 import { resolveImageUrl } from "../../api/shop";
 import type { ShippingResult } from "../../cart/shippingUtils";
 import { useCustomerAuth } from "../../auth/CustomerAuthContext";
+
+function cartItemProductUrl(item: CartItem): string | null {
+  const slug = item.slug != null ? String(item.slug).trim() : "";
+  if (slug) return `/product/${encodeURIComponent(slug)}`;
+  if (typeof item.productId === "number" && item.productId > 0) {
+    return `/product/${encodeURIComponent(String(item.productId))}`;
+  }
+  return null;
+}
 
 const API_BASE = (() => {
   const raw =
@@ -96,18 +106,39 @@ export function CartSummary({
         <h2 className="text-xl font-semibold text-black mb-6">{summaryTitle}</h2>
 
         <div className="flex flex-col gap-4 mb-6 pb-6 border-b border-[#dcdcdc]">
-          {cartItems.map((item) => (
+          {cartItems.map((item) => {
+            const productUrl = cartItemProductUrl(item);
+            const image = (
+              <div className="w-16 h-16 bg-white rounded-lg border border-[#dcdcdc] p-2">
+                <img src={resolveImageUrl(item.image)} alt={item.name} className="w-full h-full object-contain" />
+              </div>
+            );
+            const nameEl = productUrl ? (
+              <Link
+                to={productUrl}
+                className="text-sm font-semibold text-black leading-tight hover:text-[#313b2e] hover:underline underline-offset-2"
+              >
+                {item.name}
+              </Link>
+            ) : (
+              <h3 className="text-sm font-semibold text-black leading-tight">{item.name}</h3>
+            );
+            return (
             <div key={item.id} className="flex flex-col sm:flex-row gap-3 sm:gap-4 sm:items-start">
               <div className="relative shrink-0">
-                <div className="w-16 h-16 bg-white rounded-lg border border-[#dcdcdc] p-2">
-                  <img src={resolveImageUrl(item.image)} alt={item.name} className="w-full h-full object-contain" />
-                </div>
+                {productUrl ? (
+                  <Link to={productUrl} aria-label={`Ver produto ${item.name}`} className="block rounded-lg hover:opacity-90 transition-opacity">
+                    {image}
+                  </Link>
+                ) : (
+                  image
+                )}
                 <div className="absolute -top-2 -right-2 w-5 h-5 bg-[#5a5a59] text-white rounded-full flex items-center justify-center text-xs font-medium">
                   {item.quantity}
                 </div>
               </div>
               <div className="flex-1 flex flex-col gap-1">
-                <h3 className="text-sm font-semibold text-black leading-tight">{item.name}</h3>
+                {nameEl}
                 <p className="text-xs text-[#5a5a59]">{item.variant}</p>
                 {showDiscount &&
                   item.discountPercent != null &&
@@ -145,7 +176,8 @@ export function CartSummary({
                 </button>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
 
         <div className="mb-6 pb-6 border-b border-[#dcdcdc]">
