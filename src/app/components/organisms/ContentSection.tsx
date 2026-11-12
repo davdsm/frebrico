@@ -114,10 +114,14 @@ function VerticalCarousel({ contentPage = "about" }: { contentPage?: string }) {
   const itemsJson = useContent(contentPage, "content_images", "items");
   const apiBase = getApiBase();
 
-  const items: { path: string }[] = (() => {
+  const items: { path: string; url?: string }[] = (() => {
     try {
       const arr = JSON.parse(itemsJson || "[]");
-      return Array.isArray(arr) ? arr.map((x) => ({ path: typeof x?.path === "string" ? x.path : "" })) : [];
+      if (!Array.isArray(arr)) return [];
+      return arr.map((x) => ({
+        path: typeof x?.path === "string" ? x.path : "",
+        url: typeof x?.url === "string" ? x.url.trim() : "",
+      }));
     } catch {
       return [];
     }
@@ -126,14 +130,27 @@ function VerticalCarousel({ contentPage = "about" }: { contentPage?: string }) {
   const imagesWithPath = items.filter((i) => i.path);
   const hasImages = imagesWithPath.length > 0;
   const images = hasImages
-    ? imagesWithPath.map((item, i) => (
-        <img
-          key={i}
-          src={`${apiBase}${item.path}`}
-          alt=""
-          className="w-full aspect-square rounded-[40px] shrink-0 object-cover"
-        />
-      ))
+    ? imagesWithPath.map((item, i) => {
+        const img = (
+          <img
+            src={`${apiBase}${item.path}`}
+            alt=""
+            className="w-full aspect-square rounded-[40px] shrink-0 object-cover"
+          />
+        );
+        if (!item.url) return <React.Fragment key={i}>{img}</React.Fragment>;
+        return (
+          <a
+            key={i}
+            href={item.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block w-full aspect-square rounded-[40px] shrink-0 overflow-hidden hover:opacity-95 transition-opacity"
+          >
+            {img}
+          </a>
+        );
+      })
     : [
         <div key="img1" className="bg-[#f1f1f1] w-full aspect-square rounded-[40px] shrink-0" />,
         <div key="img2" className="bg-[#f1f1f1] w-full aspect-square rounded-[40px] shrink-0" />,

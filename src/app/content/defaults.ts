@@ -157,7 +157,7 @@ const defaults: DefaultsMap = {
       cta_secondary: "Apoio Técnico",
       cta_secondary_url: "/contact",
       categories: JSON.stringify([{ name: "Arames", slug: "arames" }, { name: "Vedações", slug: "vedacoes" }, { name: "Correntes", slug: "correntes" }]),
-      brand_logos: JSON.stringify([{ path: "" }, { path: "" }, { path: "" }, { path: "" }]),
+      brand_logos: JSON.stringify([{ path: "", url: "" }, { path: "", url: "" }, { path: "", url: "" }, { path: "", url: "" }]),
     },
     services: {
       badge: "Serviços",
@@ -263,8 +263,8 @@ const defaults: DefaultsMap = {
       cta_primary_url: "/about",
       cta_secondary: "Contactos",
       cta_secondary_url: "/contact",
-      image: "",
-      brand_logos: JSON.stringify([{ path: "" }, { path: "" }, { path: "" }, { path: "" }]),
+      image: JSON.stringify([{ path: "", url: "" }]),
+      brand_logos: JSON.stringify([{ path: "", url: "" }, { path: "", url: "" }, { path: "", url: "" }, { path: "", url: "" }]),
     },
     content_tab1: {
       label: "Experiência e Conhecimento Técnico",

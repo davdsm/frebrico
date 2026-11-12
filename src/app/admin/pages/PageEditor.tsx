@@ -231,6 +231,29 @@ export default function PageEditor() {
   );
 }
 
+type ContentImageItem = { path: string; url?: string };
+
+/** Accepts JSON array `[{path,url?}]` or a legacy plain image path string. */
+function normalizeContentImagesValue(raw: string): string {
+  const t = (raw || "").trim();
+  if (!t) return JSON.stringify([{ path: "", url: "" }]);
+  if (t.startsWith("[")) return t;
+  return JSON.stringify([{ path: t, url: "" }]);
+}
+
+function parseContentImageItems(raw: string): ContentImageItem[] {
+  try {
+    const arr = JSON.parse(normalizeContentImagesValue(raw));
+    if (!Array.isArray(arr)) return [];
+    return arr.map((x) => ({
+      path: typeof x?.path === "string" ? x.path : "",
+      url: typeof x?.url === "string" ? x.url : "",
+    }));
+  } catch {
+    return [];
+  }
+}
+
 function ContentImagesListEditor({
   value,
   pageSlug,
@@ -244,30 +267,25 @@ function ContentImagesListEditor({
   pageSlug: string;
   sectionKey: string;
   onChange: (value: string) => void;
-  onItemChange: (index: number, path: string) => void;
+  onItemChange: (index: number, patch: Partial<ContentImageItem>) => void;
   onRemoveSlot: (index: number) => void;
   hint?: string;
 }) {
-  const parseItems = (raw: string): { path: string }[] => {
-    try {
-      const arr = JSON.parse(raw || "[]");
-      return Array.isArray(arr) ? arr.map((x) => ({ path: typeof x?.path === "string" ? x.path : "" })) : [];
-    } catch {
-      return [];
-    }
-  };
-  const items = parseItems(value);
+  const items = parseContentImageItems(value);
   const minItems = 1;
-  const displayItems = items.length >= minItems ? items : [{ path: "" }];
+  const displayItems = items.length >= minItems ? items : [{ path: "", url: "" }];
 
   const addSlot = () => {
-    const next = [...parseItems(value), { path: "" }];
+    const next = [...parseContentImageItems(value), { path: "", url: "" }];
     onChange(JSON.stringify(next));
   };
 
   return (
     <div>
-      <p className="text-[12px] text-[#5a5a59] mb-3">{hint ?? "Carregue múltiplas imagens para esta secção. As imagens vão aparecer no slider desta área."}</p>
+      <p className="text-[12px] text-[#5a5a59] mb-3">
+        {hint ??
+          "Carregue múltiplas imagens para esta secção. Pode opcionalmente definir um link por imagem (abre numa nova aba)."}
+      </p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {displayItems.map((item, i) => (
           <div key={i} className="relative border border-[#e5e5e3] rounded-xl p-4 bg-[#fafaf9]">
@@ -287,10 +305,22 @@ function ContentImagesListEditor({
             <ImageUploadField
               label=""
               value={item.path}
-              onChange={(p) => onItemChange(i, p)}
+              onChange={(p) => onItemChange(i, { path: p })}
               page={pageSlug}
               section={sectionKey}
             />
+            <div className="mt-3">
+              <label className="block text-[11px] font-medium text-[#5a5a59] mb-1">
+                Link (opcional, nova aba)
+              </label>
+              <input
+                type="url"
+                value={item.url || ""}
+                onChange={(e) => onItemChange(i, { url: e.target.value })}
+                placeholder="https://…"
+                className="w-full px-3 py-2 border border-[#e5e5e3] rounded-lg text-[12px] bg-white focus:border-[#313b2e] focus:outline-none"
+              />
+            </div>
           </div>
         ))}
       </div>
@@ -464,7 +494,7 @@ function FieldRow({
     pageSlug === HOME_PAGE && sectionKey === FEATURES_SECTION && fieldKey === FEATURES_IMAGE_FIELD;
   const isAboutSolutionsItemsField =
     pageSlug === ABOUT_PAGE && sectionKey === SOLUTIONS_SECTION && fieldKey === SOLUTIONS_ITEMS_FIELD;
-  /** About hero uses singular `image` (right column); Home hero uses plural `images` (carousel). */
+  /** About hero right-column images (multi, optional link each). */
   const isAboutHeroImageField =
     pageSlug === ABOUT_PAGE && sectionKey === HERO_SECTION && fieldKey === ABOUT_HERO_IMAGE_FIELD;
   const isContactMapImageField =
@@ -478,38 +508,43 @@ function FieldRow({
     pageSlug === HOME_PAGE &&
     sectionKey === HERO_SECTION;
 
-  const parseItems = (raw: string): { path: string }[] => {
-    try {
-      const arr = JSON.parse(raw || "[]");
-      return Array.isArray(arr) ? arr.map((x) => ({ path: typeof x?.path === "string" ? x.path : "" })) : [];
-    } catch {
-      return [];
-    }
-  };
-
-  const updateItemPath = (index: number, path: string) => {
-    const items = parseItems(value);
-    while (items.length <= index) items.push({ path: "" });
-    items[index] = { path };
+  const updateImageItem = (index: number, patch: Partial<ContentImageItem>) => {
+    const items = parseContentImageItems(value);
+    while (items.length <= index) items.push({ path: "", url: "" });
+    items[index] = {
+      path: patch.path !== undefined ? patch.path : items[index].path || "",
+      url: patch.url !== undefined ? patch.url : items[index].url || "",
+    };
     onChange(JSON.stringify(items));
   };
 
   const removeSlot = (index: number) => {
-    const items = parseItems(value).filter((_, i) => i !== index);
-    onChange(JSON.stringify(items.length ? items : [{ path: "" }]));
+    const items = parseContentImageItems(value).filter((_, i) => i !== index);
+    onChange(JSON.stringify(items.length ? items : [{ path: "", url: "" }]));
   };
+
+  const fieldLabel = isAboutHeroImageField
+    ? "Imagem do hero"
+    : isBrandLogosField
+      ? "Logótipos"
+      : fieldKey;
 
   return (
     <div className="group">
-      <label className="block text-[13px] font-medium text-[#131313] mb-1.5">{fieldKey}</label>
-      {isContentImagesField || isHomeHeroImagesField ? (
+      <label className="block text-[13px] font-medium text-[#131313] mb-1.5">{fieldLabel}</label>
+      {isContentImagesField || isHomeHeroImagesField || isAboutHeroImageField ? (
         <ContentImagesListEditor
-          value={value}
+          value={isAboutHeroImageField ? normalizeContentImagesValue(value) : value}
           pageSlug={pageSlug}
           sectionKey={sectionKey}
           onChange={onChange}
-          onItemChange={updateItemPath}
+          onItemChange={updateImageItem}
           onRemoveSlot={removeSlot}
+          hint={
+            isAboutHeroImageField
+              ? "Imagens à direita no topo da página A Frebrico. Pode adicionar várias e definir um link por imagem (abre numa nova aba)."
+              : undefined
+          }
         />
       ) : isHomeFeaturesImageField ? (
         <ImageUploadField
@@ -519,15 +554,6 @@ function FieldRow({
           page={pageSlug}
           section={sectionKey}
           hint="Imagem principal da secção 'Cada espaço tem desafios diferentes.'"
-        />
-      ) : isAboutHeroImageField ? (
-        <ImageUploadField
-          label="Imagem do hero"
-          value={value}
-          onChange={onChange}
-          page={pageSlug}
-          section={sectionKey}
-          hint="Imagem à direita no topo da página Sobre Nós (mesmo campo que o site usa)."
         />
       ) : isContactMapImageField ? (
         <ImageUploadField
@@ -566,9 +592,9 @@ function FieldRow({
           pageSlug={pageSlug}
           sectionKey={sectionKey}
           onChange={onChange}
-          onItemChange={updateItemPath}
+          onItemChange={updateImageItem}
           onRemoveSlot={removeSlot}
-          hint="Logótipos de marcas parceiras. Carregue imagens SVG ou PNG. Aparecem no topo da página (em baixo dos botões)."
+          hint="Logótipos de marcas parceiras. Carregue imagens SVG ou PNG. Pode definir um link por imagem (abre numa nova aba)."
         />
       ) : isAboutSolutionsItemsField ? (
         <AboutSolutionsItemsEditor value={value} pageSlug={pageSlug} onChange={onChange} />

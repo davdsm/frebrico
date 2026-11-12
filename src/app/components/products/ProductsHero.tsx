@@ -33,8 +33,16 @@ export function ProductsHero({ categoriesFromApi }: ProductsHeroProps) {
   const brandLogos = (() => {
     try {
       const arr = JSON.parse(brandLogosRaw || "[]");
-      return Array.isArray(arr) ? arr.filter((x: { path?: string }) => typeof x?.path === "string" && x.path) : [];
-    } catch { return []; }
+      if (!Array.isArray(arr)) return [];
+      return arr
+        .filter((x: { path?: string }) => typeof x?.path === "string" && x.path)
+        .map((x: { path: string; url?: string }) => ({
+          path: x.path,
+          url: typeof x?.url === "string" ? x.url.trim() : "",
+        }));
+    } catch {
+      return [];
+    }
   })();
   const apiBase = getApiBase();
 
@@ -91,14 +99,27 @@ export function ProductsHero({ categoriesFromApi }: ProductsHeroProps) {
           {brandLogos.length > 0 && (
             <FadeInUpInView delay={0.1} className="self-end">
             <div className="flex gap-5 items-center justify-center md:justify-end overflow-x-auto scrollbar-hide min-h-[50px]">
-              {brandLogos.map((logo: { path: string }, i: number) => (
-                <img
-                  key={i}
-                  src={`${apiBase}${logo.path}`}
-                  alt=""
-                  className="h-[20px] md:h-[28px] w-auto shrink-0 object-contain"
-                />
-              ))}
+              {brandLogos.map((logo, i) => {
+                const img = (
+                  <img
+                    src={`${apiBase}${logo.path}`}
+                    alt=""
+                    className="h-[20px] md:h-[28px] w-auto shrink-0 object-contain"
+                  />
+                );
+                if (!logo.url) return <span key={i}>{img}</span>;
+                return (
+                  <a
+                    key={i}
+                    href={logo.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex shrink-0 hover:opacity-80 transition-opacity"
+                  >
+                    {img}
+                  </a>
+                );
+              })}
             </div>
             </FadeInUpInView>
           )}
