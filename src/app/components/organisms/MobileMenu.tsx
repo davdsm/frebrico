@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { Link } from "react-router";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Logo } from "../atoms/Logo";
+import { DefaultCategoryMenuIcon } from "../atoms/DefaultCategoryMenuIcon";
 import { useContent, useContentJson } from "../../content/useContent";
 import { goToHomeHash } from "../../utils/scrollToHash";
 import { fetchCategories, resolveImageUrl, type Category } from "../../api/shop";
@@ -50,27 +51,27 @@ const listItemVariants = {
   },
 };
 
-function DefaultCategoryMenuIcon({ className = "" }: { className?: string }) {
+type CategoryLoad = "idle" | "loading" | "ready" | "error";
+
+function MenuChevron({ open, className = "" }: { open: boolean; className?: string }) {
   return (
     <svg
-      className={`w-5 h-5 shrink-0 text-current opacity-90 ${className}`}
+      className={`w-4 h-4 shrink-0 transition-transform ${open ? "rotate-180" : ""} ${className}`.trim()}
       viewBox="0 0 24 24"
       fill="none"
-      xmlns="http://www.w3.org/2000/svg"
+      stroke="currentColor"
+      strokeWidth="2"
       aria-hidden
     >
-      <path
-        d="M4 5.5a1.5 1.5 0 011.5-1.5h4A1.5 1.5 0 0111 5.5v4A1.5 1.5 0 019.5 11h-4A1.5 1.5 0 014 9.5v-4zM13 5.5a1.5 1.5 0 011.5-1.5h4A1.5 1.5 0 0120 5.5v4a1.5 1.5 0 01-1.5 1.5h-4A1.5 1.5 0 0113 9.5v-4zM4 14.5a1.5 1.5 0 011.5-1.5h4A1.5 1.5 0 0111 14.5v4A1.5 1.5 0 019.5 20h-4A1.5 1.5 0 014 18.5v-4zM13 14.5a1.5 1.5 0 011.5-1.5h4a1.5 1.5 0 011.5 1.5v4a1.5 1.5 0 01-1.5 1.5h-4A1.5 1.5 0 0113 18.5v-4z"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinejoin="round"
-      />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
     </svg>
   );
 }
 
 export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
   const handleLinkClick = () => onClose();
+  const reduceMotion = useReducedMotion() === true;
+  const productsMenuId = useId();
   const navHome = useContent("header", "mobile", "nav_home");
   const navItems = useContentJson<{ label: string; url: string }[]>("header", "nav", "items", []);
   const navList = Array.isArray(navItems) ? navItems : [];
@@ -95,18 +96,23 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
   const logoMobile = layoutLogoMobile || headerLogoMobile;
 
   const [categories, setCategories] = useState<Category[]>([]);
+  const [categoryLoad, setCategoryLoad] = useState<CategoryLoad>("idle");
   const [productsOpen, setProductsOpen] = useState(true);
   const [expandedSlug, setExpandedSlug] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isOpen) return;
     let cancelled = false;
+    setCategoryLoad("loading");
     fetchCategories(true)
       .then((tree) => {
-        if (!cancelled) setCategories(Array.isArray(tree) ? tree : []);
+        if (cancelled) return;
+        setCategories(Array.isArray(tree) ? tree : []);
+        setCategoryLoad("ready");
       })
       .catch(() => {
-        if (!cancelled) setCategories([]);
+        if (cancelled) return;
+        setCategoryLoad("error");
       });
     return () => {
       cancelled = true;
@@ -133,6 +139,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
     const path = normalizeNavPath(item.url);
     const isProducts = path === "/products" || path.startsWith("/products/");
     if (isProducts) {
+      const productsPanelId = `${productsMenuId}-${idx}`;
       return (
         <motion.div key={`mobile-nav-${idx}-${item.url}`} variants={listItemVariants} className="border-b border-black/5">
           <button
@@ -140,25 +147,19 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
             onClick={() => setProductsOpen((v) => !v)}
             className="w-full py-2 flex items-center justify-between text-left"
             aria-expanded={productsOpen}
+            aria-controls={productsPanelId}
           >
             <span>{item.label}</span>
-            <svg
-              className={`w-4 h-4 text-black/40 transition-transform ${productsOpen ? "rotate-180" : ""}`}
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-            </svg>
+            <MenuChevron open={productsOpen} className="text-black/40" />
           </button>
           <AnimatePresence initial={false}>
             {productsOpen && (
               <motion.div
+                id={productsPanelId}
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: "auto", opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.22 }}
+                transition={{ duration: reduceMotion ? 0 : 0.22 }}
                 className="overflow-hidden pb-3"
               >
                 <div className="pl-1 flex flex-col gap-1.5">
@@ -172,17 +173,19 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                   {categories.map((cat) => {
                     const children = Array.isArray(cat.children) ? cat.children : [];
                     const open = expandedSlug === cat.slug;
+                    const iconSrc = resolveImageUrl(cat.icon_svg);
+                    const subcategoriesId = `${productsPanelId}-sub-${cat.id}`;
                     return (
                       <div key={cat.slug} className="rounded-xl border border-black/5 overflow-hidden">
                         <div className="flex items-stretch">
                           <Link
                             to={`/category/${cat.slug}`}
                             onClick={handleLinkClick}
-                            className="flex-1 flex items-center gap-2.5 px-3 py-2.5 text-[14px] font-semibold text-[#1f2a1d]"
+                            className="flex-1 min-w-0 flex items-center gap-2.5 px-3 py-2.5 text-[14px] font-semibold text-[#1f2a1d]"
                           >
-                            {cat.icon_svg ? (
+                            {iconSrc ? (
                               <img
-                                src={resolveImageUrl(cat.icon_svg)}
+                                src={iconSrc}
                                 alt=""
                                 aria-hidden
                                 className="w-5 h-5 shrink-0 object-contain"
@@ -190,35 +193,29 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                             ) : (
                               <DefaultCategoryMenuIcon />
                             )}
-                            <span className="truncate">{cat.name}</span>
+                            <span className="truncate min-w-0" title={cat.name}>{cat.name}</span>
                           </Link>
                           {children.length > 0 && (
                             <button
                               type="button"
-                              aria-label={open ? "Fechar subcategorias" : "Abrir subcategorias"}
+                              aria-expanded={open}
+                              aria-controls={subcategoriesId}
+                              aria-label={open ? `Fechar subcategorias de ${cat.name}` : `Abrir subcategorias de ${cat.name}`}
                               onClick={() => setExpandedSlug(open ? null : cat.slug)}
                               className="px-3 border-l border-black/5 text-black/40"
                             >
-                              <svg
-                                className={`w-4 h-4 transition-transform ${open ? "rotate-180" : ""}`}
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                              >
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                              </svg>
+                              <MenuChevron open={open} />
                             </button>
                           )}
                         </div>
                         {open && children.length > 0 && (
-                          <div className="bg-[#fafaf9] border-t border-black/5 px-3 py-2 flex flex-col gap-1">
+                          <div id={subcategoriesId} className="bg-[#fafaf9] border-t border-black/5 px-3 py-2 flex flex-col gap-1">
                             {children.map((child) => (
                               <Link
                                 key={child.slug}
                                 to={`/category/${child.slug}`}
                                 onClick={handleLinkClick}
-                                className="py-1.5 text-[13px] text-[#5a5a59] hover:text-[#313b2e]"
+                                className="py-1.5 text-[13px] text-[#5a5a59] hover:text-[#313b2e] break-words"
                               >
                                 {child.name}
                               </Link>
@@ -228,8 +225,14 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                       </div>
                     );
                   })}
-                  {categories.length === 0 && (
-                    <p className="text-[13px] text-black/40 px-1 py-2">A carregar categorias…</p>
+                  {categories.length === 0 && (categoryLoad === "idle" || categoryLoad === "loading") && (
+                    <p className="text-[13px] text-black/40 px-1 py-2" role="status">A carregar categorias…</p>
+                  )}
+                  {categories.length === 0 && categoryLoad === "error" && (
+                    <p className="text-[13px] text-black/40 px-1 py-2" role="status">Não foi possível carregar as categorias.</p>
+                  )}
+                  {categories.length === 0 && categoryLoad === "ready" && (
+                    <p className="text-[13px] text-black/40 px-1 py-2">Sem categorias.</p>
                   )}
                 </div>
               </motion.div>
