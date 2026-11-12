@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useContent } from '../../content/useContent';
 import { getApiBase } from '../../content/api';
+import { parseCmsImageItems } from '../../content/cmsImages';
+import { CmsLinkedImage } from '../common/CmsLinkedImage';
 import { FadeInUpInView } from '../atoms/FadeInUpInView';
 
 // Decorative grid background
@@ -113,50 +115,8 @@ function VerticalCarousel({ contentPage = "about" }: { contentPage?: string }) {
   const [isPaused, setIsPaused] = useState(false);
   const itemsJson = useContent(contentPage, "content_images", "items");
   const apiBase = getApiBase();
-
-  const items: { path: string; url?: string }[] = (() => {
-    try {
-      const arr = JSON.parse(itemsJson || "[]");
-      if (!Array.isArray(arr)) return [];
-      return arr.map((x) => ({
-        path: typeof x?.path === "string" ? x.path : "",
-        url: typeof x?.url === "string" ? x.url.trim() : "",
-      }));
-    } catch {
-      return [];
-    }
-  })();
-
-  const imagesWithPath = items.filter((i) => i.path);
+  const imagesWithPath = parseCmsImageItems(itemsJson);
   const hasImages = imagesWithPath.length > 0;
-  const images = hasImages
-    ? imagesWithPath.map((item, i) => {
-        const img = (
-          <img
-            src={`${apiBase}${item.path}`}
-            alt=""
-            className="w-full aspect-square rounded-[40px] shrink-0 object-cover"
-          />
-        );
-        if (!item.url) return <React.Fragment key={i}>{img}</React.Fragment>;
-        return (
-          <a
-            key={i}
-            href={item.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block w-full aspect-square rounded-[40px] shrink-0 overflow-hidden hover:opacity-95 transition-opacity"
-          >
-            {img}
-          </a>
-        );
-      })
-    : [
-        <div key="img1" className="bg-[#f1f1f1] w-full aspect-square rounded-[40px] shrink-0" />,
-        <div key="img2" className="bg-[#f1f1f1] w-full aspect-square rounded-[40px] shrink-0" />,
-        <div key="img3" className="bg-[#f1f1f1] w-full aspect-square rounded-[40px] shrink-0" />,
-        <div key="img4" className="bg-[#f1f1f1] w-full aspect-square rounded-[40px] shrink-0" />,
-      ];
 
   // Auto-scroll effect with infinite loop
   useEffect(() => {
@@ -200,10 +160,23 @@ function VerticalCarousel({ contentPage = "about" }: { contentPage?: string }) {
         className="flex flex-col gap-6 overflow-y-hidden scrollbar-hide h-full"
         style={{ scrollBehavior: 'auto' }}
       >
-        {/* First set */}
-        {images}
-        {/* Duplicate set for infinite scroll */}
-        {images}
+        {hasImages
+          ? [0, 1].flatMap((set) =>
+              imagesWithPath.map((item, i) => (
+                <CmsLinkedImage
+                  key={`${set}-${item.path}-${i}`}
+                  src={`${apiBase}${item.path}`}
+                  href={item.url}
+                  imgClassName="w-full aspect-square rounded-[40px] shrink-0 object-cover"
+                  linkClassName="block w-full aspect-square rounded-[40px] shrink-0 overflow-hidden hover:opacity-95 transition-opacity motion-reduce:transition-none"
+                />
+              ))
+            )
+          : [0, 1].flatMap((set) =>
+              [0, 1, 2, 3].map((i) => (
+                <div key={`${set}-${i}`} className="bg-[#f1f1f1] w-full aspect-square rounded-[40px] shrink-0" />
+              ))
+            )}
       </div>
     </div>
   );

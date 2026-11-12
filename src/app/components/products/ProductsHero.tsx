@@ -9,6 +9,8 @@ import { useContent, useContentJson } from "../../content/useContent";
 import { FadeInUpInView } from "../atoms/FadeInUpInView";
 import { resolveImageUrl } from "../../api/shop";
 import { getApiBase } from "../../content/api";
+import { parseCmsImageItems } from "../../content/cmsImages";
+import { CmsLinkedImage } from "../common/CmsLinkedImage";
 
 export type CategoryItem = { name: string; slug: string; image?: string; icon_svg?: string };
 
@@ -30,20 +32,7 @@ export function ProductsHero({ categoriesFromApi }: ProductsHeroProps) {
     ? categoriesFromApi
     : (Array.isArray(categoriesCms) ? categoriesCms : []);
   const brandLogosRaw = useContent("products", "hero", "brand_logos");
-  const brandLogos = (() => {
-    try {
-      const arr = JSON.parse(brandLogosRaw || "[]");
-      if (!Array.isArray(arr)) return [];
-      return arr
-        .filter((x: { path?: string }) => typeof x?.path === "string" && x.path)
-        .map((x: { path: string; url?: string }) => ({
-          path: x.path,
-          url: typeof x?.url === "string" ? x.url.trim() : "",
-        }));
-    } catch {
-      return [];
-    }
-  })();
+  const brandLogos = parseCmsImageItems(brandLogosRaw);
   const apiBase = getApiBase();
 
   return (
@@ -99,27 +88,15 @@ export function ProductsHero({ categoriesFromApi }: ProductsHeroProps) {
           {brandLogos.length > 0 && (
             <FadeInUpInView delay={0.1} className="self-end">
             <div className="flex gap-5 items-center justify-center md:justify-end overflow-x-auto scrollbar-hide min-h-[50px]">
-              {brandLogos.map((logo, i) => {
-                const img = (
-                  <img
-                    src={`${apiBase}${logo.path}`}
-                    alt=""
-                    className="h-[20px] md:h-[28px] w-auto shrink-0 object-contain"
-                  />
-                );
-                if (!logo.url) return <span key={i}>{img}</span>;
-                return (
-                  <a
-                    key={i}
-                    href={logo.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex shrink-0 hover:opacity-80 transition-opacity"
-                  >
-                    {img}
-                  </a>
-                );
-              })}
+              {brandLogos.map((logo, i) => (
+                <CmsLinkedImage
+                  key={`${logo.path}-${i}`}
+                  src={`${apiBase}${logo.path}`}
+                  href={logo.url}
+                  imgClassName="h-[20px] md:h-[28px] w-auto shrink-0 object-contain"
+                  linkClassName="inline-flex shrink-0 items-center justify-center min-h-6 min-w-6 hover:opacity-80 transition-opacity motion-reduce:transition-none"
+                />
+              ))}
             </div>
             </FadeInUpInView>
           )}

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useId } from "react";
 import { useParams, Link } from "react-router";
 import { useContentState } from "../../content/ContentContext";
 import { putContent } from "../../content/api";
@@ -8,6 +8,7 @@ import { StructuredJsonField } from "../components/StructuredJsonField";
 import { ContentProductsPicker } from "../components/ContentProductsPicker";
 import { ContentCategoriesPicker } from "../components/ContentCategoriesPicker";
 import { ImageUploadField } from "../components/ImageUploadField";
+import { hasUnsafeUrlScheme, parseCmsImageItems, type CmsImageItem } from "../../content/cmsImages";
 
 const PAGES: Record<string, string> = {
   home: "Home",
@@ -231,29 +232,6 @@ export default function PageEditor() {
   );
 }
 
-type ContentImageItem = { path: string; url?: string };
-
-/** Accepts JSON array `[{path,url?}]` or a legacy plain image path string. */
-function normalizeContentImagesValue(raw: string): string {
-  const t = (raw || "").trim();
-  if (!t) return JSON.stringify([{ path: "", url: "" }]);
-  if (t.startsWith("[")) return t;
-  return JSON.stringify([{ path: t, url: "" }]);
-}
-
-function parseContentImageItems(raw: string): ContentImageItem[] {
-  try {
-    const arr = JSON.parse(normalizeContentImagesValue(raw));
-    if (!Array.isArray(arr)) return [];
-    return arr.map((x) => ({
-      path: typeof x?.path === "string" ? x.path : "",
-      url: typeof x?.url === "string" ? x.url : "",
-    }));
-  } catch {
-    return [];
-  }
-}
-
 function ContentImagesListEditor({
   value,
   pageSlug,
@@ -267,16 +245,17 @@ function ContentImagesListEditor({
   pageSlug: string;
   sectionKey: string;
   onChange: (value: string) => void;
-  onItemChange: (index: number, patch: Partial<ContentImageItem>) => void;
+  onItemChange: (index: number, patch: Partial<CmsImageItem>) => void;
   onRemoveSlot: (index: number) => void;
   hint?: string;
 }) {
-  const items = parseContentImageItems(value);
+  const baseId = useId();
+  const items = parseCmsImageItems(value, { keepEmpty: true });
   const minItems = 1;
   const displayItems = items.length >= minItems ? items : [{ path: "", url: "" }];
 
   const addSlot = () => {
-    const next = [...parseContentImageItems(value), { path: "", url: "" }];
+    const next = [...parseCmsImageItems(value, { keepEmpty: true }), { path: "", url: "" }];
     onChange(JSON.stringify(next));
   };
 
@@ -310,16 +289,25 @@ function ContentImagesListEditor({
               section={sectionKey}
             />
             <div className="mt-3">
-              <label className="block text-[11px] font-medium text-[#5a5a59] mb-1">
+              <label htmlFor={`${baseId}-${i}-url`} className="block text-[11px] font-medium text-[#5a5a59] mb-1">
                 Link (opcional, nova aba)
               </label>
               <input
+                id={`${baseId}-${i}-url`}
                 type="url"
+                inputMode="url"
                 value={item.url || ""}
                 onChange={(e) => onItemChange(i, { url: e.target.value })}
                 placeholder="https://…"
-                className="w-full px-3 py-2 border border-[#e5e5e3] rounded-lg text-[12px] bg-white focus:border-[#313b2e] focus:outline-none"
+                aria-invalid={hasUnsafeUrlScheme(item.url) || undefined}
+                aria-describedby={hasUnsafeUrlScheme(item.url) ? `${baseId}-${i}-url-error` : undefined}
+                className="w-full px-3 py-2 border border-[#e5e5e3] rounded-lg text-[12px] bg-white focus:border-[#313b2e] focus:ring-2 focus:ring-[#313b2e]/8 focus:outline-none"
               />
+              {hasUnsafeUrlScheme(item.url) ? (
+                <p id={`${baseId}-${i}-url-error`} className="mt-1 text-[11px] text-red-600">
+                  Use um endereço http ou https. Outros esquemas são ignorados no site.
+                </p>
+              ) : null}
             </div>
           </div>
         ))}
@@ -508,8 +496,8 @@ function FieldRow({
     pageSlug === HOME_PAGE &&
     sectionKey === HERO_SECTION;
 
-  const updateImageItem = (index: number, patch: Partial<ContentImageItem>) => {
-    const items = parseContentImageItems(value);
+  const updateImageItem = (index: number, patch: Partial<CmsImageItem>) => {
+    const items = parseCmsImageItems(value, { keepEmpty: true });
     while (items.length <= index) items.push({ path: "", url: "" });
     items[index] = {
       path: patch.path !== undefined ? patch.path : items[index].path || "",
@@ -519,7 +507,7 @@ function FieldRow({
   };
 
   const removeSlot = (index: number) => {
-    const items = parseContentImageItems(value).filter((_, i) => i !== index);
+    const items = parseCmsImageItems(value, { keepEmpty: true }).filter((_, i) => i !== index);
     onChange(JSON.stringify(items.length ? items : [{ path: "", url: "" }]));
   };
 
@@ -534,7 +522,7 @@ function FieldRow({
       <label className="block text-[13px] font-medium text-[#131313] mb-1.5">{fieldLabel}</label>
       {isContentImagesField || isHomeHeroImagesField || isAboutHeroImageField ? (
         <ContentImagesListEditor
-          value={isAboutHeroImageField ? normalizeContentImagesValue(value) : value}
+          value={value}
           pageSlug={pageSlug}
           sectionKey={sectionKey}
           onChange={onChange}

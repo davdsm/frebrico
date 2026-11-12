@@ -1,31 +1,9 @@
-import React from "react";
 import { ContentLink } from "../../components/common/ContentLink";
+import { CmsLinkedImage } from "../../components/common/CmsLinkedImage";
 import { useContent } from "../../content/useContent";
 import { getApiBase } from "../../content/api";
 import { FadeInUpInView } from "../../components/atoms/FadeInUpInView";
-
-type HeroImageItem = { path: string; url?: string };
-
-function parseHeroImages(raw: string): HeroImageItem[] {
-  const t = (raw || "").trim();
-  if (!t) return [];
-  try {
-    // Legacy singular path stored as plain string
-    if (!t.startsWith("[")) {
-      return t ? [{ path: t, url: "" }] : [];
-    }
-    const arr = JSON.parse(t);
-    if (!Array.isArray(arr)) return [];
-    return arr
-      .filter((x: { path?: string }) => typeof x?.path === "string" && x.path)
-      .map((x: { path: string; url?: string }) => ({
-        path: x.path,
-        url: typeof x?.url === "string" ? x.url.trim() : "",
-      }));
-  } catch {
-    return t.startsWith("/") ? [{ path: t, url: "" }] : [];
-  }
-}
+import { parseCmsImageItems } from "../../content/cmsImages";
 
 export function AboutHero() {
   const badge = useContent("about", "hero", "badge");
@@ -38,34 +16,8 @@ export function AboutHero() {
   const imageRaw = useContent("about", "hero", "image");
   const brandLogosRaw = useContent("about", "hero", "brand_logos");
   const apiBase = getApiBase();
-  const heroImages = parseHeroImages(imageRaw);
-  const brandLogos = parseHeroImages(brandLogosRaw);
-
-  const renderLinkedImage = (
-    item: HeroImageItem,
-    className: string,
-    key?: React.Key
-  ) => {
-    const img = (
-      <img
-        src={`${apiBase}${item.path}`}
-        alt=""
-        className={className}
-      />
-    );
-    if (!item.url) return <React.Fragment key={key}>{img}</React.Fragment>;
-    return (
-      <a
-        key={key}
-        href={item.url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="block w-full h-full hover:opacity-95 transition-opacity"
-      >
-        {img}
-      </a>
-    );
-  };
+  const heroImages = parseCmsImageItems(imageRaw, { legacyPlainPath: true });
+  const brandLogos = parseCmsImageItems(brandLogosRaw, { legacyPlainPath: true });
 
   return (
       <section className="w-full bg-white py-12 md:py-16 lg:py-20">
@@ -97,27 +49,15 @@ export function AboutHero() {
 
             {brandLogos.length > 0 && (
               <div className="flex flex-wrap gap-x-6 gap-y-4 items-center">
-                {brandLogos.map((logo, i) => {
-                  const img = (
-                    <img
-                      src={`${apiBase}${logo.path}`}
-                      alt=""
-                      className="max-h-[36px] w-auto object-contain"
-                    />
-                  );
-                  if (!logo.url) return <span key={i}>{img}</span>;
-                  return (
-                    <a
-                      key={i}
-                      href={logo.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex hover:opacity-80 transition-opacity"
-                    >
-                      {img}
-                    </a>
-                  );
-                })}
+                {brandLogos.map((logo, i) => (
+                  <CmsLinkedImage
+                    key={`${logo.path}-${i}`}
+                    src={`${apiBase}${logo.path}`}
+                    href={logo.url}
+                    imgClassName="max-h-[36px] w-auto object-contain"
+                    linkClassName="inline-flex items-center min-h-6 min-w-6 hover:opacity-80 transition-opacity motion-reduce:transition-none"
+                  />
+                ))}
               </div>
             )}
           </div>
@@ -126,15 +66,25 @@ export function AboutHero() {
           <FadeInUpInView delay={0.1}>
           <div className="bg-[#f1f1f1] rounded-[20px] md:rounded-[32px] h-[300px] md:h-[400px] lg:h-[500px] overflow-hidden">
             {heroImages.length === 0 ? null : heroImages.length === 1 ? (
-              renderLinkedImage(heroImages[0], "w-full h-full object-cover")
+              <CmsLinkedImage
+                src={`${apiBase}${heroImages[0].path}`}
+                href={heroImages[0].url}
+                imgClassName="w-full h-full object-cover"
+                linkClassName="block w-full h-full hover:opacity-95 transition-opacity motion-reduce:transition-none"
+              />
             ) : (
               <div className="flex h-full gap-2 p-2 overflow-x-auto scrollbar-hide">
                 {heroImages.map((item, i) => (
                   <div
-                    key={i}
+                    key={`${item.path}-${i}`}
                     className="h-full min-w-[70%] sm:min-w-[55%] flex-1 rounded-[16px] md:rounded-[24px] overflow-hidden"
                   >
-                    {renderLinkedImage(item, "w-full h-full object-cover", i)}
+                    <CmsLinkedImage
+                      src={`${apiBase}${item.path}`}
+                      href={item.url}
+                      imgClassName="w-full h-full object-cover"
+                      linkClassName="block w-full h-full hover:opacity-95 transition-opacity motion-reduce:transition-none"
+                    />
                   </div>
                 ))}
               </div>

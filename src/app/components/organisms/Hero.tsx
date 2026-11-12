@@ -4,6 +4,8 @@ import { Icon } from '../atoms/Icon';
 import { ContentLink } from '../common/ContentLink';
 import { useContent } from '../../content/useContent';
 import { getApiBase } from '../../content/api';
+import { parseCmsImageItems } from '../../content/cmsImages';
+import { CmsLinkedImage } from '../common/CmsLinkedImage';
 
 type WeatherType = 'sun' | 'partly-cloudy' | 'cloud' | 'rain' | 'storm';
 const WEATHER_SEQUENCE: WeatherType[] = ['sun', 'partly-cloudy', 'cloud', 'rain', 'storm'];
@@ -68,17 +70,7 @@ export function Hero() {
     return () => clearInterval(t);
   }, [isWeatherMode]);
 
-  const heroImages = (() => {
-    try {
-      const parsed = JSON.parse(imagesJson || "[]");
-      if (!Array.isArray(parsed)) return [];
-      return parsed
-        .map((item) => (typeof item?.path === "string" ? item.path : ""))
-        .filter(Boolean);
-    } catch {
-      return [];
-    }
-  })();
+  const heroImages = parseCmsImageItems(imagesJson);
 
   const fallbackCardHeights = [
     "h-[280px] sm:h-[340px] md:h-[380px]",
@@ -271,14 +263,15 @@ export function Hero() {
                 className={
                   heroImages.length
                     ? `w-[240px] sm:w-[280px] md:w-[320px] ${cardHeightPattern[index % cardHeightPattern.length]} rounded-[20px] shrink-0 overflow-hidden bg-[#f1f1f1]`
-                    : `bg-[#f1f1f1] ${item} w-[240px] sm:w-[280px] md:w-[320px] rounded-[20px] shrink-0`
+                    : `bg-[#f1f1f1] ${typeof item === "string" ? item : ""} w-[240px] sm:w-[280px] md:w-[320px] rounded-[20px] shrink-0`
                 }
               >
-                {heroImages.length ? (
-                  <img
-                    src={`${apiBase}${item}`}
-                    alt=""
-                    className="w-full h-full object-cover"
+                {heroImages.length && typeof item !== "string" ? (
+                  <CmsLinkedImage
+                    src={`${apiBase}${item.path}`}
+                    href={item.url}
+                    imgClassName="w-full h-full object-cover"
+                    linkClassName="block w-full h-full"
                   />
                 ) : null}
               </motion.div>
