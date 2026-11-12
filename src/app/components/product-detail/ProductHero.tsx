@@ -233,6 +233,26 @@ export function ProductHero({ product, categoryName, categorySlug }: ProductHero
                 )}
               </div>
             </div>
+            {galleryImages.length > 1 && (
+              <div className="mt-3 flex md:hidden gap-2 overflow-x-auto scrollbar-hide pb-1 -mx-1 px-1">
+                {galleryImages.map((img, idx) => (
+                  <button
+                    key={`m-${img}-${idx}`}
+                    type="button"
+                    onClick={() => {
+                      setActiveImageIndex(idx);
+                      setSwatchImageOverride(null);
+                    }}
+                    className={`w-16 h-16 rounded-xl overflow-hidden border-2 transition-colors shrink-0 ${
+                      activeImageIndex === idx ? "border-[#313b2e]" : "border-[#e5e5e3]"
+                    }`}
+                    aria-label={`Ver imagem ${idx + 1}`}
+                  >
+                    <img src={img} alt="" className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
           </FadeInUpInView>
 

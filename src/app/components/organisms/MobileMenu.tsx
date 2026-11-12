@@ -1,9 +1,10 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { AnimatePresence, motion } from "framer-motion";
 import { Logo } from "../atoms/Logo";
 import { useContent, useContentJson } from "../../content/useContent";
 import { goToHomeHash } from "../../utils/scrollToHash";
+import { fetchCategories, resolveImageUrl, type Category } from "../../api/shop";
 
 interface MobileMenuProps {
   isOpen: boolean;
@@ -49,7 +50,24 @@ const listItemVariants = {
   },
 };
 
-type CategoryItem = { title: string; slug: string; description: string };
+function DefaultCategoryMenuIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg
+      className={`w-5 h-5 shrink-0 text-current opacity-90 ${className}`}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden
+    >
+      <path
+        d="M4 5.5a1.5 1.5 0 011.5-1.5h4A1.5 1.5 0 0111 5.5v4A1.5 1.5 0 019.5 11h-4A1.5 1.5 0 014 9.5v-4zM13 5.5a1.5 1.5 0 011.5-1.5h4A1.5 1.5 0 0120 5.5v4a1.5 1.5 0 01-1.5 1.5h-4A1.5 1.5 0 0113 9.5v-4zM4 14.5a1.5 1.5 0 011.5-1.5h4A1.5 1.5 0 0111 14.5v4A1.5 1.5 0 019.5 20h-4A1.5 1.5 0 014 18.5v-4zM13 14.5a1.5 1.5 0 011.5-1.5h4a1.5 1.5 0 011.5 1.5v4a1.5 1.5 0 01-1.5 1.5h-4A1.5 1.5 0 0113 18.5v-4z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
 
 export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
   const handleLinkClick = () => onClose();
@@ -69,15 +87,31 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
     return url.startsWith("/") ? url : "/";
   };
   const navItemsForMenu = navList.filter((item) => normalizeNavPath(item.url) !== "/contact");
-  const categoriesTitle = useContent("header", "mobile", "categories_title");
-  const categories = useContentJson<CategoryItem[]>("header", "mobile", "categories", []);
-  const categoryList = Array.isArray(categories) ? categories : [];
   const layoutLogoDesktop = useContent("_settings", "layout", "logo_desktop");
   const layoutLogoMobile = useContent("_settings", "layout", "logo_mobile");
   const headerLogoDesktop = useContent("header", "logo", "desktop");
   const headerLogoMobile = useContent("header", "logo", "mobile");
   const logoDesktop = layoutLogoDesktop || headerLogoDesktop;
   const logoMobile = layoutLogoMobile || headerLogoMobile;
+
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [productsOpen, setProductsOpen] = useState(true);
+  const [expandedSlug, setExpandedSlug] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    let cancelled = false;
+    fetchCategories(true)
+      .then((tree) => {
+        if (!cancelled) setCategories(Array.isArray(tree) ? tree : []);
+      })
+      .catch(() => {
+        if (!cancelled) setCategories([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen]);
 
   // Lock page scroll when mobile sidebar is open
   useEffect(() => {
@@ -94,6 +128,136 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
       document.documentElement.style.overflow = originalHtmlOverflow;
     };
   }, [isOpen]);
+
+  const renderNavItem = (item: { label: string; url: string }, idx: number) => {
+    const path = normalizeNavPath(item.url);
+    const isProducts = path === "/products" || path.startsWith("/products/");
+    if (isProducts) {
+      return (
+        <motion.div key={`mobile-nav-${idx}-${item.url}`} variants={listItemVariants} className="border-b border-black/5">
+          <button
+            type="button"
+            onClick={() => setProductsOpen((v) => !v)}
+            className="w-full py-2 flex items-center justify-between text-left"
+            aria-expanded={productsOpen}
+          >
+            <span>{item.label}</span>
+            <svg
+              className={`w-4 h-4 text-black/40 transition-transform ${productsOpen ? "rotate-180" : ""}`}
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          <AnimatePresence initial={false}>
+            {productsOpen && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.22 }}
+                className="overflow-hidden pb-3"
+              >
+                <div className="pl-1 flex flex-col gap-1.5">
+                  <Link
+                    to="/products"
+                    onClick={handleLinkClick}
+                    className="rounded-xl px-3 py-2.5 text-[14px] font-semibold text-[#313b2e] bg-[#eef0ee]"
+                  >
+                    Ver todos os produtos →
+                  </Link>
+                  {categories.map((cat) => {
+                    const children = Array.isArray(cat.children) ? cat.children : [];
+                    const open = expandedSlug === cat.slug;
+                    return (
+                      <div key={cat.slug} className="rounded-xl border border-black/5 overflow-hidden">
+                        <div className="flex items-stretch">
+                          <Link
+                            to={`/category/${cat.slug}`}
+                            onClick={handleLinkClick}
+                            className="flex-1 flex items-center gap-2.5 px-3 py-2.5 text-[14px] font-semibold text-[#1f2a1d]"
+                          >
+                            {cat.icon_svg ? (
+                              <img
+                                src={resolveImageUrl(cat.icon_svg)}
+                                alt=""
+                                aria-hidden
+                                className="w-5 h-5 shrink-0 object-contain"
+                              />
+                            ) : (
+                              <DefaultCategoryMenuIcon />
+                            )}
+                            <span className="truncate">{cat.name}</span>
+                          </Link>
+                          {children.length > 0 && (
+                            <button
+                              type="button"
+                              aria-label={open ? "Fechar subcategorias" : "Abrir subcategorias"}
+                              onClick={() => setExpandedSlug(open ? null : cat.slug)}
+                              className="px-3 border-l border-black/5 text-black/40"
+                            >
+                              <svg
+                                className={`w-4 h-4 transition-transform ${open ? "rotate-180" : ""}`}
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                              >
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                              </svg>
+                            </button>
+                          )}
+                        </div>
+                        {open && children.length > 0 && (
+                          <div className="bg-[#fafaf9] border-t border-black/5 px-3 py-2 flex flex-col gap-1">
+                            {children.map((child) => (
+                              <Link
+                                key={child.slug}
+                                to={`/category/${child.slug}`}
+                                onClick={handleLinkClick}
+                                className="py-1.5 text-[13px] text-[#5a5a59] hover:text-[#313b2e]"
+                              >
+                                {child.name}
+                              </Link>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                  {categories.length === 0 && (
+                    <p className="text-[13px] text-black/40 px-1 py-2">A carregar categorias…</p>
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      );
+    }
+
+    const to = navLinkTo(item.url);
+    const hashOnly = typeof to === "object";
+    return (
+      <motion.div key={`mobile-nav-${idx}-${item.url}`} variants={listItemVariants}>
+        <Link
+          to={to}
+          onClick={(e) => {
+            if (hashOnly && typeof to === "object" && to.hash) {
+              goToHomeHash(to.hash, e);
+            }
+            handleLinkClick();
+          }}
+          className="py-2 flex items-center justify-between border-b border-black/5"
+        >
+          <span>{item.label}</span>
+        </Link>
+      </motion.div>
+    );
+  };
 
   return (
     <AnimatePresence>
@@ -168,57 +332,8 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                     <span>Pesquisa</span>
                   </Link>
                 </motion.div>
-                {navItemsForMenu.map((item, idx) => {
-                  const to = navLinkTo(item.url);
-                  const hashOnly = typeof to === "object";
-                  return (
-                    <motion.div key={`mobile-nav-${idx}-${item.url}`} variants={listItemVariants}>
-                      <Link
-                        to={to}
-                        onClick={(e) => {
-                          if (hashOnly && typeof to === "object" && to.hash) {
-                            goToHomeHash(to.hash, e);
-                          }
-                          handleLinkClick();
-                        }}
-                        className="py-2 flex items-center justify-between border-b border-black/5"
-                      >
-                        <span>{item.label}</span>
-                      </Link>
-                    </motion.div>
-                  );
-                })}
+                {navItemsForMenu.map((item, idx) => renderNavItem(item, idx))}
               </motion.nav>
-
-              <motion.div
-                className="space-y-4"
-                variants={listContainerVariants}
-                initial="hidden"
-                animate="visible"
-                exit="hidden"
-              >
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-black/40">
-                  {categoriesTitle}
-                </p>
-                <div className="grid grid-cols-1 gap-4 text-sm">
-                  {categoryList.map((cat) => (
-                    <motion.div key={cat.slug} variants={listItemVariants}>
-                      <Link
-                        to={`/category/${cat.slug}`}
-                        onClick={handleLinkClick}
-                        className="flex flex-col items-start rounded-2xl border border-black/5 bg-[#f5f5f7] px-4 py-3 text-left active:scale-[0.98] transition-transform"
-                      >
-                        <span className="text-xs font-semibold uppercase tracking-[0.16em] text-black/50">
-                          {cat.title}
-                        </span>
-                        <span className="mt-1 text-[13px] text-black/70">
-                          {cat.description}
-                        </span>
-                      </Link>
-                    </motion.div>
-                  ))}
-                </div>
-              </motion.div>
             </div>
           </motion.aside>
         </>
@@ -226,4 +341,3 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
     </AnimatePresence>
   );
 }
-
