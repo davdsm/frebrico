@@ -173,8 +173,8 @@ export function ProductHero({ product, categoryName, categorySlug }: ProductHero
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-[128px]">
-          <FadeInUpInView>
-          <div className="relative">
+          <FadeInUpInView className="min-w-0">
+          <div className="relative min-w-0">
             <div className="flex items-stretch gap-4">
               {galleryImages.length > 1 && (
                 <div className="hidden md:flex flex-col items-center gap-2 h-full max-h-[620px] py-1">
@@ -197,6 +197,7 @@ export function ProductHero({ product, categoryName, categorySlug }: ProductHero
                         className={`w-16 h-16 rounded-xl overflow-hidden border-2 transition-colors shrink-0 ${
                           activeImageIndex === idx ? 'border-[#313b2e]' : 'border-[#e5e5e3] hover:border-[#c9c9c5]'
                         }`}
+                        aria-pressed={activeImageIndex === idx}
                       >
                         <img src={img} alt={`${product.name} ${idx + 1}`} className="w-full h-full object-cover" />
                       </button>
@@ -234,7 +235,11 @@ export function ProductHero({ product, categoryName, categorySlug }: ProductHero
               </div>
             </div>
             {galleryImages.length > 1 && (
-              <div className="mt-3 flex md:hidden gap-2 overflow-x-auto scrollbar-hide pb-1 -mx-1 px-1">
+              <div
+                className="mt-3 flex md:hidden gap-2 overflow-x-auto scrollbar-hide pb-1 -mx-1 px-1 min-w-0 max-w-full"
+                role="group"
+                aria-label="Galeria de imagens"
+              >
                 {galleryImages.map((img, idx) => (
                   <button
                     key={`m-${img}-${idx}`}
@@ -247,6 +252,7 @@ export function ProductHero({ product, categoryName, categorySlug }: ProductHero
                       activeImageIndex === idx ? "border-[#313b2e]" : "border-[#e5e5e3]"
                     }`}
                     aria-label={`Ver imagem ${idx + 1}`}
+                    aria-pressed={activeImageIndex === idx}
                   >
                     <img src={img} alt="" className="w-full h-full object-cover" />
                   </button>
