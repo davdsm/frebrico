@@ -35,7 +35,7 @@ export default function Terms() {
                   <li>NIPC: 507027825</li>
                   <li>Sede: Urbanização Industrial do Soeiro, Lote 21, 4745-458 São Mamede do Coronado, Trofa</li>
                   <li>Email: info@frebrico.pt</li>
-                  <li>Telefone: +351 252 048 360</li>
+                  <li>Telefone: +351 229 826 344</li>
                 </ul>
               </div>
 
