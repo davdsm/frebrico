@@ -34,7 +34,13 @@ export default function Products() {
             icon_svg: (c.icon_svg || "").trim(),
           }))
         );
-        setProducts(prods.map(shopProductToCardProduct));
+        // Shuffle on every page load so the listing order feels fresh
+        const cards = prods.map(shopProductToCardProduct);
+        for (let i = cards.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [cards[i], cards[j]] = [cards[j], cards[i]];
+        }
+        setProducts(cards);
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Erro ao carregar');
         setProducts([]);
