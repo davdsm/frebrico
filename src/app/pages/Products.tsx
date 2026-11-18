@@ -1,17 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import { ProductsHero } from '../components/products/ProductsHero';
+import { ProductsHero, type CategoryItem } from '../components/products/ProductsHero';
 import { ProductsServices } from '../components/products/ProductsServices';
 import { ProductsGrid } from '../components/products/ProductsGrid';
 import { SEO } from '../components/common/SEO';
 import { useContent } from '../content/useContent';
-import { fetchCategories, fetchProducts, type Category } from '../api/shop';
+import { fetchCategories, fetchProducts } from '../api/shop';
 import { shopProductToCardProduct, type Product } from '../components/common/ProductCard';
+import { shuffleArray } from '../utils/shuffle';
 
 export default function Products() {
   const seoTitle = useContent('products', 'seo', 'title');
   const seoDescription = useContent('products', 'seo', 'description');
 
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [categories, setCategories] = useState<CategoryItem[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -35,12 +36,7 @@ export default function Products() {
           }))
         );
         // Shuffle on every page load so the listing order feels fresh
-        const cards = prods.map(shopProductToCardProduct);
-        for (let i = cards.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [cards[i], cards[j]] = [cards[j], cards[i]];
-        }
-        setProducts(cards);
+        setProducts(shuffleArray(prods.map(shopProductToCardProduct)));
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Erro ao carregar');
         setProducts([]);

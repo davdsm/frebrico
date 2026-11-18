@@ -6,6 +6,7 @@ import { FadeInUpInView } from "../atoms/FadeInUpInView";
 import { useContent } from "../../content/useContent";
 import { fetchProducts, resolveImageUrl } from "../../api/shop";
 import { scrollToHashId } from "../../utils/scrollToHash";
+import { shuffleArray } from "../../utils/shuffle";
 
 const FALLBACKS = {
   eyebrow: "Catálogo",
@@ -28,12 +29,7 @@ function pickRandom<T>(items: T[], count: number, avoid: Set<string> = new Set()
   const preferred = avoid.size ? items.filter((x) => !avoid.has(String(x))) : items;
   const source = preferred.length >= count ? preferred : items;
   if (source.length <= count) return [...source];
-  const copy = [...source];
-  for (let i = copy.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [copy[i], copy[j]] = [copy[j], copy[i]];
-  }
-  return copy.slice(0, count);
+  return shuffleArray(source).slice(0, count);
 }
 
 function preloadImage(url: string): Promise<void> {
