@@ -24,7 +24,6 @@ export function CartCheckoutForm({
 }: CartCheckoutFormProps) {
   const navigate = useNavigate();
   const contactTitle = useContent("cart", "checkout", "contact_title");
-  const loginLink = useContent("cart", "checkout", "login_link");
   const loginLinkUrl = useContent("cart", "checkout", "login_link_url");
   const continueShopping = useContent("cart", "checkout", "continue_shopping");
   const continueShoppingUrl = useContent("cart", "checkout", "continue_shopping_url");
@@ -126,7 +125,7 @@ export function CartCheckoutForm({
     }
   };
 
-  const accountLoginUrl = "/login?mode=customer&redirect=/cart";
+  const accountRegisterUrl = "/account/register?redirect=/cart";
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
@@ -151,14 +150,14 @@ export function CartCheckoutForm({
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold text-black">{contactTitle}</h2>
           {!user && (
-            <ContentLink to={accountLoginUrl || loginLinkUrl} className="text-sm text-[#313b2e] hover:underline">
-              {loginLink}
+            <ContentLink to={accountRegisterUrl || loginLinkUrl} className="text-sm text-[#313b2e] hover:underline">
+              Não tem conta? Crie uma aqui
             </ContentLink>
           )}
         </div>
         {!user && (
           <form onSubmit={handleCheckoutLogin} className="rounded-xl border border-[#dcdcdc] bg-[#fafaf9] p-4 flex flex-col gap-3">
-            <p className="text-sm font-medium text-[#131313]">Ja tem conta? Entre para preencher automaticamente a morada.</p>
+            <p className="text-sm font-medium text-[#131313]">Já tem conta? Entre para preencher automaticamente a morada.</p>
             {loginError && <p className="text-sm text-red-700">{loginError}</p>}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <input

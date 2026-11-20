@@ -179,8 +179,8 @@ const defaults: DefaultsMap = {
     summary: { title: "Resumo do pedido", discount_placeholder: "Código de desconto", apply_button: "Aplicar", subtotal_label: "Subtotal", total_label: "Total", currency: "EUR", remove_button: "Remover" },
     checkout: {
       contact_title: "Contacto",
-      login_link: "Já tem conta? Entrar",
-      login_link_url: "/login",
+      login_link: "Não tem conta? Crie uma aqui",
+      login_link_url: "/account/register",
       newsletter_label: "Quero receber novidades e ofertas por e-mail",
       address_title: "Morada de envio",
       placeholders: JSON.stringify({ email: "E-mail", nome: "Nome", apelido: "Apelido", morada: "Morada", apartamento: "Apartamento, andar, etc. (opcional)", codigo_postal: "Código postal", cidade: "Localidade", pais: "País", telemovel: "Telemóvel" }),
