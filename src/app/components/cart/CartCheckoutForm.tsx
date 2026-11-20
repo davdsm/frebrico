@@ -151,7 +151,7 @@ export function CartCheckoutForm({
           <h2 className="text-xl font-semibold text-black">{contactTitle}</h2>
           {!user && (
             <ContentLink to={accountRegisterUrl || loginLinkUrl} className="text-sm text-[#313b2e] hover:underline">
-              Não tem conta? Crie uma aqui
+              Não tem conta? Criar Agora
             </ContentLink>
           )}
         </div>
