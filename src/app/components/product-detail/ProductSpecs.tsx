@@ -2,14 +2,10 @@ import React from 'react';
 import { useCart } from '../../cart/CartContext';
 import { resolveImageUrl, type Product } from '../../api/shop';
 import { FadeInUpInView } from '../atoms/FadeInUpInView';
+import { cn } from '../ui/utils';
+import { isPriceColumn, normalizeOnRequest } from '../../utils/specsTable';
 
 type SpecsData = { columns: string[]; rows: string[][]; on_request: boolean[] };
-
-function normalizeOnRequest(rowCount: number, onRequest?: unknown): boolean[] {
-  const arr = Array.isArray(onRequest) ? onRequest.map(Boolean) : [];
-  while (arr.length < rowCount) arr.push(false);
-  return arr.slice(0, rowCount);
-}
 
 function parseSpecifications(raw: string): SpecsData | null {
   try {
@@ -33,17 +29,12 @@ function parseSpecifications(raw: string): SpecsData | null {
         String(row.id ?? ''),
         String(row.price ?? ''),
       ]);
-      return { columns, rows, on_request: rows.map(() => false) };
+      return { columns, rows, on_request: normalizeOnRequest(rows.length) };
     }
     return null;
   } catch {
     return null;
   }
-}
-
-function isPriceColumn(label: string): boolean {
-  const t = label.toLowerCase();
-  return t.includes('preço') || t.includes('preco') || t.includes('price');
 }
 
 function variantKeyFromRow(columns: string[], row: string[], rowIndex: number): string {
@@ -106,19 +97,19 @@ export function ProductSpecs({ product }: ProductSpecsProps) {
       <section id="product-specs-table" className="w-full bg-white pt-12 md:pt-16 lg:pt-20 pb-4 md:pb-6 lg:pb-8 scroll-mt-28">
         <div className="max-w-[1440px] mx-auto px-4 md:px-8 lg:px-20">
           <p className="text-sm text-[#5a5a59] mb-4">Selecione a variante na tabela e clique em Adicionar.</p>
-          <div className="w-full max-h-[min(70vh,720px)] overflow-auto">
+          <div className="w-full min-w-0 max-h-[min(70vh,720px)] overflow-auto">
             <table className="w-full border-collapse">
               <thead>
                 <tr className="border-b-[3px] border-[#36474f]">
                   {columns.map((col, i) => (
                     <th
                       key={i}
-                      className="sticky top-0 z-10 bg-white pb-4 pt-1 pr-4 text-xs text-[#36474f] font-normal text-center whitespace-nowrap shadow-[0_1px_0_0_#36474f]"
+                      className="sticky top-0 z-10 bg-white pb-4 pt-1 pr-2 sm:pr-4 text-xs text-[#36474f] font-normal text-center whitespace-normal sm:whitespace-nowrap shadow-[0_1px_0_0_#36474f]"
                     >
                       {col}
                     </th>
                   ))}
-                  <th className="sticky top-0 z-10 bg-white pb-4 pt-1 text-xs text-[#36474f] font-normal text-center whitespace-nowrap shadow-[0_1px_0_0_#36474f]">
+                  <th className="sticky top-0 z-10 bg-white pb-4 pt-1 text-xs text-[#36474f] font-normal text-center whitespace-normal sm:whitespace-nowrap shadow-[0_1px_0_0_#36474f]">
                     Carrinho
                   </th>
                 </tr>
@@ -147,17 +138,17 @@ export function ProductSpecs({ product }: ProductSpecsProps) {
                           }
                         }
                         return (
-                          <td key={colIndex} className="py-6 pr-4 text-base text-[#3f3f3f] text-center align-middle">
+                          <td key={colIndex} className="py-4 pr-2 sm:py-6 sm:pr-4 text-sm sm:text-base text-[#3f3f3f] text-center align-middle">
                             <CellText
                               text={display}
-                              className={`text-center${isOnRequest && isPrice ? " font-medium text-[#313b2e]" : ""}`}
+                              className={cn('text-center', isOnRequest && isPrice && 'font-medium text-[#313b2e]')}
                             />
                           </td>
                         );
                       })}
                       <td className="py-6 text-center align-middle">
                         {isOnRequest ? (
-                          <span className="inline-block px-4 py-2 rounded-full text-xs font-semibold text-[#5a5a59] border border-[#dcdcdc] bg-[#f7f7f7]">
+                          <span className="inline-block max-w-full px-3 py-2 sm:px-4 rounded-full text-xs font-semibold text-[#5a5a59] border border-[#dcdcdc] bg-[#f7f7f7]">
                             Sob Consulta
                           </span>
                         ) : (
@@ -183,11 +174,12 @@ export function ProductSpecs({ product }: ProductSpecsProps) {
                               setLastAddedRow(rowIndex);
                               window.setTimeout(() => setLastAddedRow(null), 900);
                             }}
-                            className={`px-4 py-2 rounded-full text-xs font-semibold transition-colors shrink-0 ${
+                            className={cn(
+                              'px-3 py-2 sm:px-4 rounded-full text-xs font-semibold transition-colors shrink-0 max-w-full',
                               isAddedState
                                 ? 'bg-emerald-600 text-white hover:bg-emerald-700'
                                 : 'bg-white text-[#313b2e] border border-black/10 hover:bg-[#313b2e] hover:text-white'
-                            }`}
+                            )}
                           >
                             {isAddedState ? 'Adicionado' : 'Adicionar'}
                           </button>

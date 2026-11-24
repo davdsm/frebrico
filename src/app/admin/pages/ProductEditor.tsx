@@ -18,6 +18,7 @@ import { DownloadsEditor, type DownloadItem } from "../components/DownloadsEdito
 import { SpecsTableEditor, type SpecsTableData } from "../components/SpecsTableEditor";
 import { RichTextEditor } from "../components/RichTextEditor";
 import { normalizeRichHtmlForSave } from "../../utils/richText";
+import { normalizeOnRequest } from "../../utils/specsTable";
 import { FaqsEditor, type FaqItem } from "../components/FaqsEditor";
 import { useToast } from "../components/Toast";
 
@@ -79,9 +80,7 @@ function parseSpecificationsPayload(raw: unknown): SpecsTableData {
     const p = parsed as { columns: unknown; rows: unknown; on_request?: unknown };
     const cols = Array.isArray(p.columns) ? (p.columns as string[]).map(String) : [];
     const rws = Array.isArray(p.rows) ? (p.rows as unknown[]).map((r) => (Array.isArray(r) ? (r as unknown[]).map(String) : [])) : [];
-    const onReq = Array.isArray(p.on_request) ? (p.on_request as unknown[]).map(Boolean) : [];
-    while (onReq.length < rws.length) onReq.push(false);
-    return { columns: cols, rows: rws, on_request: onReq.slice(0, rws.length) };
+    return { columns: cols, rows: rws, on_request: normalizeOnRequest(rws.length, p.on_request) };
   }
   if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0] === "object" && parsed[0] !== null) {
     const legacy = parsed as Record<string, unknown>[];
@@ -94,7 +93,7 @@ function parseSpecificationsPayload(raw: unknown): SpecsTableData {
       String(row.id ?? ""),
       String(row.price ?? ""),
     ]);
-    return { columns, rows, on_request: rows.map(() => false) };
+    return { columns, rows, on_request: normalizeOnRequest(rows.length) };
   }
   return { columns: [], rows: [], on_request: [] };
 }
@@ -214,9 +213,7 @@ export default function ProductEditor() {
             ? {
                 columns: specifications.columns,
                 rows: specifications.rows,
-                on_request: Array.isArray(specifications.on_request)
-                  ? specifications.on_request
-                  : (specifications.rows || []).map(() => false),
+                on_request: normalizeOnRequest(specifications.rows?.length ?? 0, specifications.on_request),
               }
             : { columns: [], rows: [], on_request: [] }
         ),

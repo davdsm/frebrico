@@ -1,4 +1,6 @@
 import React from "react";
+import { cn } from "../../components/ui/utils";
+import { isPriceColumn, normalizeOnRequest } from "../../utils/specsTable";
 
 const inputClass =
   "w-full min-w-0 px-2 py-1.5 border border-[#e5e5e3] rounded-lg text-[13px] bg-[#fafaf9] focus:bg-white focus:border-[#313b2e] focus:ring-2 focus:ring-[#313b2e]/8 outline-none break-words";
@@ -56,17 +58,6 @@ interface SpecsTableEditorProps {
 export type SpecRow = Record<string, unknown>;
 
 const defaultData: SpecsTableData = { columns: [], rows: [], on_request: [] };
-
-function isPriceColumn(label: string): boolean {
-  const t = label.toLowerCase();
-  return t.includes("preço") || t.includes("preco") || t.includes("price");
-}
-
-export function normalizeOnRequest(rowCount: number, onRequest?: boolean[]): boolean[] {
-  const arr = Array.isArray(onRequest) ? onRequest.map(Boolean) : [];
-  while (arr.length < rowCount) arr.push(false);
-  return arr.slice(0, rowCount);
-}
 
 function generateId() {
   return Math.random().toString(36).slice(2, 10);
@@ -256,8 +247,11 @@ export function SpecsTableEditor({ value, onChange, label = "Especificações" }
         botão Adicionar ao carrinho. Marque <strong>Sob consulta</strong> numa linha para desativar o preço
         (o valor fica guardado, mas no site aparece &quot;Sob Consulta&quot;).
       </p>
-      <div className="w-full rounded-xl border border-[#e5e5e3] bg-[#fafaf9] overflow-hidden">
-        <table className="w-full table-fixed border-collapse text-[13px]">
+      <div className="w-full rounded-xl border border-[#e5e5e3] bg-[#fafaf9] overflow-x-auto">
+        <table
+          className="w-full table-fixed border-collapse text-[13px]"
+          style={{ minWidth: `${Math.max(520, columns.length * 148 + 196)}px` }}
+        >
           <colgroup>
             {columns.map((_, colIndex) => (
               <col key={colIds.current[colIndex]} />
@@ -308,15 +302,16 @@ export function SpecsTableEditor({ value, onChange, label = "Especificações" }
                   </div>
                 </th>
               ))}
-              <th className="px-1.5 py-2 align-top text-[11px] font-semibold text-[#5a5a59] whitespace-nowrap">
+              <th scope="col" className="sticky right-[108px] z-20 bg-[#f5f5f4] px-1.5 py-2 align-top text-xs font-semibold text-[#5a5a59] leading-tight text-center">
                 Sob consulta
               </th>
-              <th className="px-1.5 py-2 align-top" />
+              <th className="sticky right-0 z-20 bg-[#f5f5f4] px-1.5 py-2 align-top" />
             </tr>
           </thead>
           <tbody>
             {safeRows.map((row, rowIndex) => {
               const rowOnRequest = onRequest[rowIndex] === true;
+              const rowHint = row.map((cell) => cell.trim()).find(Boolean);
               return (
               <tr key={rowIds.current[rowIndex]} className="border-b border-[#e5e5e3] last:border-0">
                 {columns.map((colName, colIndex) => {
@@ -328,22 +323,25 @@ export function SpecsTableEditor({ value, onChange, label = "Especificações" }
                       value={row[colIndex] ?? ""}
                       onChange={(v) => updateCell(rowIndex, colIndex, v)}
                       placeholder="—"
-                      className={`${inputClass}${disabled ? " opacity-50 cursor-not-allowed bg-[#eee]" : ""}`}
+                      className={cn(inputClass, disabled && "opacity-50 cursor-not-allowed bg-[#eee]")}
                       disabled={disabled}
                     />
                   </td>
                   );
                 })}
-                <td className="px-1.5 py-1.5 align-middle text-center">
-                  <input
-                    type="checkbox"
-                    checked={rowOnRequest}
-                    onChange={(e) => toggleOnRequest(rowIndex, e.target.checked)}
-                    className="h-4 w-4 accent-[#313b2e] cursor-pointer"
-                    title="Marcar preço desta linha como Sob consulta"
-                  />
+                <td className="sticky right-[108px] z-10 bg-[#fafaf9] px-1.5 py-1.5 align-middle text-center">
+                  <label className="inline-flex items-center justify-center min-h-6 min-w-6 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={rowOnRequest}
+                      onChange={(e) => toggleOnRequest(rowIndex, e.target.checked)}
+                      aria-label={rowHint ? `Sob consulta, ${rowHint}` : `Sob consulta, linha ${rowIndex + 1}`}
+                      className="h-4 w-4 accent-[#313b2e] cursor-pointer"
+                      title="Marcar preço desta linha como Sob consulta"
+                    />
+                  </label>
                 </td>
-                <td className="px-1.5 py-1.5 align-top">
+                <td className="sticky right-0 z-10 bg-[#fafaf9] px-1.5 py-1.5 align-top">
                   <div className="flex flex-col items-start gap-0.5">
                     <div className="flex items-center gap-0.5">
                       <button
