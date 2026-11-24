@@ -3,15 +3,23 @@ import { useCart } from '../../cart/CartContext';
 import { resolveImageUrl, type Product } from '../../api/shop';
 import { FadeInUpInView } from '../atoms/FadeInUpInView';
 
-type SpecsData = { columns: string[]; rows: string[][] };
+type SpecsData = { columns: string[]; rows: string[][]; on_request: boolean[] };
+
+function normalizeOnRequest(rowCount: number, onRequest?: unknown): boolean[] {
+  const arr = Array.isArray(onRequest) ? onRequest.map(Boolean) : [];
+  while (arr.length < rowCount) arr.push(false);
+  return arr.slice(0, rowCount);
+}
 
 function parseSpecifications(raw: string): SpecsData | null {
   try {
     const a = JSON.parse(raw ?? '{}');
     if (a && typeof a === 'object' && Array.isArray(a.columns) && Array.isArray(a.rows)) {
+      const rows = (a.rows as unknown[]).map((r) => (Array.isArray(r) ? (r as unknown[]).map(String) : []));
       return {
         columns: (a.columns as unknown[]).map(String),
-        rows: (a.rows as unknown[]).map((r) => (Array.isArray(r) ? (r as unknown[]).map(String) : [])),
+        rows,
+        on_request: normalizeOnRequest(rows.length, (a as { on_request?: unknown }).on_request),
       };
     }
     if (Array.isArray(a) && a.length > 0 && typeof a[0] === 'object' && a[0] !== null) {
@@ -25,7 +33,7 @@ function parseSpecifications(raw: string): SpecsData | null {
         String(row.id ?? ''),
         String(row.price ?? ''),
       ]);
-      return { columns, rows };
+      return { columns, rows, on_request: rows.map(() => false) };
     }
     return null;
   } catch {
@@ -89,7 +97,7 @@ export function ProductSpecs({ product }: ProductSpecsProps) {
 
   if (!data || data.columns.length === 0 || data.rows.length === 0) return null;
 
-  const { columns, rows } = data;
+  const { columns, rows, on_request: onRequest } = data;
   const priceColIndex = columns.findIndex(isPriceColumn);
   const hasPriceColumn = priceColIndex >= 0;
 
@@ -122,53 +130,68 @@ export function ProductSpecs({ product }: ProductSpecsProps) {
                   const variantLabel = row.filter((_, i) => i !== priceColIndex).join(' / ') || '—';
                   const alreadyInCart = items.some((item) => item.id === rowId && item.variant === variantLabel);
                   const isAddedState = alreadyInCart || lastAddedRow === rowIndex;
+                  const isOnRequest = onRequest[rowIndex] === true;
                   return (
                     <tr key={rowIndex}>
                       {columns.map((_, colIndex) => {
                         const cell = row[colIndex] ?? "";
-                        const priceText =
-                          colIndex === priceColIndex && hasPriceColumn
-                            ? cell.trim()
-                              ? `€${parsePriceValue(cell, Number(product.price) || 0).toFixed(2)}`
-                              : ""
-                            : null;
+                        const isPrice = colIndex === priceColIndex && hasPriceColumn;
+                        let display = cell;
+                        if (isPrice) {
+                          if (isOnRequest) {
+                            display = "Sob Consulta";
+                          } else if (cell.trim()) {
+                            display = `€${parsePriceValue(cell, Number(product.price) || 0).toFixed(2)}`;
+                          } else {
+                            display = "";
+                          }
+                        }
                         return (
                           <td key={colIndex} className="py-6 pr-4 text-base text-[#3f3f3f] text-center align-middle">
-                            <CellText text={priceText != null ? priceText : cell} className="text-center" />
+                            <CellText
+                              text={display}
+                              className={`text-center${isOnRequest && isPrice ? " font-medium text-[#313b2e]" : ""}`}
+                            />
                           </td>
                         );
                       })}
                       <td className="py-6 text-center align-middle">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const priceCell = hasPriceColumn ? (row[priceColIndex] ?? "") : "";
-                            const catalogPrice = parsePriceValue(priceCell, Number(product.price) || 0);
-                            const vp = product.variant_prices?.find((v) => v.variant_key === variantKey);
-                            const price = vp?.price ?? catalogPrice;
-                            addItem({
-                              id: rowId,
-                              name: product.name,
-                              variant: variantLabel,
-                              price,
-                              image: mainImage,
-                              productId: product.id,
-                              slug: product.slug ?? null,
-                              variantKey,
-                              catalogPrice: vp?.catalog_price ?? catalogPrice,
-                              discountPercent: vp?.discount_percent ?? null,
-                            });
-                            setLastAddedRow(rowIndex);
-                            window.setTimeout(() => setLastAddedRow(null), 900);
-                          }}
-                          className={`px-4 py-2 rounded-full text-xs font-semibold transition-colors shrink-0 ${
-                            isAddedState
-                              ? 'bg-emerald-600 text-white hover:bg-emerald-700'
-                              : 'bg-white text-[#313b2e] border border-black/10 hover:bg-[#313b2e] hover:text-white'
-                          }`}
-                        >
-                          {isAddedState ? 'Adicionado' : 'Adicionar'}
-                        </button>
+                        {isOnRequest ? (
+                          <span className="inline-block px-4 py-2 rounded-full text-xs font-semibold text-[#5a5a59] border border-[#dcdcdc] bg-[#f7f7f7]">
+                            Sob Consulta
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const priceCell = hasPriceColumn ? (row[priceColIndex] ?? "") : "";
+                              const catalogPrice = parsePriceValue(priceCell, Number(product.price) || 0);
+                              const vp = product.variant_prices?.find((v) => v.variant_key === variantKey);
+                              const price = vp?.price ?? catalogPrice;
+                              addItem({
+                                id: rowId,
+                                name: product.name,
+                                variant: variantLabel,
+                                price,
+                                image: mainImage,
+                                productId: product.id,
+                                slug: product.slug ?? null,
+                                variantKey,
+                                catalogPrice: vp?.catalog_price ?? catalogPrice,
+                                discountPercent: vp?.discount_percent ?? null,
+                              });
+                              setLastAddedRow(rowIndex);
+                              window.setTimeout(() => setLastAddedRow(null), 900);
+                            }}
+                            className={`px-4 py-2 rounded-full text-xs font-semibold transition-colors shrink-0 ${
+                              isAddedState
+                                ? 'bg-emerald-600 text-white hover:bg-emerald-700'
+                                : 'bg-white text-[#313b2e] border border-black/10 hover:bg-[#313b2e] hover:text-white'
+                            }`}
+                          >
+                            {isAddedState ? 'Adicionado' : 'Adicionar'}
+                          </button>
+                        )}
                       </td>
                     </tr>
                   );

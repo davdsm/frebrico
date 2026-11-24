@@ -78,13 +78,28 @@ export function variantKeyFromRow(columns: string[], row: string[], rowIndex: nu
   return `row:${rowIndex}`;
 }
 
-export function parseSpecsTable(raw: string | null | undefined): { columns: string[]; rows: string[][] } | null {
+export type SpecsTable = {
+  columns: string[];
+  rows: string[][];
+  /** Per-row "Sob consulta" flags — must be preserved across pricing rewrites */
+  on_request: boolean[];
+};
+
+function normalizeOnRequest(rowCount: number, onRequest?: unknown): boolean[] {
+  const arr = Array.isArray(onRequest) ? onRequest.map(Boolean) : [];
+  while (arr.length < rowCount) arr.push(false);
+  return arr.slice(0, rowCount);
+}
+
+export function parseSpecsTable(raw: string | null | undefined): SpecsTable | null {
   try {
     const a = JSON.parse(raw ?? "{}");
     if (a && typeof a === "object" && Array.isArray(a.columns) && Array.isArray(a.rows)) {
+      const rows = (a.rows as unknown[]).map((r) => (Array.isArray(r) ? (r as unknown[]).map(String) : []));
       return {
         columns: (a.columns as unknown[]).map(String),
-        rows: (a.rows as unknown[]).map((r) => (Array.isArray(r) ? (r as unknown[]).map(String) : [])),
+        rows,
+        on_request: normalizeOnRequest(rows.length, (a as { on_request?: unknown }).on_request),
       };
     }
     return null;
@@ -540,9 +555,14 @@ export function applyPricingToProduct(
   }
 
   const priceCol = specs.columns.findIndex(isPriceColumn);
+  const onRequest = normalizeOnRequest(specs.rows.length, specs.on_request);
   const variantPrices: PricedProductPayload["variant_prices"] = [];
   const nextRows = specs.rows.map((row, rowIndex) => {
     const key = variantKeyFromRow(specs.columns, row, rowIndex);
+    // Keep stored price for "Sob consulta" rows — do not rewrite or offer cart pricing
+    if (onRequest[rowIndex]) {
+      return row;
+    }
     const defaultCell =
       priceCol >= 0 ? parsePriceCell(row[priceCol] ?? "", product.price) : product.price;
     const resolved = resolvePrice(product.id, defaultCell, key, ctx);
@@ -563,7 +583,7 @@ export function applyPricingToProduct(
   return {
     price: baseResolved.price,
     price_source: baseResolved.source,
-    specifications: JSON.stringify({ columns: specs.columns, rows: nextRows }),
+    specifications: JSON.stringify({ columns: specs.columns, rows: nextRows, on_request: onRequest }),
     show_discount_percent: showDiscount,
     catalog_price: showDiscount ? baseResolved.catalogPrice : undefined,
     discount_percent: showDiscount ? baseResolved.discountPercent : undefined,

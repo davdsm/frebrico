@@ -64,22 +64,24 @@ function parseVariantsPayload(raw: unknown): ProductAttributeGroup[] {
 }
 
 function parseSpecificationsPayload(raw: unknown): SpecsTableData {
-  if (raw == null) return { columns: [], rows: [] };
+  if (raw == null) return { columns: [], rows: [], on_request: [] };
   let parsed: unknown;
   if (typeof raw === "string") {
     try {
       parsed = JSON.parse(raw.trim() || "{}");
     } catch {
-      return { columns: [], rows: [] };
+      return { columns: [], rows: [], on_request: [] };
     }
   } else {
     parsed = raw;
   }
   if (parsed && typeof parsed === "object" && "columns" in parsed && "rows" in parsed) {
-    const p = parsed as { columns: unknown; rows: unknown };
+    const p = parsed as { columns: unknown; rows: unknown; on_request?: unknown };
     const cols = Array.isArray(p.columns) ? (p.columns as string[]).map(String) : [];
     const rws = Array.isArray(p.rows) ? (p.rows as unknown[]).map((r) => (Array.isArray(r) ? (r as unknown[]).map(String) : [])) : [];
-    return { columns: cols, rows: rws };
+    const onReq = Array.isArray(p.on_request) ? (p.on_request as unknown[]).map(Boolean) : [];
+    while (onReq.length < rws.length) onReq.push(false);
+    return { columns: cols, rows: rws, on_request: onReq.slice(0, rws.length) };
   }
   if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0] === "object" && parsed[0] !== null) {
     const legacy = parsed as Record<string, unknown>[];
@@ -92,9 +94,9 @@ function parseSpecificationsPayload(raw: unknown): SpecsTableData {
       String(row.id ?? ""),
       String(row.price ?? ""),
     ]);
-    return { columns, rows };
+    return { columns, rows, on_request: rows.map(() => false) };
   }
-  return { columns: [], rows: [] };
+  return { columns: [], rows: [], on_request: [] };
 }
 
 export default function ProductEditor() {
@@ -207,7 +209,17 @@ export default function ProductEditor() {
         availability: availability.trim(),
         variants: JSON.stringify(attributeGroups),
         downloads: JSON.stringify(downloads),
-        specifications: JSON.stringify(specifications?.columns ? specifications : { columns: [], rows: [] }),
+        specifications: JSON.stringify(
+          specifications?.columns
+            ? {
+                columns: specifications.columns,
+                rows: specifications.rows,
+                on_request: Array.isArray(specifications.on_request)
+                  ? specifications.on_request
+                  : (specifications.rows || []).map(() => false),
+              }
+            : { columns: [], rows: [], on_request: [] }
+        ),
         related_product_ids: JSON.stringify([]),
         faqs: JSON.stringify(faqs),
       };

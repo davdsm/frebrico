@@ -8,11 +8,13 @@ function AutoResizeTextarea({
   onChange,
   placeholder,
   className,
+  disabled,
 }: {
   value: string;
   onChange: (v: string) => void;
   placeholder?: string;
   className?: string;
+  disabled?: boolean;
 }) {
   const ref = React.useRef<HTMLTextAreaElement>(null);
 
@@ -30,6 +32,7 @@ function AutoResizeTextarea({
       rows={1}
       placeholder={placeholder}
       className={className}
+      disabled={disabled}
       style={{ resize: "none", overflow: "hidden" }}
       onChange={(e) => onChange(e.target.value)}
     />
@@ -39,6 +42,8 @@ function AutoResizeTextarea({
 export type SpecsTableData = {
   columns: string[];
   rows: string[][];
+  /** Per-row "Sob consulta" — price kept but disabled/ignored on storefront */
+  on_request?: boolean[];
 };
 
 interface SpecsTableEditorProps {
@@ -50,7 +55,18 @@ interface SpecsTableEditorProps {
 /** @deprecated Use SpecsTableData - legacy row type for migration */
 export type SpecRow = Record<string, unknown>;
 
-const defaultData: SpecsTableData = { columns: [], rows: [] };
+const defaultData: SpecsTableData = { columns: [], rows: [], on_request: [] };
+
+function isPriceColumn(label: string): boolean {
+  const t = label.toLowerCase();
+  return t.includes("preço") || t.includes("preco") || t.includes("price");
+}
+
+export function normalizeOnRequest(rowCount: number, onRequest?: boolean[]): boolean[] {
+  const arr = Array.isArray(onRequest) ? onRequest.map(Boolean) : [];
+  while (arr.length < rowCount) arr.push(false);
+  return arr.slice(0, rowCount);
+}
 
 function generateId() {
   return Math.random().toString(36).slice(2, 10);
@@ -60,6 +76,7 @@ export function SpecsTableEditor({ value, onChange, label = "Especificações" }
   const data = value?.columns != null ? value : defaultData;
   const columns = Array.isArray(data.columns) ? data.columns : [];
   const safeRows = Array.isArray(data.rows) ? data.rows : [];
+  const onRequest = normalizeOnRequest(safeRows.length, data.on_request);
 
   // Stable IDs so React can track column DOM elements across swaps
   const colIds = React.useRef<string[]>([]);
@@ -70,22 +87,34 @@ export function SpecsTableEditor({ value, onChange, label = "Especificações" }
   while (rowIds.current.length < safeRows.length) rowIds.current.push(generateId());
   if (rowIds.current.length > safeRows.length) rowIds.current = rowIds.current.slice(0, safeRows.length);
 
+  const emit = (next: { columns: string[]; rows: string[][]; on_request?: boolean[] }) => {
+    onChange({
+      columns: next.columns,
+      rows: next.rows,
+      on_request: normalizeOnRequest(next.rows.length, next.on_request ?? onRequest),
+    });
+  };
+
   const setColumns = (next: string[]) => {
     const newRows = safeRows.map((row) => {
       const arr = [...(row || [])];
       while (arr.length < next.length) arr.push("");
       return arr.slice(0, next.length);
     });
-    onChange({ columns: next, rows: newRows });
+    emit({ columns: next, rows: newRows, on_request: onRequest });
   };
 
-  const setRows = (next: string[][]) => {
+  const setRows = (next: string[][], nextOnRequest?: boolean[]) => {
     const padded = next.map((row) => {
       const arr = [...(row || [])];
       while (arr.length < columns.length) arr.push("");
       return arr.slice(0, columns.length);
     });
-    onChange({ columns, rows: padded });
+    emit({
+      columns,
+      rows: padded,
+      on_request: normalizeOnRequest(padded.length, nextOnRequest ?? onRequest),
+    });
   };
 
   const removeColumn = (e: React.MouseEvent, colIndex: number) => {
@@ -94,7 +123,7 @@ export function SpecsTableEditor({ value, onChange, label = "Especificações" }
     colIds.current.splice(colIndex, 1);
     const nextColumns = columns.filter((_, i) => i !== colIndex);
     const nextRows = safeRows.map((row) => row.filter((_, i) => i !== colIndex));
-    onChange({ columns: nextColumns, rows: nextRows });
+    emit({ columns: nextColumns, rows: nextRows, on_request: onRequest });
   };
 
   const addColumn = (e: React.MouseEvent) => {
@@ -108,7 +137,7 @@ export function SpecsTableEditor({ value, onChange, label = "Especificações" }
     e.preventDefault();
     e.stopPropagation();
     rowIds.current.push(generateId());
-    setRows([...safeRows, columns.map(() => "")]);
+    setRows([...safeRows, columns.map(() => "")], [...onRequest, false]);
   };
 
   const renameColumn = (colIndex: number, name: string) => {
@@ -140,14 +169,17 @@ export function SpecsTableEditor({ value, onChange, label = "Especificações" }
       arr[targetIndex] = tmpCell;
       return arr;
     });
-    onChange({ columns: nextColumns, rows: nextRows });
+    emit({ columns: nextColumns, rows: nextRows, on_request: onRequest });
   };
 
   const removeRow = (e: React.MouseEvent, rowIndex: number) => {
     e.preventDefault();
     e.stopPropagation();
     rowIds.current.splice(rowIndex, 1);
-    setRows(safeRows.filter((_, i) => i !== rowIndex));
+    setRows(
+      safeRows.filter((_, i) => i !== rowIndex),
+      onRequest.filter((_, i) => i !== rowIndex)
+    );
   };
 
   const duplicateRow = (e: React.MouseEvent, rowIndex: number) => {
@@ -158,8 +190,10 @@ export function SpecsTableEditor({ value, onChange, label = "Especificações" }
     while (copy.length < columns.length) copy.push("");
     const nextRows = [...safeRows];
     nextRows.splice(rowIndex + 1, 0, copy.slice(0, columns.length));
+    const nextOnRequest = [...onRequest];
+    nextOnRequest.splice(rowIndex + 1, 0, onRequest[rowIndex] ?? false);
     rowIds.current.splice(rowIndex + 1, 0, generateId());
-    setRows(nextRows);
+    setRows(nextRows, nextOnRequest);
   };
 
   const moveRow = (e: React.MouseEvent, rowIndex: number, direction: "up" | "down") => {
@@ -178,7 +212,12 @@ export function SpecsTableEditor({ value, onChange, label = "Especificações" }
     const tmpRow = nextRows[rowIndex];
     nextRows[rowIndex] = nextRows[targetIndex];
     nextRows[targetIndex] = tmpRow;
-    setRows(nextRows);
+
+    const nextOnRequest = [...onRequest];
+    const tmpFlag = nextOnRequest[rowIndex];
+    nextOnRequest[rowIndex] = nextOnRequest[targetIndex];
+    nextOnRequest[targetIndex] = tmpFlag;
+    setRows(nextRows, nextOnRequest);
   };
 
   const updateCell = (rowIndex: number, colIndex: number, cellValue: string) => {
@@ -187,8 +226,15 @@ export function SpecsTableEditor({ value, onChange, label = "Especificações" }
         i === rowIndex
           ? row.map((cell, j) => (j === colIndex ? cellValue : cell))
           : row
-      )
+      ),
+      onRequest
     );
+  };
+
+  const toggleOnRequest = (rowIndex: number, checked: boolean) => {
+    const next = [...onRequest];
+    next[rowIndex] = checked;
+    emit({ columns, rows: safeRows, on_request: next });
   };
 
   return (
@@ -207,7 +253,8 @@ export function SpecsTableEditor({ value, onChange, label = "Especificações" }
       <p className="text-[12px] text-[#5a5a59] mb-3">
         Defina as colunas (cabeçalhos) e preencha as linhas. Use <strong>Duplicar</strong> para copiar uma linha
         quase igual e alterar só o que muda (ex.: cor). Pode incluir uma coluna &quot;Preço (€)&quot; para mostrar o
-        botão Adicionar ao carrinho.
+        botão Adicionar ao carrinho. Marque <strong>Sob consulta</strong> numa linha para desativar o preço
+        (o valor fica guardado, mas no site aparece &quot;Sob Consulta&quot;).
       </p>
       <div className="w-full rounded-xl border border-[#e5e5e3] bg-[#fafaf9] overflow-hidden">
         <table className="w-full table-fixed border-collapse text-[13px]">
@@ -215,6 +262,7 @@ export function SpecsTableEditor({ value, onChange, label = "Especificações" }
             {columns.map((_, colIndex) => (
               <col key={colIds.current[colIndex]} />
             ))}
+            <col className="w-[88px]" />
             <col className="w-[108px]" />
           </colgroup>
           <thead>
@@ -260,22 +308,41 @@ export function SpecsTableEditor({ value, onChange, label = "Especificações" }
                   </div>
                 </th>
               ))}
+              <th className="px-1.5 py-2 align-top text-[11px] font-semibold text-[#5a5a59] whitespace-nowrap">
+                Sob consulta
+              </th>
               <th className="px-1.5 py-2 align-top" />
             </tr>
           </thead>
           <tbody>
-            {safeRows.map((row, rowIndex) => (
+            {safeRows.map((row, rowIndex) => {
+              const rowOnRequest = onRequest[rowIndex] === true;
+              return (
               <tr key={rowIds.current[rowIndex]} className="border-b border-[#e5e5e3] last:border-0">
-                {columns.map((_, colIndex) => (
+                {columns.map((colName, colIndex) => {
+                  const priceCol = isPriceColumn(colName);
+                  const disabled = rowOnRequest && priceCol;
+                  return (
                   <td key={colIds.current[colIndex]} className="px-1.5 py-1.5 align-top min-w-0">
                     <AutoResizeTextarea
                       value={row[colIndex] ?? ""}
                       onChange={(v) => updateCell(rowIndex, colIndex, v)}
                       placeholder="—"
-                      className={inputClass}
+                      className={`${inputClass}${disabled ? " opacity-50 cursor-not-allowed bg-[#eee]" : ""}`}
+                      disabled={disabled}
                     />
                   </td>
-                ))}
+                  );
+                })}
+                <td className="px-1.5 py-1.5 align-middle text-center">
+                  <input
+                    type="checkbox"
+                    checked={rowOnRequest}
+                    onChange={(e) => toggleOnRequest(rowIndex, e.target.checked)}
+                    className="h-4 w-4 accent-[#313b2e] cursor-pointer"
+                    title="Marcar preço desta linha como Sob consulta"
+                  />
+                </td>
                 <td className="px-1.5 py-1.5 align-top">
                   <div className="flex flex-col items-start gap-0.5">
                     <div className="flex items-center gap-0.5">
@@ -316,7 +383,8 @@ export function SpecsTableEditor({ value, onChange, label = "Especificações" }
                   </div>
                 </td>
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
       </div>
