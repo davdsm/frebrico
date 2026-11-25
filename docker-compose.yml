@@ -4,8 +4,9 @@ services:
       context: .
       dockerfile: Dockerfile.frontend
     container_name: frebrico-frontend
-    ports:
-      - "${FRONTEND_PORT:-4173}:${FRONTEND_PORT:-4173}"
+    # Host publishes live in docker-compose.prod.yml (compose merges ports by append).
+    expose:
+      - "${FRONTEND_PORT:-4173}"
     environment:
       FRONTEND_PORT: ${FRONTEND_PORT:-4173}
       VITE_PROXY_TARGET: http://backend:3001
@@ -20,9 +21,9 @@ services:
       context: .
       dockerfile: Dockerfile.backend
     container_name: frebrico-backend
-    ports:
-      # Use 3002 on host to avoid conflict with local dev server on 3001
-      - "3002:3001"
+    # Host publishes live in docker-compose.prod.yml (compose merges ports by append).
+    expose:
+      - "3001"
     volumes:
       - ./data:/app/data
       - ./data/uploads:/app/public/uploads
