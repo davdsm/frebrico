@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useId } from "react";
 import { uploadImage, listUploads, getApiBase, type UploadRecord } from "../../content/api";
 
 /**
@@ -107,6 +107,8 @@ export function ImageUploadField({
     return [...initial.slice(0, PICKER_INITIAL_VISIBLE - 1), selected];
   }, [pickerImages, showAllPicker, normalizedValue]);
   const hiddenPickerCount = Math.max(0, pickerImages.length - PICKER_INITIAL_VISIBLE);
+  const hiddenNow = Math.max(0, pickerImages.length - visiblePickerImages.length);
+  const pickerListId = useId();
 
   const loadExisting = useCallback(async () => {
     setLoadingList(true);
@@ -189,13 +191,14 @@ export function ImageUploadField({
           <p className="text-[12px] text-[#5a5a59]">Ainda não há imagens nesta secção. Carregue uma abaixo.</p>
         ) : (
           <div>
-            <div className="flex flex-wrap gap-2">
+            <div id={pickerListId} className="flex flex-wrap gap-2">
               {visiblePickerImages.map((item) => {
                 const isSelected = normalizedValue !== "" && normalizedValue === normalizeUploadPathForMatch(item.path);
                 return (
                   <button
                     key={item.key}
                     type="button"
+                    aria-pressed={isSelected}
                     onClick={() => onChange(item.path)}
                     className={`rounded-lg border-2 overflow-hidden w-16 h-16 flex-shrink-0 transition-all focus:outline-none focus:ring-2 focus:ring-[#313b2e] focus:ring-offset-1 ${
                       isSelected ? "border-[#313b2e] ring-2 ring-[#313b2e]/20" : "border-[#e5e5e3] hover:border-[#313b2e]/50"
@@ -210,12 +213,14 @@ export function ImageUploadField({
             {hiddenPickerCount > 0 && (
               <button
                 type="button"
+                aria-expanded={showAllPicker}
+                aria-controls={pickerListId}
                 onClick={() => setShowAllPicker((open) => !open)}
-                className="mt-2 text-[12px] font-semibold text-[#313b2e] hover:underline underline-offset-2"
+                className="mt-2 inline-flex min-h-6 items-center rounded text-[12px] font-semibold text-[#313b2e] hover:underline underline-offset-2 focus:outline-none focus:ring-2 focus:ring-[#313b2e] focus:ring-offset-1"
               >
                 {showAllPicker
                   ? "Ver menos"
-                  : `Ver mais (${pickerImages.length - visiblePickerImages.length} restantes)`}
+                  : `Ver mais (${hiddenNow} ${hiddenNow === 1 ? "restante" : "restantes"})`}
               </button>
             )}
           </div>

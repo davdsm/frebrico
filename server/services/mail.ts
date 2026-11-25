@@ -350,8 +350,10 @@ function findVariantDescription(item: OrderEmailItem): string {
 function findArticleOrVariantCode(item: OrderEmailItem): string {
   if (item.articleCode?.trim()) return item.articleCode.trim();
   const fromAttrs = item.attributes?.find((a) => {
+    // "Descrição do artigo" is the variant title, not the code.
+    if (isVariantDescriptionLabel(a.label)) return false;
     const n = normalizeAttrKey(a.label);
-    return a.value?.trim() && (/codigo/.test(n) || /artigo/.test(n));
+    return Boolean(a.value?.trim()) && (/codigo/.test(n) || /artigo/.test(n));
   });
   return fromAttrs?.value?.trim() || "";
 }
@@ -374,7 +376,7 @@ function renderAdminAttributesCompact(attributes: OrderEmailItemAttribute[] | un
   const chips = attrs
     .map(
       (attr) =>
-        `<span style="display:inline-block;margin:0 6px 4px 0;padding:2px 7px;background:${BRAND.wash};border:1px solid ${BRAND.line};border-radius:4px;font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.35;color:${BRAND.ink};"><span style="color:${BRAND.muted};">${escapeHtml(attr.label)}:</span> <strong>${escapeHtml(attr.value)}</strong></span>`
+        `<span style="display:inline-block;max-width:100%;box-sizing:border-box;margin:0 6px 4px 0;padding:2px 7px;background:${BRAND.wash};border:1px solid ${BRAND.line};border-radius:4px;font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.35;color:${BRAND.ink};${WRAP}"><span style="color:${BRAND.muted};">${escapeHtml(attr.label)}:</span> <strong>${escapeHtml(attr.value)}</strong></span>`
     )
     .join("");
   return `<div style="margin-top:8px;line-height:1.4;">${chips}</div>`;
@@ -435,11 +437,11 @@ function renderAdminOrderItemsHtml(items: OrderEmailItem[]): string {
     .map((item) => {
       const lineTotal = item.price * item.quantity;
       return `
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 10px;border:1px solid ${BRAND.line};border-radius:10px;overflow:hidden;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;margin:0 0 10px;border:1px solid ${BRAND.line};border-radius:10px;overflow:hidden;table-layout:fixed;">
         <tr>
-          <td style="padding:12px 14px;">
-            <p style="margin:0 0 8px;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.35;font-weight:600;color:${BRAND.ink};">${renderAdminItemTitleHtml(item)}</p>
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+          <td style="padding:12px 14px;${WRAP}">
+            <p style="margin:0 0 8px;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.35;font-weight:600;color:${BRAND.ink};${WRAP}">${renderAdminItemTitleHtml(item)}</p>
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;">
               <tr>
                 <td style="font-family:Arial,Helvetica,sans-serif;font-size:12px;color:${BRAND.muted};">Qtd</td>
                 <td align="right" style="font-family:Arial,Helvetica,sans-serif;font-size:12px;font-weight:700;color:${BRAND.ink};">${item.quantity}</td>
