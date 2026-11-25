@@ -5,6 +5,7 @@ import {
   createUser,
   deleteOrder,
   getOrderById,
+  getProductById,
   getUserByEmail,
   listOrders,
   updateOrderStatus,
@@ -13,10 +14,21 @@ import {
   getCouponByCode,
 } from "../db.js";
 import { attachOptionalAuth, requireAdmin, requireAuth } from "../middleware/auth.js";
-import { sendOrderConfirmationToCustomer, sendOrderNotificationToAdmin } from "../services/mail.js";
+import {
+  sendOrderConfirmationToCustomer,
+  sendOrderNotificationToAdmin,
+  type OrderEmailItem,
+  type OrderEmailItemAttribute,
+} from "../services/mail.js";
 import { listOrdersByDateRange, getUserById } from "../db.js";
 import * as XLSX from "xlsx";
-import { contextFromUser, resolveCartLinePrice } from "../services/pricing.js";
+import {
+  contextFromUser,
+  isPriceColumn,
+  parseSpecsTable,
+  resolveCartLinePrice,
+  variantKeyFromRow,
+} from "../services/pricing.js";
 
 export const ordersRouter = Router();
 
@@ -25,6 +37,152 @@ const ORDER_STATUSES = ["pending", "shipped", "completed", "Canceled"] as const;
 function clean(value: unknown, maxLen: number): string {
   const s = String(value ?? "").trim();
   return s.length > maxLen ? s.slice(0, maxLen) : s;
+}
+
+function siteBaseUrl(): string {
+  return String(process.env.VITE_BASE_URL || process.env.PUBLIC_SITE_URL || "https://www.frebrico.pt").replace(
+    /\/$/,
+    ""
+  );
+}
+
+function absolutePublicUrl(path: string): string {
+  const raw = String(path || "").trim();
+  if (!raw) return "";
+  if (/^https?:\/\//i.test(raw)) return raw;
+  return `${siteBaseUrl()}${raw.startsWith("/") ? raw : `/${raw}`}`;
+}
+
+function stripHtmlToText(html: string, maxLen = 220): string {
+  const text = String(html || "")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<br\s*\/?>/gi, " ")
+    .replace(/<\/p>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (text.length <= maxLen) return text;
+  return `${text.slice(0, maxLen - 1).trim()}…`;
+}
+
+function findArticleCode(columns: string[], row: string[], variantKey?: string): string {
+  if (variantKey && !variantKey.startsWith("row:")) return variantKey;
+  const codeIdx = columns.findIndex((c) => {
+    const t = c.toLowerCase();
+    return (
+      (t.includes("código") ||
+        t.includes("codigo") ||
+        t.includes("cod ") ||
+        t === "cod" ||
+        t === "id" ||
+        t.includes("ref") ||
+        t.includes("artigo")) &&
+      !t.includes("descri")
+    );
+  });
+  if (codeIdx >= 0) return String(row[codeIdx] ?? "").trim();
+  return "";
+}
+
+function formatSpecPriceValue(raw: string): string {
+  const value = String(raw || "").trim();
+  if (!value) return "";
+  if (/consulta/i.test(value)) return value;
+  const normalized = value.replace(/[^\d,.-]/g, "").replace(/\./g, "").replace(",", ".");
+  const parsed = Number(normalized);
+  if (!Number.isFinite(parsed)) return value;
+  return `€${parsed.toFixed(2)}`;
+}
+
+function buildVariantAttributes(
+  columns: string[],
+  row: string[],
+  opts?: { includePrice?: boolean }
+): OrderEmailItemAttribute[] {
+  const includePrice = opts?.includePrice !== false;
+  const attrs: OrderEmailItemAttribute[] = [];
+  columns.forEach((label, idx) => {
+    if (!includePrice && isPriceColumn(label)) return;
+    const value = String(row[idx] ?? "").trim();
+    if (!value) return;
+    attrs.push({
+      label: String(label || `Coluna ${idx + 1}`).trim() || `Coluna ${idx + 1}`,
+      value: isPriceColumn(label) ? formatSpecPriceValue(value) : value,
+    });
+  });
+  return attrs;
+}
+
+function enrichOrderEmailItems(
+  items: Array<{
+    name: string;
+    variant?: string;
+    quantity: number;
+    price: number;
+    image?: string;
+    productId?: number;
+    variantKey?: string;
+  }>
+): OrderEmailItem[] {
+  return items.map((item) => {
+    const enriched: OrderEmailItem = {
+      name: item.name,
+      variant: item.variant,
+      quantity: item.quantity,
+      price: item.price,
+      image: absolutePublicUrl(item.image || ""),
+      articleCode: item.variantKey && !String(item.variantKey).startsWith("row:") ? String(item.variantKey) : undefined,
+    };
+
+    const productId = Number(item.productId);
+    if (!Number.isFinite(productId) || productId <= 0) {
+      if (item.variant) {
+        enriched.attributes = [{ label: "Variante", value: String(item.variant) }];
+      }
+      return enriched;
+    }
+
+    const product = getProductById(productId);
+    if (!product) {
+      if (item.variant) {
+        enriched.attributes = [{ label: "Variante", value: String(item.variant) }];
+      }
+      return enriched;
+    }
+
+    enriched.name = product.name || item.name;
+    enriched.description = stripHtmlToText(product.description || "");
+    const productImage = String(product.image || item.image || "").trim();
+    enriched.image = absolutePublicUrl(productImage);
+
+    const specs = parseSpecsTable(product.specifications);
+    if (specs && specs.columns.length > 0 && specs.rows.length > 0) {
+      const key = String(item.variantKey || "");
+      let rowIndex = specs.rows.findIndex((row, i) => variantKeyFromRow(specs.columns, row, i) === key);
+      if (rowIndex < 0 && key.startsWith("row:")) {
+        const parsed = Number(key.slice(4));
+        if (Number.isFinite(parsed) && parsed >= 0 && parsed < specs.rows.length) rowIndex = parsed;
+      }
+      if (rowIndex >= 0) {
+        const row = specs.rows[rowIndex];
+        enriched.articleCode = findArticleCode(specs.columns, row, key) || enriched.articleCode;
+        enriched.attributes = buildVariantAttributes(specs.columns, row, { includePrice: true });
+      } else if (item.variant) {
+        enriched.attributes = [{ label: "Variante", value: String(item.variant) }];
+      }
+    } else if (item.variant) {
+      enriched.attributes = [{ label: "Variante", value: String(item.variant) }];
+    }
+
+    return enriched;
+  });
 }
 
 ordersRouter.post("/", attachOptionalAuth, (req, res) => {
@@ -178,9 +336,11 @@ ordersRouter.post("/", attachOptionalAuth, (req, res) => {
     phone,
     nif,
     observations,
-    items: pricedItems,
+    items: enrichOrderEmailItems(pricedItems),
     subtotal: finalSubtotal,
     total: finalTotal,
+    couponCode: appliedCouponCode || undefined,
+    couponDiscount: couponDiscount || undefined,
   };
   Promise.all([
     sendOrderConfirmationToCustomer(orderEmailData),

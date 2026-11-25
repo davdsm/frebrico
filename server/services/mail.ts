@@ -178,7 +178,33 @@ export async function sendTestEmail(to?: string) {
 // Order confirmation emails
 // ─────────────────────────────────────────────────────────────────────────────
 
-interface OrderEmailData {
+const BRAND = {
+  green: "#313b2e",
+  greenSoft: "#3d4937",
+  ink: "#131313",
+  muted: "#5a5a59",
+  line: "#e5e5e3",
+  wash: "#f5f5f4",
+  white: "#ffffff",
+};
+
+export interface OrderEmailItemAttribute {
+  label: string;
+  value: string;
+}
+
+export interface OrderEmailItem {
+  name: string;
+  variant?: string;
+  quantity: number;
+  price: number;
+  image?: string;
+  description?: string;
+  articleCode?: string;
+  attributes?: OrderEmailItemAttribute[];
+}
+
+export interface OrderEmailData {
   orderNumber: string;
   customerName: string;
   email: string;
@@ -188,85 +214,232 @@ interface OrderEmailData {
   phone: string;
   nif: string;
   observations?: string;
-  items: Array<{ name: string; variant?: string; quantity: number; price: number }>;
+  items: OrderEmailItem[];
   subtotal: number;
   total: number;
+  couponCode?: string;
+  couponDiscount?: number;
+}
+
+function escapeHtml(value: unknown): string {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function formatEuro(value: number): string {
+  return `€${Number(value || 0).toFixed(2)}`;
+}
+
+function emailShell(opts: { title: string; preheader?: string; body: string }): string {
+  const preheader = opts.preheader
+    ? `<div style="display:none;font-size:1px;color:#ffffff;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">${escapeHtml(opts.preheader)}</div>`
+    : "";
+  return `<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>${escapeHtml(opts.title)}</title>
+</head>
+<body style="margin:0;padding:0;background:${BRAND.wash};color:${BRAND.ink};">
+  ${preheader}
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${BRAND.wash};padding:24px 12px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:640px;background:${BRAND.white};border-radius:16px;overflow:hidden;border:1px solid ${BRAND.line};">
+          <tr>
+            <td style="background:${BRAND.green};padding:28px 32px;">
+              <p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.72);">Frebrico</p>
+              <h1 style="margin:8px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:24px;line-height:1.25;font-weight:700;color:${BRAND.white};">${escapeHtml(opts.title)}</h1>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:28px 32px 8px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;color:${BRAND.ink};">
+              ${opts.body}
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:8px 32px 28px;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.5;color:${BRAND.muted};border-top:1px solid ${BRAND.line};">
+              Frebrico — Comércio de Bricolage, Lda.<br/>
+              info@frebrico.pt · +351 229 826 344
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+}
+
+function renderAttributesTable(attributes: OrderEmailItemAttribute[] | undefined): string {
+  if (!attributes || attributes.length === 0) return "";
+  const rows = attributes
+    .map(
+      (attr) => `
+      <tr>
+        <td style="padding:8px 10px;border-bottom:1px solid ${BRAND.line};font-family:Arial,Helvetica,sans-serif;font-size:12px;color:${BRAND.muted};width:42%;vertical-align:top;">${escapeHtml(attr.label)}</td>
+        <td style="padding:8px 10px;border-bottom:1px solid ${BRAND.line};font-family:Arial,Helvetica,sans-serif;font-size:13px;color:${BRAND.ink};font-weight:600;vertical-align:top;">${escapeHtml(attr.value)}</td>
+      </tr>`
+    )
+    .join("");
+  return `
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:12px;background:${BRAND.wash};border:1px solid ${BRAND.line};border-radius:10px;overflow:hidden;">
+      <tr>
+        <td style="padding:10px 12px 4px;font-family:Arial,Helvetica,sans-serif;font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:${BRAND.muted};font-weight:700;">
+          Variante escolhida
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:0 2px 2px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0">${rows}</table>
+        </td>
+      </tr>
+    </table>`;
+}
+
+function renderOrderItemsHtml(items: OrderEmailItem[]): string {
+  return items
+    .map((item) => {
+      const lineTotal = item.price * item.quantity;
+      const imageHtml = item.image
+        ? `<img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name)}" width="88" height="88" style="display:block;width:88px;height:88px;object-fit:cover;border-radius:12px;border:1px solid ${BRAND.line};background:${BRAND.wash};" />`
+        : `<div style="width:88px;height:88px;border-radius:12px;background:${BRAND.wash};border:1px solid ${BRAND.line};"></div>`;
+      const codeHtml = item.articleCode
+        ? `<p style="margin:4px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:${BRAND.muted};">Código: <strong style="color:${BRAND.ink};">${escapeHtml(item.articleCode)}</strong></p>`
+        : "";
+      const descHtml = item.description
+        ? `<p style="margin:8px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.45;color:${BRAND.muted};">${escapeHtml(item.description)}</p>`
+        : "";
+      return `
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 16px;border:1px solid ${BRAND.line};border-radius:14px;overflow:hidden;">
+        <tr>
+          <td style="padding:16px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td width="88" valign="top" style="padding-right:14px;">${imageHtml}</td>
+                <td valign="top">
+                  <p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.3;font-weight:700;color:${BRAND.ink};">${escapeHtml(item.name)}</p>
+                  ${codeHtml}
+                  ${descHtml}
+                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:12px;">
+                    <tr>
+                      <td style="font-family:Arial,Helvetica,sans-serif;font-size:13px;color:${BRAND.muted};">Quantidade</td>
+                      <td align="right" style="font-family:Arial,Helvetica,sans-serif;font-size:13px;font-weight:700;color:${BRAND.ink};">${item.quantity}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding-top:4px;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:${BRAND.muted};">Preço unitário</td>
+                      <td align="right" style="padding-top:4px;font-family:Arial,Helvetica,sans-serif;font-size:13px;font-weight:700;color:${BRAND.ink};">${formatEuro(item.price)}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding-top:4px;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:${BRAND.muted};">Subtotal linha</td>
+                      <td align="right" style="padding-top:4px;font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:700;color:${BRAND.green};">${formatEuro(lineTotal)}</td>
+                    </tr>
+                  </table>
+                  ${renderAttributesTable(item.attributes)}
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>`;
+    })
+    .join("");
+}
+
+function renderTotalsHtml(order: OrderEmailData): string {
+  const couponRow =
+    order.couponCode && Number(order.couponDiscount || 0) > 0
+      ? `<tr>
+          <td style="padding:6px 0;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:${BRAND.muted};">Cupão (${escapeHtml(order.couponCode)})</td>
+          <td align="right" style="padding:6px 0;font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:700;color:${BRAND.ink};">−${formatEuro(Number(order.couponDiscount))}</td>
+        </tr>`
+      : "";
+  return `
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0 24px;border-top:1px solid ${BRAND.line};padding-top:12px;">
+      <tr>
+        <td style="padding:6px 0;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:${BRAND.muted};">Subtotal</td>
+        <td align="right" style="padding:6px 0;font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:700;color:${BRAND.ink};">${formatEuro(order.subtotal)}</td>
+      </tr>
+      ${couponRow}
+      <tr>
+        <td style="padding:10px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:16px;font-weight:700;color:${BRAND.ink};">Total</td>
+        <td align="right" style="padding:10px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:18px;font-weight:700;color:${BRAND.green};">${formatEuro(order.total)}</td>
+      </tr>
+    </table>`;
+}
+
+function orderItemsPlainText(items: OrderEmailItem[]): string {
+  return items
+    .map((item) => {
+      const attrs =
+        item.attributes && item.attributes.length
+          ? "\n" + item.attributes.map((a) => `  - ${a.label}: ${a.value}`).join("\n")
+          : "";
+      return `• ${item.name}${item.articleCode ? ` [${item.articleCode}]` : ""} x${item.quantity} — ${formatEuro(item.price * item.quantity)}${attrs}`;
+    })
+    .join("\n\n");
 }
 
 export async function sendOrderConfirmationToCustomer(order: OrderEmailData) {
-  const itemsHtml = order.items
-    .map(
-      (i) =>
-        `<tr>
-          <td style="padding:8px 12px;border-bottom:1px solid #eee;">${i.name}${i.variant ? ` <small style="color:#666;">(${i.variant})</small>` : ""}</td>
-          <td style="padding:8px 12px;border-bottom:1px solid #eee;text-align:center;">${i.quantity}</td>
-          <td style="padding:8px 12px;border-bottom:1px solid #eee;text-align:right;">€${(i.price * i.quantity).toFixed(2)}</td>
-        </tr>`
-    )
-    .join("");
-
-  const html = `
-    <div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#131313;">
-      <h1 style="background:#313b2e;color:#fff;padding:24px 32px;margin:0;font-size:22px;">Confirmação de Encomenda</h1>
-      <div style="padding:32px;">
-        <p>Olá <strong>${order.customerName}</strong>,</p>
-        <p>A sua encomenda foi recebida com sucesso. O número da sua encomenda é <strong>${order.orderNumber}</strong>.</p>
-        <table style="width:100%;border-collapse:collapse;margin:24px 0;">
-          <thead>
-            <tr style="background:#f5f5f4;">
-              <th style="padding:8px 12px;text-align:left;font-size:13px;">Produto</th>
-              <th style="padding:8px 12px;text-align:center;font-size:13px;">Qtd.</th>
-              <th style="padding:8px 12px;text-align:right;font-size:13px;">Valor</th>
-            </tr>
-          </thead>
-          <tbody>${itemsHtml}</tbody>
-          <tfoot>
-            <tr>
-              <td colspan="2" style="padding:8px 12px;text-align:right;font-weight:600;">Total</td>
-              <td style="padding:8px 12px;text-align:right;font-weight:700;">€${order.total.toFixed(2)}</td>
-            </tr>
-          </tfoot>
-        </table>
-        <p>Entraremos em contacto brevemente para confirmar os portes e a data de entrega.</p>
-        <p style="margin-top:32px;color:#5a5a59;font-size:13px;">Frebrico — info@frebrico.pt</p>
-      </div>
-    </div>`;
+  const body = `
+    <p style="margin:0 0 12px;">Olá <strong>${escapeHtml(order.customerName)}</strong>,</p>
+    <p style="margin:0 0 20px;">A sua encomenda foi recebida com sucesso. O número da encomenda é <strong>${escapeHtml(order.orderNumber)}</strong>.</p>
+    <h2 style="margin:0 0 14px;font-family:Arial,Helvetica,sans-serif;font-size:15px;letter-spacing:0.04em;text-transform:uppercase;color:${BRAND.muted};">Artigos</h2>
+    ${renderOrderItemsHtml(order.items)}
+    ${renderTotalsHtml(order)}
+    <p style="margin:0 0 8px;">Entraremos em contacto brevemente para confirmar os portes e a data de entrega.</p>
+  `;
 
   await sendMail({
     to: order.email,
     subject: `Confirmação da encomenda ${order.orderNumber} — Frebrico`,
-    html,
-    text: `Olá ${order.customerName},\n\nEncomenda ${order.orderNumber} recebida.\nTotal: €${order.total.toFixed(2)}\n\nFrebrico`,
+    html: emailShell({
+      title: "Confirmação de Encomenda",
+      preheader: `Encomenda ${order.orderNumber} recebida — total ${formatEuro(order.total)}`,
+      body,
+    }),
+    text: `Olá ${order.customerName},\n\nEncomenda ${order.orderNumber} recebida.\n\n${orderItemsPlainText(order.items)}\n\nTotal: ${formatEuro(order.total)}\n\nFrebrico`,
   });
 }
 
 export async function sendOrderNotificationToAdmin(order: OrderEmailData) {
-  const itemsText = order.items
-    .map((i) => `• ${i.name}${i.variant ? ` (${i.variant})` : ""} x${i.quantity} — €${(i.price * i.quantity).toFixed(2)}`)
-    .join("\n");
-
-  const html = `
-    <div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#131313;">
-      <h1 style="background:#313b2e;color:#fff;padding:24px 32px;margin:0;font-size:22px;">Nova Encomenda — ${order.orderNumber}</h1>
-      <div style="padding:32px;">
-        <h2 style="font-size:16px;">Dados do Cliente</h2>
-        <p><strong>Nome:</strong> ${order.customerName}<br>
-        <strong>Email:</strong> ${order.email}<br>
-        <strong>Telefone:</strong> ${order.phone}<br>
-        <strong>NIF:</strong> ${order.nif}<br>
-        <strong>Morada:</strong> ${order.address}, ${order.postalCode} ${order.locality}</p>
-        <h2 style="font-size:16px;margin-top:24px;">Artigos</h2>
-        <pre style="background:#f5f5f4;padding:16px;border-radius:8px;font-size:13px;">${itemsText}</pre>
-        <p><strong>Subtotal:</strong> €${order.subtotal.toFixed(2)}<br>
-        <strong>Total:</strong> €${order.total.toFixed(2)}</p>
-        ${order.observations ? `<h2 style="font-size:16px;margin-top:24px;">Observações</h2><p style="background:#f5f5f4;padding:16px;border-radius:8px;">${order.observations.replace(/\n/g, "<br>")}</p>` : ""}
-      </div>
-    </div>`;
+  const body = `
+    <h2 style="margin:0 0 10px;font-family:Arial,Helvetica,sans-serif;font-size:15px;letter-spacing:0.04em;text-transform:uppercase;color:${BRAND.muted};">Cliente</h2>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 22px;background:${BRAND.wash};border:1px solid ${BRAND.line};border-radius:12px;">
+      <tr>
+        <td style="padding:16px;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.55;color:${BRAND.ink};">
+          <strong>${escapeHtml(order.customerName)}</strong><br/>
+          ${escapeHtml(order.email)}<br/>
+          Tel. ${escapeHtml(order.phone)} · NIF ${escapeHtml(order.nif)}<br/>
+          ${escapeHtml(order.address)}, ${escapeHtml(order.postalCode)} ${escapeHtml(order.locality)}
+        </td>
+      </tr>
+    </table>
+    <h2 style="margin:0 0 14px;font-family:Arial,Helvetica,sans-serif;font-size:15px;letter-spacing:0.04em;text-transform:uppercase;color:${BRAND.muted};">Artigos</h2>
+    ${renderOrderItemsHtml(order.items)}
+    ${renderTotalsHtml(order)}
+    ${
+      order.observations
+        ? `<h2 style="margin:0 0 10px;font-family:Arial,Helvetica,sans-serif;font-size:15px;letter-spacing:0.04em;text-transform:uppercase;color:${BRAND.muted};">Observações</h2>
+           <p style="margin:0 0 16px;padding:14px 16px;background:${BRAND.wash};border:1px solid ${BRAND.line};border-radius:12px;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.5;color:${BRAND.ink};">${escapeHtml(order.observations).replace(/\n/g, "<br/>")}</p>`
+        : ""
+    }
+  `;
 
   await sendMail({
     to: ADMIN_EMAIL,
     subject: `Nova encomenda ${order.orderNumber} — ${order.customerName}`,
-    html,
+    html: emailShell({
+      title: `Nova Encomenda — ${order.orderNumber}`,
+      preheader: `${order.customerName} · ${formatEuro(order.total)} · ${order.items.length} artigo(s)`,
+      body,
+    }),
+    text: `Nova encomenda ${order.orderNumber}\nCliente: ${order.customerName}\n${order.email}\n${order.phone}\n\n${orderItemsPlainText(order.items)}\n\nTotal: ${formatEuro(order.total)}`,
   });
 }
 
