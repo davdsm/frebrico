@@ -219,6 +219,8 @@ export interface OrderEmailData {
   total: number;
   couponCode?: string;
   couponDiscount?: number;
+  /** Shipping already included in `total`, when known. */
+  shipping?: number;
 }
 
 function escapeHtml(value: unknown): string {
@@ -234,9 +236,11 @@ function formatEuro(value: number): string {
   return `€${Number(value || 0).toFixed(2)}`;
 }
 
+const WRAP = "word-break:break-word;overflow-wrap:break-word;";
+
 function emailShell(opts: { title: string; preheader?: string; body: string }): string {
   const preheader = opts.preheader
-    ? `<div style="display:none;font-size:1px;color:#ffffff;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">${escapeHtml(opts.preheader)}</div>`
+    ? `<div style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">${escapeHtml(opts.preheader)}</div>`
     : "";
   return `<!DOCTYPE html>
 <html lang="pt">
@@ -244,26 +248,33 @@ function emailShell(opts: { title: string; preheader?: string; body: string }): 
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>${escapeHtml(opts.title)}</title>
+  <style>
+    @media only screen and (max-width: 480px) {
+      .email-pad { padding-left: 16px !important; padding-right: 16px !important; }
+      .item-img, .item-copy { display: block !important; width: 100% !important; }
+      .item-img { padding: 0 0 12px 0 !important; }
+    }
+  </style>
 </head>
 <body style="margin:0;padding:0;background:${BRAND.wash};color:${BRAND.ink};">
   ${preheader}
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${BRAND.wash};padding:24px 12px;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;background:${BRAND.wash};">
     <tr>
-      <td align="center">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:640px;background:${BRAND.white};border-radius:16px;overflow:hidden;border:1px solid ${BRAND.line};">
+      <td align="center" style="padding:24px 12px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;max-width:640px;background:${BRAND.white};border-radius:16px;overflow:hidden;border:1px solid ${BRAND.line};table-layout:fixed;">
           <tr>
-            <td style="background:${BRAND.green};padding:28px 32px;">
+            <td class="email-pad" style="background:${BRAND.green};padding:28px 32px;${WRAP}">
               <p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.72);">Frebrico</p>
-              <h1 style="margin:8px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:24px;line-height:1.25;font-weight:700;color:${BRAND.white};">${escapeHtml(opts.title)}</h1>
+              <h1 style="margin:8px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:24px;line-height:1.25;font-weight:700;color:${BRAND.white};${WRAP}">${escapeHtml(opts.title)}</h1>
             </td>
           </tr>
           <tr>
-            <td style="padding:28px 32px 8px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;color:${BRAND.ink};">
+            <td class="email-pad" style="padding:28px 32px 8px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;color:${BRAND.ink};${WRAP}">
               ${opts.body}
             </td>
           </tr>
           <tr>
-            <td style="padding:8px 32px 28px;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.5;color:${BRAND.muted};border-top:1px solid ${BRAND.line};">
+            <td class="email-pad" style="padding:8px 32px 28px;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.5;color:${BRAND.muted};border-top:1px solid ${BRAND.line};${WRAP}">
               Frebrico — Comércio de Bricolage, Lda.<br/>
               info@frebrico.pt · +351 229 826 344
             </td>
@@ -282,15 +293,15 @@ function renderAttributesTable(attributes: OrderEmailItemAttribute[] | undefined
     .map(
       (attr) => `
       <tr>
-        <td style="padding:8px 10px;border-bottom:1px solid ${BRAND.line};font-family:Arial,Helvetica,sans-serif;font-size:12px;color:${BRAND.muted};width:42%;vertical-align:top;">${escapeHtml(attr.label)}</td>
-        <td style="padding:8px 10px;border-bottom:1px solid ${BRAND.line};font-family:Arial,Helvetica,sans-serif;font-size:13px;color:${BRAND.ink};font-weight:600;vertical-align:top;">${escapeHtml(attr.value)}</td>
+        <td style="padding:8px 10px;border-bottom:1px solid ${BRAND.line};font-family:Arial,Helvetica,sans-serif;font-size:12px;color:${BRAND.muted};vertical-align:top;${WRAP}">${escapeHtml(attr.label)}</td>
+        <td style="padding:8px 10px;border-bottom:1px solid ${BRAND.line};font-family:Arial,Helvetica,sans-serif;font-size:13px;color:${BRAND.ink};font-weight:600;vertical-align:top;${WRAP}">${escapeHtml(attr.value)}</td>
       </tr>`
     )
     .join("");
   return `
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:12px;background:${BRAND.wash};border:1px solid ${BRAND.line};border-radius:10px;overflow:hidden;">
       <tr>
-        <td style="padding:10px 12px 4px;font-family:Arial,Helvetica,sans-serif;font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:${BRAND.muted};font-weight:700;">
+        <td style="padding:10px 12px 4px;font-family:Arial,Helvetica,sans-serif;font-size:12px;letter-spacing:0.06em;text-transform:uppercase;color:${BRAND.muted};font-weight:700;${WRAP}">
           Variante escolhida
         </td>
       </tr>
@@ -307,26 +318,26 @@ function renderOrderItemsHtml(items: OrderEmailItem[]): string {
     .map((item) => {
       const lineTotal = item.price * item.quantity;
       const imageHtml = item.image
-        ? `<img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name)}" width="88" height="88" style="display:block;width:88px;height:88px;object-fit:cover;border-radius:12px;border:1px solid ${BRAND.line};background:${BRAND.wash};" />`
+        ? `<img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name)}" width="88" height="88" style="display:block;width:88px;max-width:100%;height:88px;object-fit:cover;border-radius:12px;border:1px solid ${BRAND.line};background:${BRAND.wash};" />`
         : `<div style="width:88px;height:88px;border-radius:12px;background:${BRAND.wash};border:1px solid ${BRAND.line};"></div>`;
       const codeHtml = item.articleCode
-        ? `<p style="margin:4px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:${BRAND.muted};">Código: <strong style="color:${BRAND.ink};">${escapeHtml(item.articleCode)}</strong></p>`
+        ? `<p style="margin:4px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:${BRAND.muted};${WRAP}">Código: <strong style="color:${BRAND.ink};">${escapeHtml(item.articleCode)}</strong></p>`
         : "";
       const descHtml = item.description
-        ? `<p style="margin:8px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.45;color:${BRAND.muted};">${escapeHtml(item.description)}</p>`
+        ? `<p style="margin:8px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.45;color:${BRAND.muted};${WRAP}">${escapeHtml(item.description)}</p>`
         : "";
       return `
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 16px;border:1px solid ${BRAND.line};border-radius:14px;overflow:hidden;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;margin:0 0 16px;border:1px solid ${BRAND.line};border-radius:14px;overflow:hidden;table-layout:fixed;">
         <tr>
           <td style="padding:16px;">
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;">
               <tr>
-                <td width="88" valign="top" style="padding-right:14px;">${imageHtml}</td>
-                <td valign="top">
-                  <p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.3;font-weight:700;color:${BRAND.ink};">${escapeHtml(item.name)}</p>
+                <td class="item-img" width="88" valign="top" style="width:88px;padding-right:14px;">${imageHtml}</td>
+                <td class="item-copy" valign="top" style="${WRAP}">
+                  <p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.3;font-weight:700;color:${BRAND.ink};${WRAP}">${escapeHtml(item.name)}</p>
                   ${codeHtml}
                   ${descHtml}
-                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:12px;">
+                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;margin-top:12px;">
                     <tr>
                       <td style="font-family:Arial,Helvetica,sans-serif;font-size:13px;color:${BRAND.muted};">Quantidade</td>
                       <td align="right" style="font-family:Arial,Helvetica,sans-serif;font-size:13px;font-weight:700;color:${BRAND.ink};">${item.quantity}</td>
@@ -355,22 +366,43 @@ function renderTotalsHtml(order: OrderEmailData): string {
   const couponRow =
     order.couponCode && Number(order.couponDiscount || 0) > 0
       ? `<tr>
-          <td style="padding:6px 0;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:${BRAND.muted};">Cupão (${escapeHtml(order.couponCode)})</td>
+          <td style="padding:6px 0;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:${BRAND.muted};${WRAP}">Cupão (${escapeHtml(order.couponCode)})</td>
           <td align="right" style="padding:6px 0;font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:700;color:${BRAND.ink};">−${formatEuro(Number(order.couponDiscount))}</td>
         </tr>`
       : "";
+  const shipping = Number(order.shipping || 0);
+  const shippingRow =
+    shipping > 0
+      ? `<tr>
+          <td style="padding:6px 0;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:${BRAND.muted};">Portes</td>
+          <td align="right" style="padding:6px 0;font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:700;color:${BRAND.ink};">${formatEuro(shipping)}</td>
+        </tr>`
+      : "";
   return `
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0 24px;border-top:1px solid ${BRAND.line};padding-top:12px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;margin:8px 0 24px;border-top:1px solid ${BRAND.line};padding-top:12px;table-layout:fixed;">
       <tr>
         <td style="padding:6px 0;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:${BRAND.muted};">Subtotal</td>
         <td align="right" style="padding:6px 0;font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:700;color:${BRAND.ink};">${formatEuro(order.subtotal)}</td>
       </tr>
       ${couponRow}
+      ${shippingRow}
       <tr>
         <td style="padding:10px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:16px;font-weight:700;color:${BRAND.ink};">Total</td>
         <td align="right" style="padding:10px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:18px;font-weight:700;color:${BRAND.green};">${formatEuro(order.total)}</td>
       </tr>
     </table>`;
+}
+
+function orderTotalsPlainText(order: OrderEmailData): string {
+  const lines = [`Subtotal: ${formatEuro(order.subtotal)}`];
+  if (order.couponCode && Number(order.couponDiscount || 0) > 0) {
+    lines.push(`Cupão (${order.couponCode}): −${formatEuro(Number(order.couponDiscount))}`);
+  }
+  if (Number(order.shipping || 0) > 0) {
+    lines.push(`Portes: ${formatEuro(Number(order.shipping))}`);
+  }
+  lines.push(`Total: ${formatEuro(order.total)}`);
+  return lines.join("\n");
 }
 
 function orderItemsPlainText(items: OrderEmailItem[]): string {
@@ -403,7 +435,7 @@ export async function sendOrderConfirmationToCustomer(order: OrderEmailData) {
       preheader: `Encomenda ${order.orderNumber} recebida — total ${formatEuro(order.total)}`,
       body,
     }),
-    text: `Olá ${order.customerName},\n\nEncomenda ${order.orderNumber} recebida.\n\n${orderItemsPlainText(order.items)}\n\nTotal: ${formatEuro(order.total)}\n\nFrebrico`,
+    text: `Olá ${order.customerName},\n\nEncomenda ${order.orderNumber} recebida.\n\n${orderItemsPlainText(order.items)}\n\n${orderTotalsPlainText(order)}\n\nFrebrico`,
   });
 }
 
@@ -439,7 +471,7 @@ export async function sendOrderNotificationToAdmin(order: OrderEmailData) {
       preheader: `${order.customerName} · ${formatEuro(order.total)} · ${order.items.length} artigo(s)`,
       body,
     }),
-    text: `Nova encomenda ${order.orderNumber}\nCliente: ${order.customerName}\n${order.email}\n${order.phone}\n\n${orderItemsPlainText(order.items)}\n\nTotal: ${formatEuro(order.total)}`,
+    text: `Nova encomenda ${order.orderNumber}\nCliente: ${order.customerName}\n${order.email}\n${order.phone}\n\n${orderItemsPlainText(order.items)}\n\n${orderTotalsPlainText(order)}`,
   });
 }
 

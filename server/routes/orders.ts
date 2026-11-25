@@ -49,8 +49,20 @@ function siteBaseUrl(): string {
 function absolutePublicUrl(path: string): string {
   const raw = String(path || "").trim();
   if (!raw) return "";
-  if (/^https?:\/\//i.test(raw)) return raw;
-  return `${siteBaseUrl()}${raw.startsWith("/") ? raw : `/${raw}`}`;
+  let candidate = raw;
+  if (!/^https?:\/\//i.test(raw)) {
+    // Reject javascript:, data: and any other scheme instead of pasting it onto the site origin.
+    if (/^[a-z][a-z0-9+.-]*:/i.test(raw)) return "";
+    candidate = `${siteBaseUrl()}${raw.startsWith("/") ? raw : `/${raw}`}`;
+  }
+  try {
+    const parsed = new URL(candidate);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return "";
+    if (parsed.username || parsed.password) return "";
+    return candidate;
+  } catch {
+    return "";
+  }
 }
 
 function stripHtmlToText(html: string, maxLen = 220): string {
@@ -70,25 +82,6 @@ function stripHtmlToText(html: string, maxLen = 220): string {
     .trim();
   if (text.length <= maxLen) return text;
   return `${text.slice(0, maxLen - 1).trim()}…`;
-}
-
-function findArticleCode(columns: string[], row: string[], variantKey?: string): string {
-  if (variantKey && !variantKey.startsWith("row:")) return variantKey;
-  const codeIdx = columns.findIndex((c) => {
-    const t = c.toLowerCase();
-    return (
-      (t.includes("código") ||
-        t.includes("codigo") ||
-        t.includes("cod ") ||
-        t === "cod" ||
-        t === "id" ||
-        t.includes("ref") ||
-        t.includes("artigo")) &&
-      !t.includes("descri")
-    );
-  });
-  if (codeIdx >= 0) return String(row[codeIdx] ?? "").trim();
-  return "";
 }
 
 function formatSpecPriceValue(raw: string): string {
@@ -172,7 +165,8 @@ function enrichOrderEmailItems(
       }
       if (rowIndex >= 0) {
         const row = specs.rows[rowIndex];
-        enriched.articleCode = findArticleCode(specs.columns, row, key) || enriched.articleCode;
+        const code = variantKeyFromRow(specs.columns, row, rowIndex);
+        if (!code.startsWith("row:")) enriched.articleCode = code;
         enriched.attributes = buildVariantAttributes(specs.columns, row, { includePrice: true });
       } else if (item.variant) {
         enriched.attributes = [{ label: "Variante", value: String(item.variant) }];
@@ -341,6 +335,7 @@ ordersRouter.post("/", attachOptionalAuth, (req, res) => {
     total: finalTotal,
     couponCode: appliedCouponCode || undefined,
     couponDiscount: couponDiscount || undefined,
+    shipping: shippingDelta > 0.009 ? Math.round(shippingDelta * 100) / 100 : undefined,
   };
   Promise.all([
     sendOrderConfirmationToCustomer(orderEmailData),

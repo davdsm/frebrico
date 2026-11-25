@@ -1,14 +1,12 @@
 /**
  * One-off preview: send both order emails to a given address.
- * Usage: node scripts/preview-order-emails.mjs geral@davdsm.pt
+ * Usage: node --import tsx scripts/preview-order-emails.mjs cliente@example.com
  */
-import { createRequire } from "module";
 import { pathToFileURL } from "url";
 import path from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const require = createRequire(import.meta.url);
 
 const to = (process.argv[2] || "geral@davdsm.pt").trim();
 
@@ -16,6 +14,7 @@ async function loadMail() {
   // Prefer compiled dist when running in container/production layout
   const candidates = [
     path.resolve(__dirname, "../dist/services/mail.js"),
+    path.resolve(__dirname, "../services/mail.ts"),
     path.resolve(__dirname, "../services/mail.js"),
     path.resolve("/app/dist/services/mail.js"),
   ];
@@ -27,7 +26,7 @@ async function loadMail() {
       // try next
     }
   }
-  throw new Error("Could not load mail module from dist");
+  throw new Error("Could not load mail module. Build the server or run this script with tsx.");
 }
 
 const sampleOrder = {
