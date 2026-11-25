@@ -329,11 +329,10 @@ function isVariantDescriptionLabel(label: string): boolean {
 /** Labels already covered elsewhere in the admin email (title / qty / price). */
 function isAdminRedundantAttributeLabel(label: string): boolean {
   const n = normalizeAttrKey(label);
-  // Descrição goes in the item title — omit from chips. Also drop code / price.
+  // Descrição + Código Artigo go in the item title — omit from chips. Drop price cols.
   return (
     isVariantDescriptionLabel(label) ||
-    /codigo/.test(n) ||
-    /artigo/.test(n) ||
+    isCodigoArtigoLabel(label) ||
     /preco/.test(n) ||
     /price/.test(n) ||
     /€/.test(n)
@@ -347,14 +346,14 @@ function findVariantDescription(item: OrderEmailItem): string {
   return item.name;
 }
 
+/** Only the specs column "Código Artigo" (not a generic product / variantKey code). */
+function isCodigoArtigoLabel(label: string): boolean {
+  const n = normalizeAttrKey(label);
+  return n === "codigo artigo" || n === "codigo do artigo" || (n.includes("codigo") && n.includes("artigo"));
+}
+
 function findArticleOrVariantCode(item: OrderEmailItem): string {
-  if (item.articleCode?.trim()) return item.articleCode.trim();
-  const fromAttrs = item.attributes?.find((a) => {
-    // "Descrição do artigo" is the variant title, not the code.
-    if (isVariantDescriptionLabel(a.label)) return false;
-    const n = normalizeAttrKey(a.label);
-    return Boolean(a.value?.trim()) && (/codigo/.test(n) || /artigo/.test(n));
-  });
+  const fromAttrs = item.attributes?.find((a) => isCodigoArtigoLabel(a.label) && a.value?.trim());
   return fromAttrs?.value?.trim() || "";
 }
 
