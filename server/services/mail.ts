@@ -363,7 +363,7 @@ function renderAdminItemTitleHtml(item: OrderEmailItem): string {
   const title = findVariantDescription(item);
   const code = findArticleOrVariantCode(item);
   if (!code) return escapeHtml(title);
-  return `<strong style="font-weight:700;">${escapeHtml(code)}</strong> <span style="font-weight:600;">${escapeHtml(title)}</span>`;
+  return `<span style="font-weight:600;">${escapeHtml(title)}</span> <span style="font-weight:400;color:${BRAND.muted};">-</span> <strong style="font-weight:700;">${escapeHtml(code)}</strong>`;
 }
 
 function compactAdminAttributes(attributes: OrderEmailItemAttribute[] | undefined): OrderEmailItemAttribute[] {
@@ -569,7 +569,7 @@ export async function sendOrderNotificationToAdmin(order: OrderEmailData) {
       const attrText = attrs.length ? ` (${attrs.map((a) => `${a.label}: ${a.value}`).join(" · ")})` : "";
       const code = findArticleOrVariantCode(item);
       const title = findVariantDescription(item);
-      const heading = code ? `${code} ${title}` : title;
+      const heading = code ? `${title} - ${code}` : title;
       return `• ${heading}${attrText} — qtd ${item.quantity} × ${formatEuro(item.price)} = ${formatEuro(item.price * item.quantity)}`;
     })
     .join("\n");
