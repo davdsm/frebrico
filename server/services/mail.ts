@@ -348,6 +348,8 @@ function findVariantDescription(item: OrderEmailItem): string {
 
 /** Only the specs column "Código Artigo" (not a generic product / variantKey code). */
 function isCodigoArtigoLabel(label: string): boolean {
+  // "Descrição do código do artigo" is the variant title, not the code column.
+  if (isVariantDescriptionLabel(label)) return false;
   const n = normalizeAttrKey(label);
   return n === "codigo artigo" || n === "codigo do artigo" || (n.includes("codigo") && n.includes("artigo"));
 }
