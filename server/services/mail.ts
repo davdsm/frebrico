@@ -313,6 +313,73 @@ function renderAttributesTable(attributes: OrderEmailItemAttribute[] | undefined
     </table>`;
 }
 
+function normalizeAttrKey(label: string): string {
+  return label
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+function isVariantDescriptionLabel(label: string): boolean {
+  const n = normalizeAttrKey(label);
+  return n === "descricao" || n.startsWith("descricao ") || n.includes("variante escolhida");
+}
+
+/** Labels already covered elsewhere in the admin email (title / qty / price). */
+function isAdminRedundantAttributeLabel(label: string): boolean {
+  const n = normalizeAttrKey(label);
+  // Descrição goes in the item title — omit from chips. Also drop code / price.
+  return (
+    isVariantDescriptionLabel(label) ||
+    /codigo/.test(n) ||
+    /artigo/.test(n) ||
+    /preco/.test(n) ||
+    /price/.test(n) ||
+    /€/.test(n)
+  );
+}
+
+function findVariantDescription(item: OrderEmailItem): string {
+  const fromAttrs = item.attributes?.find((a) => isVariantDescriptionLabel(a.label) && a.value?.trim());
+  if (fromAttrs?.value?.trim()) return fromAttrs.value.trim();
+  if (item.variant?.trim()) return item.variant.trim();
+  return item.name;
+}
+
+function findArticleOrVariantCode(item: OrderEmailItem): string {
+  if (item.articleCode?.trim()) return item.articleCode.trim();
+  const fromAttrs = item.attributes?.find((a) => {
+    const n = normalizeAttrKey(a.label);
+    return a.value?.trim() && (/codigo/.test(n) || /artigo/.test(n));
+  });
+  return fromAttrs?.value?.trim() || "";
+}
+
+function renderAdminItemTitleHtml(item: OrderEmailItem): string {
+  const title = findVariantDescription(item);
+  const code = findArticleOrVariantCode(item);
+  if (!code) return escapeHtml(title);
+  return `<strong style="font-weight:700;">${escapeHtml(code)}</strong> <span style="font-weight:600;">${escapeHtml(title)}</span>`;
+}
+
+function compactAdminAttributes(attributes: OrderEmailItemAttribute[] | undefined): OrderEmailItemAttribute[] {
+  if (!attributes?.length) return [];
+  return attributes.filter((a) => a.value?.trim() && !isAdminRedundantAttributeLabel(a.label));
+}
+
+function renderAdminAttributesCompact(attributes: OrderEmailItemAttribute[] | undefined): string {
+  const attrs = compactAdminAttributes(attributes);
+  if (!attrs.length) return "";
+  const chips = attrs
+    .map(
+      (attr) =>
+        `<span style="display:inline-block;margin:0 6px 4px 0;padding:2px 7px;background:${BRAND.wash};border:1px solid ${BRAND.line};border-radius:4px;font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.35;color:${BRAND.ink};"><span style="color:${BRAND.muted};">${escapeHtml(attr.label)}:</span> <strong>${escapeHtml(attr.value)}</strong></span>`
+    )
+    .join("");
+  return `<div style="margin-top:8px;line-height:1.4;">${chips}</div>`;
+}
+
 function renderOrderItemsHtml(items: OrderEmailItem[]): string {
   return items
     .map((item) => {
@@ -355,6 +422,36 @@ function renderOrderItemsHtml(items: OrderEmailItem[]): string {
                 </td>
               </tr>
             </table>
+          </td>
+        </tr>
+      </table>`;
+    })
+    .join("");
+}
+
+/** Compact line items for admin notification (no image / product blurb). */
+function renderAdminOrderItemsHtml(items: OrderEmailItem[]): string {
+  return items
+    .map((item) => {
+      const lineTotal = item.price * item.quantity;
+      return `
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 10px;border:1px solid ${BRAND.line};border-radius:10px;overflow:hidden;">
+        <tr>
+          <td style="padding:12px 14px;">
+            <p style="margin:0 0 8px;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.35;font-weight:600;color:${BRAND.ink};">${renderAdminItemTitleHtml(item)}</p>
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td style="font-family:Arial,Helvetica,sans-serif;font-size:12px;color:${BRAND.muted};">Qtd</td>
+                <td align="right" style="font-family:Arial,Helvetica,sans-serif;font-size:12px;font-weight:700;color:${BRAND.ink};">${item.quantity}</td>
+                <td width="16"></td>
+                <td style="font-family:Arial,Helvetica,sans-serif;font-size:12px;color:${BRAND.muted};">Unit.</td>
+                <td align="right" style="font-family:Arial,Helvetica,sans-serif;font-size:12px;font-weight:700;color:${BRAND.ink};">${formatEuro(item.price)}</td>
+                <td width="16"></td>
+                <td style="font-family:Arial,Helvetica,sans-serif;font-size:12px;color:${BRAND.muted};">Subtotal</td>
+                <td align="right" style="font-family:Arial,Helvetica,sans-serif;font-size:12px;font-weight:700;color:${BRAND.green};">${formatEuro(lineTotal)}</td>
+              </tr>
+            </table>
+            ${renderAdminAttributesCompact(item.attributes)}
           </td>
         </tr>
       </table>`;
@@ -452,8 +549,8 @@ export async function sendOrderNotificationToAdmin(order: OrderEmailData) {
         </td>
       </tr>
     </table>
-    <h2 style="margin:0 0 14px;font-family:Arial,Helvetica,sans-serif;font-size:15px;letter-spacing:0.04em;text-transform:uppercase;color:${BRAND.muted};">Artigos</h2>
-    ${renderOrderItemsHtml(order.items)}
+    <h2 style="margin:0 0 12px;font-family:Arial,Helvetica,sans-serif;font-size:15px;letter-spacing:0.04em;text-transform:uppercase;color:${BRAND.muted};">Artigos</h2>
+    ${renderAdminOrderItemsHtml(order.items)}
     ${renderTotalsHtml(order)}
     ${
       order.observations
@@ -463,6 +560,17 @@ export async function sendOrderNotificationToAdmin(order: OrderEmailData) {
     }
   `;
 
+  const adminPlainItems = order.items
+    .map((item) => {
+      const attrs = compactAdminAttributes(item.attributes);
+      const attrText = attrs.length ? ` (${attrs.map((a) => `${a.label}: ${a.value}`).join(" · ")})` : "";
+      const code = findArticleOrVariantCode(item);
+      const title = findVariantDescription(item);
+      const heading = code ? `${code} ${title}` : title;
+      return `• ${heading}${attrText} — qtd ${item.quantity} × ${formatEuro(item.price)} = ${formatEuro(item.price * item.quantity)}`;
+    })
+    .join("\n");
+
   await sendMail({
     to: ADMIN_EMAIL,
     subject: `Nova encomenda ${order.orderNumber} — ${order.customerName}`,
@@ -471,7 +579,7 @@ export async function sendOrderNotificationToAdmin(order: OrderEmailData) {
       preheader: `${order.customerName} · ${formatEuro(order.total)} · ${order.items.length} artigo(s)`,
       body,
     }),
-    text: `Nova encomenda ${order.orderNumber}\nCliente: ${order.customerName}\n${order.email}\n${order.phone}\n\n${orderItemsPlainText(order.items)}\n\n${orderTotalsPlainText(order)}`,
+    text: `Nova encomenda ${order.orderNumber}\nCliente: ${order.customerName}\n${order.email}\n${order.phone}\n\n${adminPlainItems}\n\n${orderTotalsPlainText(order)}`,
   });
 }
 

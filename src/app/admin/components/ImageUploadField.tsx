@@ -42,6 +42,9 @@ export type PickerImage = {
   original_name: string;
 };
 
+/** How many thumbnails to show before “Ver mais” in the existing-images picker. */
+const PICKER_INITIAL_VISIBLE = 5;
+
 /** Merge API upload records with extra paths (gallery, legacy imports, etc.). */
 export function mergePickerImages(
   records: UploadRecord[],
@@ -82,12 +85,28 @@ export function ImageUploadField({
   const [error, setError] = useState<string | null>(null);
   const [existingList, setExistingList] = useState<UploadRecord[]>([]);
   const [loadingList, setLoadingList] = useState(true);
+  const [showAllPicker, setShowAllPicker] = useState(false);
   const apiBase = getApiBase();
   const normalizedValue = normalizeUploadPathForMatch(value);
   const pickerImages = React.useMemo(
     () => mergePickerImages(existingList, extraPaths),
     [existingList, extraPaths]
   );
+  const visiblePickerImages = React.useMemo(() => {
+    if (showAllPicker || pickerImages.length <= PICKER_INITIAL_VISIBLE) {
+      return pickerImages;
+    }
+    const initial = pickerImages.slice(0, PICKER_INITIAL_VISIBLE);
+    // Keep the current selection visible even if it sits beyond the first page.
+    if (!normalizedValue) return initial;
+    const selected = pickerImages.find(
+      (item) => normalizeUploadPathForMatch(item.path) === normalizedValue
+    );
+    if (!selected) return initial;
+    if (initial.some((item) => item.key === selected.key)) return initial;
+    return [...initial.slice(0, PICKER_INITIAL_VISIBLE - 1), selected];
+  }, [pickerImages, showAllPicker, normalizedValue]);
+  const hiddenPickerCount = Math.max(0, pickerImages.length - PICKER_INITIAL_VISIBLE);
 
   const loadExisting = useCallback(async () => {
     setLoadingList(true);
@@ -104,6 +123,7 @@ export function ImageUploadField({
   }, [page, section, listUploadsForWholePage]);
 
   useEffect(() => {
+    setShowAllPicker(false);
     loadExisting();
   }, [loadExisting]);
 
@@ -168,23 +188,36 @@ export function ImageUploadField({
         ) : pickerImages.length === 0 ? (
           <p className="text-[12px] text-[#5a5a59]">Ainda não há imagens nesta secção. Carregue uma abaixo.</p>
         ) : (
-          <div className="flex flex-wrap gap-2">
-            {pickerImages.map((item) => {
-              const isSelected = normalizedValue !== "" && normalizedValue === normalizeUploadPathForMatch(item.path);
-              return (
-                <button
-                  key={item.key}
-                  type="button"
-                  onClick={() => onChange(item.path)}
-                  className={`rounded-lg border-2 overflow-hidden w-16 h-16 flex-shrink-0 transition-all focus:outline-none focus:ring-2 focus:ring-[#313b2e] focus:ring-offset-1 ${
-                    isSelected ? "border-[#313b2e] ring-2 ring-[#313b2e]/20" : "border-[#e5e5e3] hover:border-[#313b2e]/50"
-                  }`}
-                  title={item.original_name}
-                >
-                  <img src={`${apiBase}${item.path}`} alt={item.original_name} className="w-full h-full object-cover" />
-                </button>
-              );
-            })}
+          <div>
+            <div className="flex flex-wrap gap-2">
+              {visiblePickerImages.map((item) => {
+                const isSelected = normalizedValue !== "" && normalizedValue === normalizeUploadPathForMatch(item.path);
+                return (
+                  <button
+                    key={item.key}
+                    type="button"
+                    onClick={() => onChange(item.path)}
+                    className={`rounded-lg border-2 overflow-hidden w-16 h-16 flex-shrink-0 transition-all focus:outline-none focus:ring-2 focus:ring-[#313b2e] focus:ring-offset-1 ${
+                      isSelected ? "border-[#313b2e] ring-2 ring-[#313b2e]/20" : "border-[#e5e5e3] hover:border-[#313b2e]/50"
+                    }`}
+                    title={item.original_name}
+                  >
+                    <img src={`${apiBase}${item.path}`} alt={item.original_name} className="w-full h-full object-cover" />
+                  </button>
+                );
+              })}
+            </div>
+            {hiddenPickerCount > 0 && (
+              <button
+                type="button"
+                onClick={() => setShowAllPicker((open) => !open)}
+                className="mt-2 text-[12px] font-semibold text-[#313b2e] hover:underline underline-offset-2"
+              >
+                {showAllPicker
+                  ? "Ver menos"
+                  : `Ver mais (${pickerImages.length - visiblePickerImages.length} restantes)`}
+              </button>
+            )}
           </div>
         )}
       </div>
