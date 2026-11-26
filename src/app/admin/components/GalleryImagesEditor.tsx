@@ -1,6 +1,11 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useId } from "react";
 import { uploadImage, listUploads, getApiBase, type UploadRecord } from "../../content/api";
-import { normalizeUploadPathForMatch, mergePickerImages } from "./ImageUploadField";
+import {
+  normalizeUploadPathForMatch,
+  mergePickerImages,
+  getVisiblePickerImages,
+  PICKER_INITIAL_VISIBLE,
+} from "./ImageUploadField";
 
 interface GalleryImagesEditorProps {
   value: string[];
@@ -24,7 +29,9 @@ export function GalleryImagesEditor({
   const [error, setError] = useState<string | null>(null);
   const [existingList, setExistingList] = useState<UploadRecord[]>([]);
   const [loadingList, setLoadingList] = useState(true);
+  const [showAllPicker, setShowAllPicker] = useState(false);
   const apiBase = getApiBase();
+  const pickerListId = useId();
 
   const normalizedGallery = value.map(normalizeUploadPathForMatch).filter(Boolean);
 
@@ -32,6 +39,12 @@ export function GalleryImagesEditor({
     () => mergePickerImages(existingList, value),
     [existingList, value]
   );
+  const visiblePickerImages = React.useMemo(
+    () => getVisiblePickerImages(pickerImages, showAllPicker),
+    [pickerImages, showAllPicker]
+  );
+  const hiddenPickerCount = Math.max(0, pickerImages.length - PICKER_INITIAL_VISIBLE);
+  const hiddenNow = Math.max(0, pickerImages.length - visiblePickerImages.length);
 
   const loadExisting = useCallback(async () => {
     setLoadingList(true);
@@ -46,6 +59,7 @@ export function GalleryImagesEditor({
   }, [page, section]);
 
   useEffect(() => {
+    setShowAllPicker(false);
     loadExisting();
   }, [loadExisting]);
 
@@ -145,30 +159,45 @@ export function GalleryImagesEditor({
         ) : pickerImages.length === 0 ? (
           <p className="text-[12px] text-[#5a5a59]">Ainda não há imagens nesta secção. Carregue uma abaixo.</p>
         ) : (
-          <div className="flex flex-wrap gap-2">
-            {pickerImages.map((item) => {
-              const selected = isInGallery(item.path);
-              return (
-                <button
-                  key={item.key}
-                  type="button"
-                  onClick={() => (selected ? undefined : addImage(item.path))}
-                  disabled={selected}
-                  className={`rounded-lg border-2 overflow-hidden w-16 h-16 flex-shrink-0 transition-all focus:outline-none focus:ring-2 focus:ring-[#313b2e] focus:ring-offset-1 ${
-                    selected
-                      ? "border-[#313b2e] ring-2 ring-[#313b2e]/20 opacity-50 cursor-not-allowed"
-                      : "border-[#e5e5e3] hover:border-[#313b2e]/50"
-                  }`}
-                  title={selected ? `${item.original_name} (já na galeria)` : item.original_name}
-                >
-                  <img
-                    src={`${apiBase}${item.path}`}
-                    alt={item.original_name}
-                    className="w-full h-full object-cover"
-                  />
-                </button>
-              );
-            })}
+          <div>
+            <div id={pickerListId} className="flex flex-wrap gap-2">
+              {visiblePickerImages.map((item) => {
+                const selected = isInGallery(item.path);
+                return (
+                  <button
+                    key={item.key}
+                    type="button"
+                    onClick={() => (selected ? undefined : addImage(item.path))}
+                    disabled={selected}
+                    className={`rounded-lg border-2 overflow-hidden w-16 h-16 flex-shrink-0 transition-all focus:outline-none focus:ring-2 focus:ring-[#313b2e] focus:ring-offset-1 ${
+                      selected
+                        ? "border-[#313b2e] ring-2 ring-[#313b2e]/20 opacity-50 cursor-not-allowed"
+                        : "border-[#e5e5e3] hover:border-[#313b2e]/50"
+                    }`}
+                    title={selected ? `${item.original_name} (já na galeria)` : item.original_name}
+                  >
+                    <img
+                      src={`${apiBase}${item.path}`}
+                      alt={item.original_name}
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                );
+              })}
+            </div>
+            {hiddenPickerCount > 0 && (
+              <button
+                type="button"
+                aria-expanded={showAllPicker}
+                aria-controls={pickerListId}
+                onClick={() => setShowAllPicker((open) => !open)}
+                className="mt-2 inline-flex min-h-6 items-center rounded text-[12px] font-semibold text-[#313b2e] hover:underline underline-offset-2 focus:outline-none focus:ring-2 focus:ring-[#313b2e] focus:ring-offset-1"
+              >
+                {showAllPicker
+                  ? "Ver menos"
+                  : `Ver todas (${hiddenNow} ${hiddenNow === 1 ? "restante" : "restantes"})`}
+              </button>
+            )}
           </div>
         )}
       </div>

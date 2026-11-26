@@ -68,6 +68,76 @@ export function SpecsTableEditor({ value, onChange, label = "Especificações" }
   const columns = Array.isArray(data.columns) ? data.columns : [];
   const safeRows = Array.isArray(data.rows) ? data.rows : [];
   const onRequest = normalizeOnRequest(safeRows.length, data.on_request);
+  const scrollRef = React.useRef<HTMLDivElement>(null);
+  const dragRef = React.useRef<{ pointerId: number; startX: number; scrollLeft: number } | null>(null);
+  const [canScrollLeft, setCanScrollLeft] = React.useState(false);
+  const [canScrollRight, setCanScrollRight] = React.useState(false);
+  const [isDragging, setIsDragging] = React.useState(false);
+
+  const updateScrollButtons = React.useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) {
+      setCanScrollLeft(false);
+      setCanScrollRight(false);
+      return;
+    }
+    const max = el.scrollWidth - el.clientWidth;
+    setCanScrollLeft(el.scrollLeft > 2);
+    setCanScrollRight(max > 2 && el.scrollLeft < max - 2);
+  }, []);
+
+  React.useEffect(() => {
+    updateScrollButtons();
+    const el = scrollRef.current;
+    if (!el) return;
+    const onScroll = () => updateScrollButtons();
+    el.addEventListener("scroll", onScroll, { passive: true });
+    const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(() => updateScrollButtons()) : null;
+    ro?.observe(el);
+    return () => {
+      el.removeEventListener("scroll", onScroll);
+      ro?.disconnect();
+    };
+  }, [updateScrollButtons, columns.length, safeRows.length]);
+
+  const scrollTableBy = (delta: number) => {
+    scrollRef.current?.scrollBy({ left: delta, behavior: "smooth" });
+  };
+
+  const isInteractiveTarget = (target: EventTarget | null) => {
+    if (!(target instanceof HTMLElement)) return false;
+    return Boolean(target.closest("input, textarea, button, label, a, select, [role='button']"));
+  };
+
+  const onTablePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.button !== 0) return;
+    if (isInteractiveTarget(e.target)) return;
+    const el = scrollRef.current;
+    if (!el) return;
+    dragRef.current = { pointerId: e.pointerId, startX: e.clientX, scrollLeft: el.scrollLeft };
+    setIsDragging(true);
+    el.setPointerCapture(e.pointerId);
+  };
+
+  const onTablePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const drag = dragRef.current;
+    const el = scrollRef.current;
+    if (!drag || !el || drag.pointerId !== e.pointerId) return;
+    const dx = e.clientX - drag.startX;
+    el.scrollLeft = drag.scrollLeft - dx;
+  };
+
+  const endTableDrag = (e: React.PointerEvent<HTMLDivElement>) => {
+    const drag = dragRef.current;
+    if (!drag || drag.pointerId !== e.pointerId) return;
+    dragRef.current = null;
+    setIsDragging(false);
+    try {
+      scrollRef.current?.releasePointerCapture(e.pointerId);
+    } catch {
+      // ignore
+    }
+  };
 
   // Stable IDs so React can track column DOM elements across swaps
   const colIds = React.useRef<string[]>([]);
@@ -230,9 +300,31 @@ export function SpecsTableEditor({ value, onChange, label = "Especificações" }
 
   return (
     <div className="min-w-0 w-full">
-      <div className="flex items-center justify-between mb-2">
+      <div className="flex items-center justify-between gap-3 mb-2">
         <label className="block text-[13px] font-medium text-[#131313]">{label}</label>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-0.5 rounded-lg border border-[#e5e5e3] bg-white p-0.5">
+            <button
+              type="button"
+              onClick={() => scrollTableBy(-240)}
+              disabled={!canScrollLeft}
+              className="inline-flex h-7 w-7 items-center justify-center rounded-md text-[#313b2e] hover:bg-[#f5f5f4] disabled:opacity-25 disabled:hover:bg-transparent"
+              title="Deslizar tabela para a esquerda"
+              aria-label="Deslizar tabela para a esquerda"
+            >
+              ◀
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollTableBy(240)}
+              disabled={!canScrollRight}
+              className="inline-flex h-7 w-7 items-center justify-center rounded-md text-[#313b2e] hover:bg-[#f5f5f4] disabled:opacity-25 disabled:hover:bg-transparent"
+              title="Deslizar tabela para a direita"
+              aria-label="Deslizar tabela para a direita"
+            >
+              ▶
+            </button>
+          </div>
           <button type="button" onClick={addColumn} className="text-[12px] font-medium text-[#313b2e] hover:underline">
             + Coluna
           </button>
@@ -245,9 +337,20 @@ export function SpecsTableEditor({ value, onChange, label = "Especificações" }
         Defina as colunas (cabeçalhos) e preencha as linhas. Use <strong>Duplicar</strong> para copiar uma linha
         quase igual e alterar só o que muda (ex.: cor). Pode incluir uma coluna &quot;Preço (€)&quot; para mostrar o
         botão Adicionar ao carrinho. Marque <strong>Sob consulta</strong> numa linha para desativar o preço
-        (o valor fica guardado, mas no site aparece &quot;Sob Consulta&quot;).
+        (o valor fica guardado, mas no site aparece &quot;Sob Consulta&quot;). Use as setas ou arraste a tabela
+        horizontalmente se tiver muitas colunas.
       </p>
-      <div className="w-full rounded-xl border border-[#e5e5e3] bg-[#fafaf9] overflow-x-auto">
+      <div
+        ref={scrollRef}
+        className={cn(
+          "w-full rounded-xl border border-[#e5e5e3] bg-[#fafaf9] overflow-x-auto",
+          isDragging ? "cursor-grabbing" : "cursor-grab"
+        )}
+        onPointerDown={onTablePointerDown}
+        onPointerMove={onTablePointerMove}
+        onPointerUp={endTableDrag}
+        onPointerCancel={endTableDrag}
+      >
         <table
           className="w-full table-fixed border-collapse text-[13px]"
           style={{ minWidth: `${Math.max(520, columns.length * 148 + 196)}px` }}

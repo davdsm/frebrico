@@ -404,11 +404,11 @@ export function listUploads(pageSlug?: string, sectionKey?: string): UploadRow[]
   }
   if (pageSlug) {
     const stmt = database.prepare(
-      "SELECT * FROM uploads WHERE page_slug = ? ORDER BY section_key, created_at DESC"
+      "SELECT * FROM uploads WHERE page_slug = ? ORDER BY created_at DESC"
     );
     return stmt.all(pageSlug) as UploadRow[];
   }
-  const stmt = database.prepare("SELECT * FROM uploads ORDER BY page_slug, section_key, created_at DESC");
+  const stmt = database.prepare("SELECT * FROM uploads ORDER BY created_at DESC");
   return stmt.all() as UploadRow[];
 }
 

@@ -42,10 +42,10 @@ export type PickerImage = {
   original_name: string;
 };
 
-/** How many thumbnails to show before “Ver mais” in the existing-images picker. */
-const PICKER_INITIAL_VISIBLE = 5;
+/** How many thumbnails to show before “Ver todas” in existing-images pickers. */
+export const PICKER_INITIAL_VISIBLE = 5;
 
-/** Merge API upload records with extra paths (gallery, legacy imports, etc.). */
+/** Merge API upload records with extra paths (gallery, legacy imports, etc.). Newest uploads first. */
 export function mergePickerImages(
   records: UploadRecord[],
   extraPaths: string[] = []
@@ -64,10 +64,31 @@ export function mergePickerImages(
     });
   };
 
-  for (const p of extraPaths) addPath(p);
+  // API already returns created_at DESC — keep that order for “mais recentes”.
   for (const r of records) addPath(r.path, r.original_name);
+  for (const p of extraPaths) addPath(p);
 
   return result;
+}
+
+/** Collapse picker to the first N images; optionally keep a selected path visible when collapsed. */
+export function getVisiblePickerImages(
+  pickerImages: PickerImage[],
+  showAll: boolean,
+  preferSelectedPath?: string
+): PickerImage[] {
+  if (showAll || pickerImages.length <= PICKER_INITIAL_VISIBLE) {
+    return pickerImages;
+  }
+  const initial = pickerImages.slice(0, PICKER_INITIAL_VISIBLE);
+  const normalized = preferSelectedPath ? normalizeUploadPathForMatch(preferSelectedPath) : "";
+  if (!normalized) return initial;
+  const selected = pickerImages.find(
+    (item) => normalizeUploadPathForMatch(item.path) === normalized
+  );
+  if (!selected) return initial;
+  if (initial.some((item) => item.key === selected.key)) return initial;
+  return [...initial.slice(0, PICKER_INITIAL_VISIBLE - 1), selected];
 }
 
 export function ImageUploadField({
@@ -92,20 +113,10 @@ export function ImageUploadField({
     () => mergePickerImages(existingList, extraPaths),
     [existingList, extraPaths]
   );
-  const visiblePickerImages = React.useMemo(() => {
-    if (showAllPicker || pickerImages.length <= PICKER_INITIAL_VISIBLE) {
-      return pickerImages;
-    }
-    const initial = pickerImages.slice(0, PICKER_INITIAL_VISIBLE);
-    // Keep the current selection visible even if it sits beyond the first page.
-    if (!normalizedValue) return initial;
-    const selected = pickerImages.find(
-      (item) => normalizeUploadPathForMatch(item.path) === normalizedValue
-    );
-    if (!selected) return initial;
-    if (initial.some((item) => item.key === selected.key)) return initial;
-    return [...initial.slice(0, PICKER_INITIAL_VISIBLE - 1), selected];
-  }, [pickerImages, showAllPicker, normalizedValue]);
+  const visiblePickerImages = React.useMemo(
+    () => getVisiblePickerImages(pickerImages, showAllPicker, normalizedValue),
+    [pickerImages, showAllPicker, normalizedValue]
+  );
   const hiddenPickerCount = Math.max(0, pickerImages.length - PICKER_INITIAL_VISIBLE);
   const hiddenNow = Math.max(0, pickerImages.length - visiblePickerImages.length);
   const pickerListId = useId();
@@ -220,7 +231,7 @@ export function ImageUploadField({
               >
                 {showAllPicker
                   ? "Ver menos"
-                  : `Ver mais (${hiddenNow} ${hiddenNow === 1 ? "restante" : "restantes"})`}
+                  : `Ver todas (${hiddenNow} ${hiddenNow === 1 ? "restante" : "restantes"})`}
               </button>
             )}
           </div>
