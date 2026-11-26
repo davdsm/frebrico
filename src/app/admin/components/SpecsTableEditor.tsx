@@ -70,9 +70,11 @@ export function SpecsTableEditor({ value, onChange, label = "Especificações" }
   const onRequest = normalizeOnRequest(safeRows.length, data.on_request);
   const scrollRef = React.useRef<HTMLDivElement>(null);
   const dragRef = React.useRef<{ pointerId: number; startX: number; scrollLeft: number } | null>(null);
+  const scrollRegionId = React.useId();
   const [canScrollLeft, setCanScrollLeft] = React.useState(false);
   const [canScrollRight, setCanScrollRight] = React.useState(false);
   const [isDragging, setIsDragging] = React.useState(false);
+  const tableCanScroll = canScrollLeft || canScrollRight;
 
   const updateScrollButtons = React.useCallback(() => {
     const el = scrollRef.current;
@@ -101,7 +103,10 @@ export function SpecsTableEditor({ value, onChange, label = "Especificações" }
   }, [updateScrollButtons, columns.length, safeRows.length]);
 
   const scrollTableBy = (delta: number) => {
-    scrollRef.current?.scrollBy({ left: delta, behavior: "smooth" });
+    const reduceMotion =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    scrollRef.current?.scrollBy({ left: delta, behavior: reduceMotion ? "auto" : "smooth" });
   };
 
   const isInteractiveTarget = (target: EventTarget | null) => {
@@ -110,13 +115,19 @@ export function SpecsTableEditor({ value, onChange, label = "Especificações" }
   };
 
   const onTablePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (e.button !== 0) return;
+    if (e.button !== 0 || e.pointerType === "touch") return;
     if (isInteractiveTarget(e.target)) return;
     const el = scrollRef.current;
-    if (!el) return;
+    if (!el || el.scrollWidth - el.clientWidth <= 2) return;
     dragRef.current = { pointerId: e.pointerId, startX: e.clientX, scrollLeft: el.scrollLeft };
     setIsDragging(true);
-    el.setPointerCapture(e.pointerId);
+    e.preventDefault();
+    try {
+      el.setPointerCapture(e.pointerId);
+    } catch {
+      dragRef.current = null;
+      setIsDragging(false);
+    }
   };
 
   const onTablePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -300,17 +311,18 @@ export function SpecsTableEditor({ value, onChange, label = "Especificações" }
 
   return (
     <div className="min-w-0 w-full">
-      <div className="flex items-center justify-between gap-3 mb-2">
-        <label className="block text-[13px] font-medium text-[#131313]">{label}</label>
-        <div className="flex items-center gap-2 shrink-0">
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 mb-2">
+        <label className="text-[13px] font-medium text-[#131313]">{label}</label>
+        <div className="flex flex-wrap items-center gap-2">
           <div className="flex items-center gap-0.5 rounded-lg border border-[#e5e5e3] bg-white p-0.5">
             <button
               type="button"
               onClick={() => scrollTableBy(-240)}
               disabled={!canScrollLeft}
-              className="inline-flex h-7 w-7 items-center justify-center rounded-md text-[#313b2e] hover:bg-[#f5f5f4] disabled:opacity-25 disabled:hover:bg-transparent"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-md text-[14px] leading-none text-[#313b2e] hover:bg-[#f5f5f4] disabled:opacity-25 disabled:hover:bg-transparent"
               title="Deslizar tabela para a esquerda"
               aria-label="Deslizar tabela para a esquerda"
+              aria-controls={scrollRegionId}
             >
               ◀
             </button>
@@ -318,9 +330,10 @@ export function SpecsTableEditor({ value, onChange, label = "Especificações" }
               type="button"
               onClick={() => scrollTableBy(240)}
               disabled={!canScrollRight}
-              className="inline-flex h-7 w-7 items-center justify-center rounded-md text-[#313b2e] hover:bg-[#f5f5f4] disabled:opacity-25 disabled:hover:bg-transparent"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-md text-[14px] leading-none text-[#313b2e] hover:bg-[#f5f5f4] disabled:opacity-25 disabled:hover:bg-transparent"
               title="Deslizar tabela para a direita"
               aria-label="Deslizar tabela para a direita"
+              aria-controls={scrollRegionId}
             >
               ▶
             </button>
@@ -342,14 +355,18 @@ export function SpecsTableEditor({ value, onChange, label = "Especificações" }
       </p>
       <div
         ref={scrollRef}
+        id={scrollRegionId}
+        role="region"
+        aria-label={label}
         className={cn(
-          "w-full rounded-xl border border-[#e5e5e3] bg-[#fafaf9] overflow-x-auto",
-          isDragging ? "cursor-grabbing" : "cursor-grab"
+          "w-full max-w-full rounded-xl border border-[#e5e5e3] bg-[#fafaf9] overflow-x-auto overscroll-x-contain",
+          isDragging ? "cursor-grabbing select-none" : tableCanScroll ? "cursor-grab" : undefined
         )}
         onPointerDown={onTablePointerDown}
         onPointerMove={onTablePointerMove}
         onPointerUp={endTableDrag}
         onPointerCancel={endTableDrag}
+        onLostPointerCapture={endTableDrag}
       >
         <table
           className="w-full table-fixed border-collapse text-[13px]"
